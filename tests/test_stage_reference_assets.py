@@ -85,9 +85,11 @@ def test_stage_m1_title_animation_uses_exact_sea_tile_crops(tmp_path: Path, refe
     metadata = json.loads((out / "title_anim.json").read_text(encoding="utf-8"))
     assert metadata == {
         "type": "regular_bg",
-        "height": 256,
         "bpp_mode": "bpp_8",
-        "compression": "auto_no_huffman",
+        "tiles_compression": "auto_no_huffman",
+        "palette_compression": "auto_no_huffman",
+        "map_compression": "none",
+        "height": 256,
     }
     assert {record["output_path"] for record in records} == {
         "graphics/title_anim.bmp",
@@ -278,8 +280,10 @@ def test_stage_m2_water_splash_coin_hud_and_meter_use_recovered_tiles(tmp_path: 
     assert spal[sidx(8 + 6, 256 + 48 + 128)] == sea.rgba_at(6, 4)[:3]
     assert spal[sidx(8 + 4, 2 * 256 + 48 + 129)] == sea.rgba_at(4, 9)[:3]
     assert json.loads((out / "fishing_lake.json").read_text()) == {
-        "type": "regular_bg", "height": 256,
-        "bpp_mode": "bpp_8", "compression": "auto_no_huffman",
+        "type": "regular_bg", "bpp_mode": "bpp_8",
+        "tiles_compression": "auto_no_huffman",
+        "palette_compression": "auto_no_huffman",
+        "map_compression": "none", "height": 256,
     }
 
     dims = {
@@ -384,8 +388,10 @@ def test_stage_m3_all_fishing_backgrounds_preserve_native_pixels_and_sea_frames(
         assert palette[index_at(8 + 6, 256 + 48 + 128)] == sea.rgba_at(6, 4)[:3]
         assert palette[index_at(8 + 4, 2 * 256 + 48 + 129)] == sea.rgba_at(4, 9)[:3]
         assert json.loads((out / f"{stem}.json").read_text()) == {
-            "type": "regular_bg", "height": 256,
-            "bpp_mode": "bpp_8", "compression": "auto_no_huffman",
+            "type": "regular_bg", "bpp_mode": "bpp_8",
+            "tiles_compression": "auto_no_huffman",
+            "palette_compression": "auto_no_huffman",
+            "map_compression": "none", "height": 256,
         }
 
 

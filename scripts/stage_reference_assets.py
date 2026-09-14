@@ -51,6 +51,15 @@ _REGULAR_BG_METADATA = {
     "compression": "auto_no_huffman",
 }
 
+_ANIMATED_REGULAR_BG_METADATA = {
+    "type": "regular_bg",
+    "bpp_mode": "bpp_8",
+    "tiles_compression": "auto_no_huffman",
+    "palette_compression": "auto_no_huffman",
+    "map_compression": "none",
+    "height": 256,
+}
+
 
 def read_apk_member(apk_path: Path, member: str) -> bytes:
     with zipfile.ZipFile(apk_path, "r") as archive:
@@ -170,8 +179,7 @@ def _stage_title_animation(apk_path: Path, graphics_dir: Path) -> dict[str, obje
     stacked = stack_rgba_vertical(maps)
     bmp_path = graphics_dir / "title_anim.bmp"
     write_indexed_bmp(bmp_path, stacked)
-    metadata = dict(_REGULAR_BG_METADATA)
-    metadata["height"] = 256
+    metadata = dict(_ANIMATED_REGULAR_BG_METADATA)
     _write_json(graphics_dir / "title_anim.json", metadata)
 
     combined_source = title_source + sea_source
@@ -394,8 +402,7 @@ def stage_m2_assets(apk_path: Path, graphics_dir: Path) -> list[dict[str, object
     lake_sheet = stack_rgba_vertical(lake_maps)
     lake_path = graphics_dir / "fishing_lake.bmp"
     write_indexed_bmp(lake_path, lake_sheet)
-    lake_metadata = dict(_REGULAR_BG_METADATA)
-    lake_metadata["height"] = 256
+    lake_metadata = dict(_ANIMATED_REGULAR_BG_METADATA)
     _write_json(graphics_dir / "fishing_lake.json", lake_metadata)
     records.append(_record(
         source_member=f"{CRYSTAL_LAKE_MEMBER}+{SEA_TILES_MEMBER}",
@@ -533,8 +540,7 @@ def _stage_fishing_area_background(
     sheet = stack_rgba_vertical(maps)
     bmp_path = graphics_dir / f"{stem}.bmp"
     write_indexed_bmp(bmp_path, sheet)
-    metadata = dict(_REGULAR_BG_METADATA)
-    metadata["height"] = 256
+    metadata = dict(_ANIMATED_REGULAR_BG_METADATA)
     _write_json(graphics_dir / f"{stem}.json", metadata)
     return _record(
         source_member=f"{member}+{SEA_TILES_MEMBER}",
@@ -777,8 +783,7 @@ def stage_m7_assets(apk_path: Path, graphics_dir: Path) -> list[dict[str, object
     sheet = stack_rgba_vertical(maps)
     options_path = graphics_dir / "m7_options_anim.bmp"
     write_indexed_bmp(options_path, sheet)
-    metadata = dict(_REGULAR_BG_METADATA)
-    metadata["height"] = 256
+    metadata = dict(_ANIMATED_REGULAR_BG_METADATA)
     _write_json(graphics_dir / "m7_options_anim.json", metadata)
     records.append(_record(
         source_member=f"{OPTIONS_MEMBER}+{SEA_TILES_MEMBER}:M7-native-only",

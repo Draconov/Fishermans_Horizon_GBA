@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
+import struct
 
 
 def test_makefile_declares_butano_project():
@@ -332,3 +334,28 @@ def test_m7_fishing_dialogs_and_global_presentation_effects_are_wired():
     assert "PresentationEffects _presentation" in app_header
     assert "bn::bg_palettes::set_fade_intensity" in app_source
     assert "bn::sprite_palettes::set_fade_intensity" in app_source
+
+
+def test_multimap_regular_backgrounds_leave_map_data_uncompressed():
+    """Butano cannot index compressed regular BG items that contain multiple maps."""
+    offenders = []
+    for metadata_path in sorted(Path("graphics").glob("*.json")):
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        if metadata.get("type") != "regular_bg":
+            continue
+
+        bitmap_path = metadata_path.with_suffix(".bmp")
+        if not bitmap_path.is_file():
+            continue
+
+        bitmap = bitmap_path.read_bytes()
+        width, height = struct.unpack_from("<ii", bitmap, 18)
+        frame_height = int(metadata.get("height", abs(height)))
+        maps_count = abs(height) // frame_height
+        if maps_count <= 1:
+            continue
+
+        if metadata.get("compression", "none") != "none" or metadata.get("map_compression", "none") != "none":
+            offenders.append(f"{metadata_path.name}:{maps_count}")
+
+    assert not offenders, f"compressed multi-map regular backgrounds are unsupported by Butano: {offenders}"
