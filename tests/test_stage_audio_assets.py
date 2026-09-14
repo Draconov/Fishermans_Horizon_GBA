@@ -13,7 +13,7 @@ from scripts.stage_audio_assets import stage_audio_assets
 APK = Path('/mnt/data/fishermans-horizon-1-1.apk')
 
 EXPECTED_OUTPUTS = {
-    'title.wav', 'welcome.wav', 'mari_mari.wav', 'select.wav',
+    'title.s3m', 'welcome.wav', 'mari_mari.wav', 'select.wav',
     'coil.wav', 'coin.wav', 'fanfare.wav', 'fish_catch_bait.wav',
     'intro.wav', 'line_break.wav', 'next_page.wav', 'throw_sfx.wav', 'water.wav',
 }
@@ -30,24 +30,27 @@ def test_stage_audio_assets_are_deterministic_gba_pcm(tmp_path: Path):
     stage_audio_assets(APK, a, manifest_a)
     stage_audio_assets(APK, b, manifest_b)
 
-    assert {p.name for p in a.glob('*.wav')} == EXPECTED_OUTPUTS
+    assert {p.name for p in a.iterdir() if p.is_file()} == EXPECTED_OUTPUTS
     assert manifest_a.read_bytes() == manifest_b.read_bytes()
     for name in EXPECTED_OUTPUTS:
         assert (a / name).read_bytes() == (b / name).read_bytes()
-        with wave.open(str(a / name), 'rb') as wav:
-            assert wav.getnchannels() == 1
-            assert wav.getsampwidth() == 1
-            assert wav.getframerate() == 16000
-            assert wav.getnframes() > 0
+        if name.endswith('.wav'):
+            with wave.open(str(a / name), 'rb') as wav:
+                assert wav.getnchannels() == 1
+                assert wav.getsampwidth() == 1
+                assert wav.getframerate() == 16000
+                assert wav.getnframes() > 0
 
     manifest = json.loads(manifest_a.read_text())
     assert manifest['sample_rate'] == 16000
     assert manifest['sample_width_bits'] == 8
     assert len(manifest['assets']) == 13
-    title = next(item for item in manifest['assets'] if item['output'] == 'title.wav')
+    title = next(item for item in manifest['assets'] if item['output'] == 'title.s3m')
     assert title['source'] == 'assets/audio/music/title.mp3'
     assert 658000 <= title['frames'] <= 661000
-    assert title['sha256'] == __import__('hashlib').sha256((a / 'title.wav').read_bytes()).hexdigest()
+    assert title['format'] == 's3m'
+    assert title['chunk_count'] >= 2
+    assert title['sha256'] == __import__('hashlib').sha256((a / 'title.s3m').read_bytes()).hexdigest()
 
 
 def test_makefile_imports_staged_audio():
@@ -77,23 +80,21 @@ def test_staged_audio_names_are_safe_butano_cpp_identifiers():
         assert not keyword.iskeyword(stem), stem
 
 
-def test_title_music_is_staged_with_gba_loudness_gain(tmp_path: Path):
+def test_title_music_is_staged_as_chunked_s3m(tmp_path: Path):
     if shutil.which('ffmpeg') is None:
         pytest.skip('ffmpeg unavailable')
 
     out = tmp_path / 'audio'
     manifest_path = tmp_path / 'manifest.json'
     manifest = stage_audio_assets(APK, out, manifest_path)
-    title = next(item for item in manifest['assets'] if item['output'] == 'title.wav')
-    assert title['gain_db'] == 6.0
+    title = next(item for item in manifest['assets'] if item['output'] == 'title.s3m')
+    data = (out / 'title.s3m').read_bytes()
 
-    with wave.open(str(out / 'title.wav'), 'rb') as wav:
-        pcm = wav.readframes(wav.getnframes())
-    centered = [sample - 128 for sample in pcm]
-    rms = math.sqrt(sum(sample * sample for sample in centered) / len(centered))
-    peak = max(abs(sample) for sample in centered)
-
-    # Canonical decode is about -30.8dBFS / peak 28. +6dB raises it into
-    # the practical range of the other scene tracks without clipping.
-    assert 7.0 <= rms <= 8.5
-    assert 52 <= peak <= 58
+    assert title['format'] == 's3m'
+    assert title['source'] == 'assets/audio/music/title.mp3'
+    assert title['sample_rate'] == 16000
+    assert title['chunk_count'] == 11
+    assert title['frames'] >= 658000
+    assert data[44:48] == b'SCRM'
+    assert b'SCRS' in data
+    assert not (out / 'title.wav').exists()

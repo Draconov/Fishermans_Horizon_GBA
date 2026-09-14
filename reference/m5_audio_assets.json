@@ -3,6 +3,7 @@
     {
       "bytes": 4224,
       "duration_ms": 261.25,
+      "format": "wav",
       "frames": 4180,
       "gain_db": 0.0,
       "output": "coil.wav",
@@ -13,6 +14,7 @@
     {
       "bytes": 27544,
       "duration_ms": 1718.75,
+      "format": "wav",
       "frames": 27500,
       "gain_db": 0.0,
       "output": "coin.wav",
@@ -23,6 +25,7 @@
     {
       "bytes": 7567,
       "duration_ms": 470.188,
+      "format": "wav",
       "frames": 7523,
       "gain_db": 0.0,
       "output": "fanfare.wav",
@@ -33,6 +36,7 @@
     {
       "bytes": 27544,
       "duration_ms": 1718.75,
+      "format": "wav",
       "frames": 27500,
       "gain_db": 0.0,
       "output": "fish_catch_bait.wav",
@@ -43,6 +47,7 @@
     {
       "bytes": 14255,
       "duration_ms": 888.188,
+      "format": "wav",
       "frames": 14211,
       "gain_db": 0.0,
       "output": "intro.wav",
@@ -53,6 +58,7 @@
     {
       "bytes": 27544,
       "duration_ms": 1718.75,
+      "format": "wav",
       "frames": 27500,
       "gain_db": 0.0,
       "output": "line_break.wav",
@@ -63,6 +69,7 @@
     {
       "bytes": 55633,
       "duration_ms": 3474.312,
+      "format": "wav",
       "frames": 55589,
       "gain_db": 0.0,
       "output": "mari_mari.wav",
@@ -73,6 +80,7 @@
     {
       "bytes": 2494,
       "duration_ms": 153.125,
+      "format": "wav",
       "frames": 2450,
       "gain_db": 0.0,
       "output": "next_page.wav",
@@ -83,6 +91,7 @@
     {
       "bytes": 55633,
       "duration_ms": 3474.312,
+      "format": "wav",
       "frames": 55589,
       "gain_db": 0.0,
       "output": "select.wav",
@@ -93,6 +102,7 @@
     {
       "bytes": 27544,
       "duration_ms": 1718.75,
+      "format": "wav",
       "frames": 27500,
       "gain_db": 0.0,
       "output": "throw_sfx.wav",
@@ -101,18 +111,22 @@
       "source_sha256": "0444df841d4642aae0093cbfb4069344763c6ab61bcca5a4d2091e6a70ff75a4"
     },
     {
-      "bytes": 659166,
+      "bytes": 660706,
+      "chunk_count": 11,
       "duration_ms": 41195.125,
+      "format": "s3m",
       "frames": 659122,
       "gain_db": 6.0,
-      "output": "title.wav",
-      "sha256": "a9ac76d8eb732e02ceb14c93fe8d49be273b8b8d6afa5e6eb2611ee32a6092cd",
+      "output": "title.s3m",
+      "sample_rate": 16000,
+      "sha256": "41247cc5311339de3b10ac5dbe832b63e590fe158fcd8e4835268e9ed2d14b9f",
       "source": "assets/audio/music/title.mp3",
       "source_sha256": "3280ceae2511c6343bc94df5cb9ca0a08c2587e458f72a74f0ab3a2c290b2a80"
     },
     {
       "bytes": 27544,
       "duration_ms": 1718.75,
+      "format": "wav",
       "frames": 27500,
       "gain_db": 0.0,
       "output": "water.wav",
@@ -123,6 +137,7 @@
     {
       "bytes": 110385,
       "duration_ms": 6896.312,
+      "format": "wav",
       "frames": 110341,
       "gain_db": 0.0,
       "output": "welcome.wav",

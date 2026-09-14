@@ -83,6 +83,16 @@ public:
     const sprite_tiles_item& tiles_item() const { static sprite_tiles_item item; return item; }
 };
 
+class music_item {
+public:
+    void play(fixed, bool) const {}
+};
+
+namespace music {
+inline bool playing() { return false; }
+inline void stop() {}
+}
+
 class sound_handle {
 public:
     sound_handle() = default;
@@ -160,7 +170,7 @@ template<class T> void write(const T&) {}
 
 CORE_HEADERS = {
     "bn_bg_palettes.h", "bn_color.h", "bn_core.h", "bn_fixed.h", "bn_keypad.h",
-    "bn_optional.h", "bn_random.h", "bn_regular_bg_ptr.h", "bn_sound_handle.h",
+    "bn_music.h", "bn_optional.h", "bn_random.h", "bn_regular_bg_ptr.h", "bn_sound_handle.h",
     "bn_sprite_palettes.h", "bn_sprite_ptr.h", "bn_sram.h", "bn_vector.h",
 }
 
@@ -197,6 +207,12 @@ def _write_shim(directory: Path) -> None:
     sound_items = "".join(f" inline const sound_item {name}{{}};" for name in sound_names)
     (directory / "bn_sound_items.h").write_text(
         '#pragma once\n#include "bn_stub.h"\nnamespace bn::sound_items {' + sound_items + '}\n',
+        encoding="utf-8",
+    )
+    music_names = sorted(path.stem for path in (ROOT / "audio").glob("*.s3m"))
+    music_items = "".join(f" inline const music_item {name}{{}};" for name in music_names)
+    (directory / "bn_music_items.h").write_text(
+        '#pragma once\n#include "bn_stub.h"\nnamespace bn::music_items {' + music_items + '}\n',
         encoding="utf-8",
     )
 

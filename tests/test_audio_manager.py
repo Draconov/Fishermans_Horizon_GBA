@@ -26,8 +26,11 @@ def test_audio_manager_uses_staged_sound_items_and_never_missing_text_se():
     source = (ROOT / 'src/audio_manager.cpp').read_text()
     assert 'class AudioManager' in header
     assert '#include "bn_sound_items.h"' in source
+    assert '#include "bn_music_items.h"' in source
     assert source.count('#include "bn_sound_items') == 1
-    for item in ['title', 'welcome', 'mari_mari', 'select', 'next_page', 'coin', 'throw_sfx', 'line_break', 'fish_catch_bait', 'water', 'fanfare', 'coil']:
+    assert 'bn::music_items::title.play' in source
+    assert 'bn::sound_items::title' not in source
+    for item in ['welcome', 'mari_mari', 'select', 'next_page', 'coin', 'throw_sfx', 'line_break', 'fish_catch_bait', 'water', 'fanfare', 'coil']:
         assert f'bn::sound_items::{item}' in source
     assert 'bn::sound_items::throw.' not in source
     assert 'text_se' not in source.lower()
