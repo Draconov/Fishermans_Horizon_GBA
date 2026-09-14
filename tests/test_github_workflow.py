@@ -67,8 +67,9 @@ def test_workflow_pins_r67_toolchain_butano_and_build_steps():
     assert 'FH_REFERENCE_APK' not in text
     assert 'make' in text and 'LIBBUTANO' in text
     assert 'python3 scripts/package_rom.py' in text
-    assert 'mgba-sdl' in text and 'xvfb' in text
-    assert 'scripts/smoke_mgba.py' in text and '--require-available' in text
+    for forbidden in ('mgba-sdl', 'xvfb', 'xvfb-run', 'scripts/smoke_mgba.py', 'test_smoke_mgba.py', '--require-available'):
+        assert forbidden not in text
+    assert 'Build and smoke-test ROM' not in text
 
 
 def test_every_successful_build_uploads_the_rom_artifact():

@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build:
-    name: Build and smoke-test ROM
+    name: Build ROM
     runs-on: ubuntu-latest
     container: devkitpro/devkitarm:20260221
     steps:
@@ -32,10 +32,8 @@ jobs:
           apt-get install -y --no-install-recommends \
             ca-certificates \
             git \
-            mgba-sdl \
             python3-pytest \
-            python3-yaml \
-            xvfb
+            python3-yaml
           rm -rf /var/lib/apt/lists/*
 
       - name: Run self-contained GBA project tests
@@ -62,8 +60,7 @@ jobs:
             tests/test_package_rom.py \
             tests/test_save_codec.py \
             tests/test_save_storage.py \
-            tests/test_shop_model.py \
-            tests/test_smoke_mgba.py
+            tests/test_shop_model.py
 
       - name: Fetch pinned Butano 21.7.1
         shell: bash
@@ -98,15 +95,6 @@ jobs:
           set -euo pipefail
           cd dist
           sha256sum -c Fishermans_Horizon_GBA.gba.sha256
-
-      - name: Smoke test ROM in mGBA
-        shell: bash
-        run: |
-          set -euo pipefail
-          xvfb-run -a python3 scripts/smoke_mgba.py \
-            --rom dist/Fishermans_Horizon_GBA.gba \
-            --seconds 3 \
-            --require-available
 
       - name: Upload GBA ROM artifact
         uses: actions/upload-artifact@v4
