@@ -8,6 +8,21 @@ from scripts.stage_reference_assets import read_apk_member, stage_title
 from tools.png_asset import decode_rgba_png
 
 
+def _expected_sprite_metadata(width: int, height: int, *, bpp_mode: str, graphics_count: int) -> dict[str, object]:
+    metadata: dict[str, object] = {
+        "type": "sprite",
+        "width": width,
+        "height": height,
+        "bpp_mode": bpp_mode,
+    }
+    if graphics_count > 1:
+        metadata["tiles_compression"] = "none"
+        metadata["palette_compression"] = "auto_no_huffman"
+    else:
+        metadata["compression"] = "auto_no_huffman"
+    return metadata
+
+
 def _read_bmp(path: Path):
     data = path.read_bytes()
     assert data[:2] == b"BM"
@@ -146,13 +161,7 @@ def test_stage_m1_map_spots_uses_recovered_tiles_100_through_103(tmp_path: Path,
     assert palette[index_at(24 + 3, 7)] == (235, 255, 227)
 
     metadata = json.loads((out / "map_spots.json").read_text(encoding="utf-8"))
-    assert metadata == {
-        "type": "sprite",
-        "width": 8,
-        "height": 16,
-        "bpp_mode": "bpp_8",
-        "compression": "auto_no_huffman",
-    }
+    assert metadata == _expected_sprite_metadata(8, 16, bpp_mode="bpp_8", graphics_count=4)
 
 
 def _first_opaque_pixel(image, x0: int, y0: int, width: int, height: int):
@@ -201,18 +210,15 @@ def test_stage_m2_character_and_rod_frames_preserve_exact_source_crops(tmp_path:
         piece = dy // 32
         assert rpal[ridx((frame * 2 + piece) * 16 + dx, dy % 32)] == rgb
 
-    assert json.loads((out / "fishing_char.json").read_text()) == {
-        "type": "sprite", "width": 32, "height": 64,
-        "bpp_mode": "bpp_4", "compression": "auto_no_huffman",
-    }
-    assert json.loads((out / "fishing_rod_left.json").read_text()) == {
-        "type": "sprite", "width": 64, "height": 64,
-        "bpp_mode": "bpp_4", "compression": "auto_no_huffman",
-    }
-    assert json.loads((out / "fishing_rod_right.json").read_text()) == {
-        "type": "sprite", "width": 16, "height": 32,
-        "bpp_mode": "bpp_4", "compression": "auto_no_huffman",
-    }
+    assert json.loads((out / "fishing_char.json").read_text()) == _expected_sprite_metadata(
+        32, 64, bpp_mode="bpp_4", graphics_count=16
+    )
+    assert json.loads((out / "fishing_rod_left.json").read_text()) == _expected_sprite_metadata(
+        64, 64, bpp_mode="bpp_4", graphics_count=12
+    )
+    assert json.loads((out / "fishing_rod_right.json").read_text()) == _expected_sprite_metadata(
+        16, 32, bpp_mode="bpp_4", graphics_count=24
+    )
 
 
 def test_stage_m2_bait_and_fish_atlases_are_4bpp_safe_and_keep_source_mapping(tmp_path: Path, reference_apk: Path):
@@ -255,10 +261,11 @@ def test_stage_m2_bait_and_fish_atlases_are_4bpp_safe_and_keep_source_mapping(tm
 
     for stem in ("fishing_bait", "fishing_fish_a", "fishing_fish_b"):
         metadata = json.loads((out / f"{stem}.json").read_text())
-        assert metadata == {
-            "type": "sprite", "width": 16, "height": 32,
-            "bpp_mode": "bpp_4", "compression": "auto_no_huffman",
-        }
+        assert metadata == _expected_sprite_metadata(
+            16, 32, bpp_mode="bpp_4", graphics_count={
+                "fishing_bait": 15, "fishing_fish_a": 4, "fishing_fish_b": 5
+            }[stem]
+        )
         _w, _h, _palette, frame_index_at = _read_bmp(out / f"{stem}.bmp")
         assert len({frame_index_at(x, y) for y in range(_h) for x in range(_w)}) <= 16
 
@@ -302,10 +309,10 @@ def test_stage_m2_water_splash_coin_hud_and_meter_use_recovered_tiles(tmp_path: 
         ("fishing_hud", 16, 16),
         ("fishing_meter", 8, 8),
     ):
-        assert json.loads((out / f"{stem}.json").read_text()) == {
-            "type": "sprite", "width": width, "height": height,
-            "bpp_mode": "bpp_4", "compression": "auto_no_huffman",
-        }
+        graphics_count = {"fishing_splash": 6, "fishing_coin": 3, "fishing_hud": 2, "fishing_meter": 1}[stem]
+        assert json.loads((out / f"{stem}.json").read_text()) == _expected_sprite_metadata(
+            width, height, bpp_mode="bpp_4", graphics_count=graphics_count
+        )
 
     tiles = decode_rgba_png(read_apk_member(reference_apk, "assets/graphic/tile/tiles.png"))
     # splash 104=(0,64,16,8), coin 116=(96,64,8,8), HUD 97=(16,48,16,16), meter 10=(80,0,8,8)
@@ -414,11 +421,10 @@ def test_stage_m3_all_44_fish_use_exact_recovered_crops_and_4bpp_banks(
     tiles = decode_rgba_png(read_apk_member(reference_apk, "assets/graphic/tile/tiles.png"))
     for stem in banks:
         metadata = json.loads((out / f"{stem}.json").read_text())
-        assert metadata == {
-            "type": "sprite", "width": 16, "height": 32,
-            "bpp_mode": "bpp_4", "compression": "auto_no_huffman",
-        }
         width, height, _palette, index_at = _read_bmp(out / f"{stem}.bmp")
+        assert metadata == _expected_sprite_metadata(
+            16, 32, bpp_mode="bpp_4", graphics_count=width // 16
+        )
         assert height == 32
         # 4bpp has 16 palette entries total, including transparent index zero.
         assert len({index_at(x, y) for y in range(height) for x in range(width)}) <= 16
@@ -459,10 +465,10 @@ def test_stage_m3_all_three_rods_are_staged_without_resampling(tmp_path: Path, r
 
     for stem, width in (("fishing_rods_left", 64), ("fishing_rods_right", 16)):
         expected_height = 32 if stem == "fishing_rods_right" else 64
-        assert json.loads((out / f"{stem}.json").read_text()) == {
-            "type": "sprite", "width": width, "height": expected_height,
-            "bpp_mode": "bpp_4", "compression": "auto_no_huffman",
-        }
+        graphics_count = 36 if stem == "fishing_rods_left" else 72
+        assert json.loads((out / f"{stem}.json").read_text()) == _expected_sprite_metadata(
+            width, expected_height, bpp_mode="bpp_4", graphics_count=graphics_count
+        )
         bw, bh, _palette, index_at = _read_bmp(out / f"{stem}.bmp")
         assert len({index_at(x, y) for y in range(bh) for x in range(bw)}) <= 16
 
@@ -530,10 +536,9 @@ def test_stage_m4_progression_backgrounds_and_sprites_are_exact(tmp_path: Path, 
         assert pal[idx(dx, dy)] == rgb
         assert len({idx(x, y) for y in range(h) for x in range(w)}) <= 16
 
-    assert json.loads((out / "m4_font.json").read_text()) == {
-        "type": "sprite", "width": 8, "height": 8,
-        "bpp_mode": "bpp_4", "compression": "auto_no_huffman",
-    }
+    assert json.loads((out / "m4_font.json").read_text()) == _expected_sprite_metadata(
+        8, 8, bpp_mode="bpp_4", graphics_count=96
+    )
 
 
 def test_stage_m7_intro_and_native_options_assets(tmp_path: Path, reference_apk: Path):

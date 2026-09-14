@@ -209,13 +209,7 @@ def _stage_map_spots(apk_path: Path, graphics_dir: Path) -> dict[str, object]:
     write_indexed_bmp(bmp_path, sheet)
     _write_json(
         graphics_dir / "map_spots.json",
-        {
-            "type": "sprite",
-            "width": 8,
-            "height": 16,
-            "bpp_mode": "bpp_8",
-            "compression": "auto_no_huffman",
-        },
+        _sprite_metadata(8, 16, bpp_mode="bpp_8", graphics_count=len(frames)),
     )
     return _record(
         source_member=TILES_MEMBER,
@@ -247,14 +241,26 @@ def stage_m1_assets(apk_path: Path, graphics_dir: Path) -> list[dict[str, object
 
 
 
-def _sprite_metadata(width: int, height: int, *, bpp_mode: str = "bpp_8") -> dict[str, object]:
-    return {
+def _sprite_metadata(
+    width: int,
+    height: int,
+    *,
+    bpp_mode: str = "bpp_8",
+    graphics_count: int = 1,
+) -> dict[str, object]:
+    metadata: dict[str, object] = {
         "type": "sprite",
         "width": width,
         "height": height,
         "bpp_mode": bpp_mode,
-        "compression": "auto_no_huffman",
     }
+    if graphics_count > 1:
+        # Butano can only index individual graphics from an uncompressed tile sheet.
+        metadata["tiles_compression"] = "none"
+        metadata["palette_compression"] = "auto_no_huffman"
+    else:
+        metadata["compression"] = "auto_no_huffman"
+    return metadata
 
 
 def _pad_rgba(image: RgbaImage, width: int, height: int) -> RgbaImage:
@@ -322,7 +328,9 @@ def _write_sprite_sheet(
     write_indexed_bmp(bmp_path, sheet)
     _write_json(
         graphics_dir / f"{stem}.json",
-        _sprite_metadata(frame_width, frame_height, bpp_mode=bpp_mode),
+        _sprite_metadata(
+            frame_width, frame_height, bpp_mode=bpp_mode, graphics_count=len(frames)
+        ),
     )
     return bmp_path
 

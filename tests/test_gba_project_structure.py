@@ -337,6 +337,33 @@ def test_m7_fishing_dialogs_and_global_presentation_effects_are_wired():
     assert "bn::sprite_palettes::set_fade_intensity" in app_source
 
 
+
+def test_multigraphic_sprites_leave_tile_data_uncompressed():
+    """Butano cannot index compressed sprite tiles when a sheet contains multiple graphics."""
+    offenders = []
+    for metadata_path in sorted(Path("graphics").glob("*.json")):
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        if metadata.get("type") != "sprite":
+            continue
+
+        bitmap_path = metadata_path.with_suffix(".bmp")
+        if not bitmap_path.is_file():
+            continue
+
+        bitmap = bitmap_path.read_bytes()
+        width, height = struct.unpack_from("<ii", bitmap, 18)
+        frame_width = int(metadata.get("width", abs(width)))
+        frame_height = int(metadata.get("height", abs(height)))
+        graphics_count = (abs(width) // frame_width) * (abs(height) // frame_height)
+        if graphics_count <= 1:
+            continue
+
+        tiles_compression = metadata.get("tiles_compression", metadata.get("compression", "none"))
+        if tiles_compression != "none":
+            offenders.append(f"{metadata_path.name}:{graphics_count}")
+
+    assert not offenders, f"compressed multi-graphic sprite tiles are unsupported by Butano: {offenders}"
+
 def test_multimap_regular_backgrounds_leave_map_data_uncompressed():
     """Butano cannot index compressed regular BG items that contain multiple maps."""
     offenders = []
