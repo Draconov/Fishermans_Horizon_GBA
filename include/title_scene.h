@@ -20,7 +20,6 @@ public:
 
 private:
     bn::regular_bg_ptr _background;
-    int _map_index = 0;
     AudioCue _audio_event = AudioCue::None;
 };
 

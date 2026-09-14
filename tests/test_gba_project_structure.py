@@ -42,14 +42,15 @@ def test_game_state_starts_at_intro():
     assert "return GameState::Intro;" in source
 
 
-def test_title_scene_uses_generated_animated_reference_background_and_gba_input():
+def test_title_scene_uses_single_map_background_during_native_bringup():
     text = Path("src/title_scene.cpp").read_text(encoding="utf-8")
-    assert '#include "bn_regular_bg_items_title_anim.h"' in text
+    assert '#include "bn_regular_bg_items_title.h"' in text
+    assert '#include "bn_regular_bg_items_title_anim.h"' not in text
     assert '#include "bn_keypad.h"' in text
-    assert "bn::regular_bg_items::title_anim.create_bg(0, 0, 0)" in text
+    assert "bn::regular_bg_items::title.create_bg(0, 0)" in text
     assert "bn::keypad::a_pressed()" in text
     assert "bn::keypad::start_pressed()" in text
-    assert "set_map" in text
+    assert "set_map" not in text
 
 
 def test_title_asset_is_butano_regular_background():

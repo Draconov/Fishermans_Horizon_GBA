@@ -1,7 +1,7 @@
 #include "title_scene.h"
 
 #include "bn_keypad.h"
-#include "bn_regular_bg_items_title_anim.h"
+#include "bn_regular_bg_items_title.h"
 
 #include "flow_model.h"
 
@@ -9,7 +9,7 @@ namespace fh
 {
 
 TitleScene::TitleScene() :
-    _background(bn::regular_bg_items::title_anim.create_bg(0, 0, 0))
+    _background(bn::regular_bg_items::title.create_bg(0, 0))
 {
 }
 
@@ -31,13 +31,10 @@ void TitleScene::update(FlowModel& flow)
         return;
     }
 
+    // Keep the recovered title timing alive while native ROM bring-up uses
+    // the single-map title background. The animated multi-map background is
+    // intentionally not touched here until its runtime path is proven safe.
     flow.update_title_animation();
-    const int next_map_index = flow.title_sea_tile() - 112;
-    if(next_map_index != _map_index)
-    {
-        _map_index = next_map_index;
-        _background.set_map(bn::regular_bg_items::title_anim.map_item(), _map_index);
-    }
 }
 
 
