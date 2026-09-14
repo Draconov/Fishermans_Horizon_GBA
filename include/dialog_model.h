@@ -40,6 +40,7 @@ private:
     [[nodiscard]] int _length() const noexcept;
 
     const char* _text = "";
+    int _text_length = 0;
     int _box_y = 160;
     int _cursor_x = 8;
     int _cursor_y = 4;

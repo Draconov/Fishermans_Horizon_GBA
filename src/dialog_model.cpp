@@ -1,6 +1,5 @@
 #include "dialog_model.h"
 
-#include <cstring>
 
 #include "dialog_layout.h"
 
@@ -15,6 +14,13 @@ DialogModel::DialogModel(const char* text) noexcept
 void DialogModel::start(const char* text) noexcept
 {
     _text = text ? text : "";
+    _text_length = 0;
+    const volatile char* text_cursor = _text;
+    while(*text_cursor)
+    {
+        ++_text_length;
+        ++text_cursor;
+    }
     _box_y = 160;
     _source_index = 0;
     _page_start = 0;
@@ -162,7 +168,7 @@ void DialogModel::_consume_character(char character) noexcept
 
 int DialogModel::_length() const noexcept
 {
-    return int(std::strlen(_text));
+    return _text_length;
 }
 
 }

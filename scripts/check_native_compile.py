@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+UNSUPPORTED_LIBC_SYMBOLS = {"strlen"}
 
 CORE_HEADER = r'''#pragma once
 #include <algorithm>
@@ -202,6 +203,11 @@ def main() -> int:
         print("[FAIL] host g++ unavailable", file=sys.stderr)
         return 2
 
+    nm = shutil.which("nm")
+    if not nm:
+        print("[FAIL] host nm unavailable", file=sys.stderr)
+        return 2
+
     sources = sorted((ROOT / "src").glob("*.cpp"))
     with tempfile.TemporaryDirectory(prefix="fh_m8_native_") as temp:
         shim = Path(temp)
@@ -225,6 +231,47 @@ def main() -> int:
             print(f"[FAIL] {failures}/{len(sources)} native translation units", file=sys.stderr)
             return 1
         print(f"[PASS] {len(sources)} native translation units")
+
+        symbol_failures = 0
+        for source in sources:
+            object_path = shim / f"{source.stem}.o"
+            command = [
+                compiler, "-std=c++20", "-O2", "-Wall", "-Wextra", "-Werror",
+                "-I", str(shim), "-I", str(ROOT / "include"),
+                "-c", str(source), "-o", str(object_path),
+            ]
+            result = subprocess.run(command, text=True, capture_output=True, check=False)
+            relative = source.relative_to(ROOT).as_posix()
+            if result.returncode:
+                print(f"[FAIL] {relative}: object compile failed during symbol audit")
+                print(result.stdout, end="")
+                print(result.stderr, end="")
+                symbol_failures += 1
+                continue
+
+            nm_result = subprocess.run([nm, "-u", str(object_path)], text=True, capture_output=True, check=False)
+            if nm_result.returncode:
+                print(f"[FAIL] {relative}: nm failed during symbol audit")
+                print(nm_result.stdout, end="")
+                print(nm_result.stderr, end="")
+                symbol_failures += 1
+                continue
+
+            undefined = {
+                line.split()[-1].split("@", 1)[0]
+                for line in nm_result.stdout.splitlines()
+                if line.split()
+            }
+            unsupported = sorted(undefined & UNSUPPORTED_LIBC_SYMBOLS)
+            for symbol in unsupported:
+                print(f"[FAIL] {relative}: unsupported libc symbol {symbol}")
+                symbol_failures += 1
+
+        if symbol_failures:
+            print(f"[FAIL] {symbol_failures} unsupported libc symbol reference(s)", file=sys.stderr)
+            return 1
+
+        print("[PASS] no unsupported libc symbols")
         return 0
 
 

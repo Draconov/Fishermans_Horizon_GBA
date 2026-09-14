@@ -18,3 +18,4 @@ def test_native_compile_checker_covers_every_production_translation_unit():
     for source in expected:
         assert f"[PASS] {source}" in result.stdout
     assert f"[PASS] {len(expected)} native translation units" in result.stdout
+    assert "[PASS] no unsupported libc symbols" in result.stdout
