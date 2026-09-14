@@ -1,0 +1,155 @@
+name: Build and release GBA ROM
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Optional release tag (for example v0.8.0). Leave blank to build a downloadable artifact only.
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and smoke-test ROM
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:20260221
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install CI dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            git \
+            mgba-sdl \
+            python3-pytest \
+            python3-yaml \
+            xvfb
+          rm -rf /var/lib/apt/lists/*
+
+      - name: Run host tests
+        run: python3 -m pytest -q
+
+      - name: Fetch pinned Butano 21.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch 21.7.1 \
+            https://github.com/GValiente/butano.git \
+            "$GITHUB_WORKSPACE/../butano"
+
+      - name: Verify pinned toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/bootstrap_m8_toolchain.py \
+            --devkitpro /opt/devkitpro \
+            --butano "$GITHUB_WORKSPACE/../butano/butano" \
+            --json /tmp/m8_toolchain_report.json
+          cat /tmp/m8_toolchain_report.json
+
+      - name: Build ROM
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -j2 LIBBUTANO="$GITHUB_WORKSPACE/../butano/butano"
+
+      - name: Package ROM
+        run: python3 scripts/package_rom.py --rom Fishermans_Horizon_GBA.gba --out dist
+
+      - name: Verify packaged checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum -c Fishermans_Horizon_GBA.gba.sha256
+
+      - name: Smoke test ROM in mGBA
+        shell: bash
+        run: |
+          set -euo pipefail
+          xvfb-run -a python3 scripts/smoke_mgba.py \
+            --rom dist/Fishermans_Horizon_GBA.gba \
+            --seconds 3 \
+            --require-available
+
+      - name: Upload GBA ROM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gba-rom
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            dist/Fishermans_Horizon_GBA.gba
+            dist/Fishermans_Horizon_GBA.gba.sha256
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: ${{ github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download exact ROM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gba-rom
+          path: release
+
+      - name: Verify payload contains only ROM and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED='Fishermans_Horizon_GBA.gba\nFishermans_Horizon_GBA.gba.sha256'
+          EXPECTED="$(printf '%b' "$EXPECTED")"
+          ACTUAL="$(find release -maxdepth 1 -type f -printf '%f\n' | sort)"
+          test "$ACTUAL" = "$EXPECTED"
+          (cd release && sha256sum -c Fishermans_Horizon_GBA.gba.sha256)
+
+      - name: Create or update GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          MANUAL_TAG: ${{ inputs.release_tag }}
+          PUSH_TAG: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$REF_TYPE" == "tag" ]]; then
+            TAG="$PUSH_TAG"
+          else
+            TAG="$MANUAL_TAG"
+          fi
+
+          if [[ -z "$TAG" ]]; then
+            echo "Release tag is empty" >&2
+            exit 1
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              release/Fishermans_Horizon_GBA.gba \
+              release/Fishermans_Horizon_GBA.gba.sha256 \
+              --clobber
+          else
+            gh release create "$TAG" \
+              release/Fishermans_Horizon_GBA.gba \
+              release/Fishermans_Horizon_GBA.gba.sha256 \
+              --target "$GITHUB_SHA" \
+              --title "Fisherman's Horizon GBA $TAG" \
+              --notes "Automated Fisherman's Horizon GBA ROM build for $TAG."
+          fi

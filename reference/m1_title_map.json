@@ -1,0 +1,232 @@
+{
+  "origin": {
+    "apk_sha256": "581aeb20073592905b5a82ddc38a54f522f2f369330ae92f025ae7d52ca0d137",
+    "member": "classes.dex"
+  },
+  "evidence": {
+    "methods": {
+      "GameTitle.init": "0xc8a8",
+      "GameTitle.loadAssets": "0xc940",
+      "GameTitle.seaImage": "0xc9ac",
+      "GameTitle.exit": "0xc858",
+      "GameMap.init": "0xa884",
+      "GameMap.loadAssets": "0xaac0",
+      "GameMap.update": "0xad3c",
+      "GameMap.exit": "0xa7d4"
+    },
+    "code_proofs": {
+      "GameTitle.init": {
+        "offset": "0xc8a8",
+        "code_units": 68,
+        "sha256": "eec8b4aeea4acd545e693f70a5530cf217fcd035584f71a4f1549ecce95eced4"
+      },
+      "GameTitle.loadAssets": {
+        "offset": "0xc940",
+        "code_units": 46,
+        "sha256": "d9461f4d27f6e073beb25a91eec8341910d6ad170cb52ac929ac8908e448e057"
+      },
+      "GameTitle.seaImage": {
+        "offset": "0xc9ac",
+        "code_units": 53,
+        "sha256": "306ef530817c52d6336275effb9aa49389ec7465243b85c82dba501af3c73bd9"
+      },
+      "GameTitle.exit": {
+        "offset": "0xc858",
+        "code_units": 32,
+        "sha256": "e23df2236d92b4abc6520e17f8e42a415ae1c1558b1fc512ebf976fe916ddd4a"
+      },
+      "GameMap.init": {
+        "offset": "0xa884",
+        "code_units": 278,
+        "sha256": "80285dfc995d142a5c364750842835f686cae7d1d2294b039528920db03bf323"
+      },
+      "GameMap.loadAssets": {
+        "offset": "0xaac0",
+        "code_units": 47,
+        "sha256": "f6e9c45399fdb99a1ea9e2df85c3980fd4a0ad7466ca123c1c04552027b6f0b8"
+      },
+      "GameMap.update": {
+        "offset": "0xad3c",
+        "code_units": 184,
+        "sha256": "14f9948ccacb11e7a30807ef26ec84aac6e00fa32b8b8fbb4cb83802d143860a"
+      },
+      "GameMap.exit": {
+        "offset": "0xa7d4",
+        "code_units": 80,
+        "sha256": "9962c5e5b01437ecb6c275a380e61c0a7b0052c3afb9d45b423adaf9e0561778"
+      }
+    }
+  },
+  "title": {
+    "game_state": 2,
+    "initial_sea_sprite": 112,
+    "sea_frames": [
+      [
+        1,
+        113
+      ],
+      [
+        13,
+        114
+      ],
+      [
+        25,
+        113
+      ],
+      [
+        37,
+        112
+      ],
+      [
+        49,
+        112
+      ]
+    ],
+    "play_zone": [
+      0,
+      128,
+      32,
+      160
+    ],
+    "options_zone": [
+      208,
+      128,
+      240,
+      160
+    ],
+    "fresh_save_route": "Event",
+    "returning_save_route": "Map",
+    "music": "audio/music/title.mp3",
+    "next_page_se": "audio/SE/nextPageSE.mp3",
+    "background": "graphic/background/title.png",
+    "sea_overlay_y": 128
+  },
+  "map": {
+    "game_state": 3,
+    "music": "audio/music/mari_mari.mp3",
+    "next_page_se": "audio/SE/nextPageSE.mp3",
+    "background": "graphic/background/map.png",
+    "marker_frames": {
+      "spot_a": [
+        100,
+        101
+      ],
+      "spot_b": [
+        102,
+        103
+      ],
+      "period": 20
+    },
+    "marker_positions": {
+      "shop": [
+        100,
+        12,
+        "spot_b"
+      ],
+      "crystal_lake": [
+        148,
+        20,
+        "spot_a"
+      ],
+      "pier": [
+        132,
+        76,
+        "spot_a"
+      ],
+      "river": [
+        212,
+        12,
+        "spot_a"
+      ],
+      "ocean": [
+        108,
+        124,
+        "spot_a"
+      ],
+      "cave": [
+        20,
+        92,
+        "spot_a"
+      ]
+    },
+    "zones": {
+      "back": [
+        0,
+        0,
+        32,
+        32
+      ],
+      "shop": [
+        88,
+        8,
+        120,
+        40
+      ],
+      "crystal_lake": [
+        136,
+        16,
+        168,
+        48
+      ],
+      "pier": [
+        120,
+        72,
+        152,
+        104
+      ],
+      "river": [
+        200,
+        8,
+        232,
+        40
+      ],
+      "ocean": [
+        96,
+        120,
+        128,
+        152
+      ],
+      "cave": [
+        8,
+        88,
+        40,
+        120
+      ],
+      "catalog": [
+        0,
+        128,
+        32,
+        160
+      ],
+      "change_character": [
+        208,
+        128,
+        240,
+        160
+      ]
+    },
+    "unlocks": {
+      "river": "clubCard",
+      "ocean": "oldBoat",
+      "cave": "ancientMap",
+      "catalog": "catalog"
+    },
+    "pointer_to_pool": {
+      "1": 1,
+      "2": 2,
+      "3": 3,
+      "4": 4,
+      "5": 5
+    },
+    "pointer_routes": {
+      "0": "Title",
+      "1": "Fishing",
+      "2": "Fishing",
+      "3": "Fishing",
+      "4": "Fishing",
+      "5": "Fishing",
+      "6": "Shop",
+      "7": "Catalog"
+    }
+  }
+}
