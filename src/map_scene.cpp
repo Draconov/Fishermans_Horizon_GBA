@@ -2,12 +2,92 @@
 
 #include "bn_keypad.h"
 #include "bn_regular_bg_items_map.h"
+#include "bn_sprite_items_m4_font.h"
+#include "bn_sprite_items_m4_shop_cursor.h"
+#include "bn_sprite_items_map_catalog_parts.h"
+#include "bn_sprite_items_map_character_0.h"
+#include "bn_sprite_items_map_character_1.h"
+#include "bn_sprite_items_map_character_2.h"
+#include "bn_sprite_items_map_character_3.h"
+#include "bn_sprite_items_map_character_4.h"
+#include "bn_sprite_items_map_character_5.h"
 #include "bn_sprite_items_map_spots.h"
 
 #include "flow_model.h"
+#include "m4_font.h"
 
 namespace fh
 {
+namespace
+{
+
+struct TargetLabel
+{
+    const char* text;
+    int length;
+};
+
+constexpr const char* CHARACTER_NAMES[] = {
+    "   Cid",
+    "  Fran",
+    "  Leon",
+    "  Sazh",
+    "  Rosa",
+    "Shadow",
+};
+
+void append_text(bn::vector<bn::sprite_ptr, 24>& sprites, const char* text, int screen_x, int screen_y,
+                 int max_chars)
+{
+    int column = 0;
+    while(*text && column < max_chars && sprites.size() < sprites.max_size())
+    {
+        const char character = *text++;
+        if(character == '#')
+        {
+            break;
+        }
+        const int glyph = m4_font_glyph(character);
+        if(glyph >= 0)
+        {
+            sprites.push_back(bn::sprite_items::m4_font.create_sprite(
+                screen_x + column * 8 + 4 - 120, screen_y + 4 - 80, glyph));
+        }
+        ++column;
+    }
+}
+
+void append_centered_text(bn::vector<bn::sprite_ptr, 24>& sprites, const char* text, int length,
+                          int screen_x, int screen_y, int max_chars)
+{
+    const int clamped_length = length > max_chars ? max_chars : length;
+    const int centered_x = screen_x + (max_chars - clamped_length) * 4;
+    append_text(sprites, text, centered_x, screen_y, max_chars);
+}
+
+TargetLabel target_label(MapTarget target)
+{
+    switch(target)
+    {
+    case MapTarget::CrystalLake:
+        return {"Crystal Lake", 12};
+    case MapTarget::Pier:
+        return {"Pier", 4};
+    case MapTarget::Shop:
+        return {"Shop", 4};
+    case MapTarget::River:
+        return {"River", 5};
+    case MapTarget::Ocean:
+        return {"Ocean", 5};
+    case MapTarget::Cave:
+        return {"Cave", 4};
+    case MapTarget::Catalog:
+        return {"Catalog", 7};
+    }
+    return {"", 0};
+}
+
+}
 
 MapScene::MapScene() :
     _background(bn::regular_bg_items::map.create_bg(0, 0)),
@@ -22,8 +102,21 @@ MapScene::MapScene() :
     // Reference top-left (108,124), 8x16 -> Butano center (-8,52).
     _ocean_spot(bn::sprite_items::map_spots.create_sprite(-8, 52, 0)),
     // Reference top-left (20,92), 8x16 -> Butano center (-96,20).
-    _cave_spot(bn::sprite_items::map_spots.create_sprite(-96, 20, 0))
+    _cave_spot(bn::sprite_items::map_spots.create_sprite(-96, 20, 0)),
+    // Reference GameMap.draw top-left (183,91), 24x40 padded to 32x64.
+    _character(bn::sprite_items::map_character_0.create_sprite(79, 43, 0)),
+    // Default selection is Crystal Lake. Tile 165 is a 24x24 corner frame
+    // padded to 32x32; this centers it around the 8x16 marker.
+    _selection_cursor(bn::sprite_items::m4_shop_cursor.create_sprite(36, -48, 0))
 {
+    // Original tile 170 is an 80x24 Catalog badge at screen (0,136). It is
+    // split into three 32x32 GBA sprites without scaling.
+    for(int part = 0; part < 3; ++part)
+    {
+        bn::sprite_ptr sprite = bn::sprite_items::map_catalog_parts.create_sprite(-104 + part * 32, 72, part);
+        sprite.set_visible(false);
+        _catalog_parts.push_back(bn::move(sprite));
+    }
 }
 
 void MapScene::update(FlowModel& flow)
@@ -72,7 +165,11 @@ void MapScene::update(FlowModel& flow)
 
     flow.update_map_markers();
     _update_marker_graphics(flow);
-    _update_selection_visibility(flow);
+    _update_marker_visibility(flow);
+    _update_character(flow);
+    _update_selection(flow);
+    _update_catalog(flow);
+    _update_text(flow);
 }
 
 void MapScene::_update_marker_graphics(const FlowModel& flow)
@@ -96,24 +193,122 @@ void MapScene::_update_marker_graphics(const FlowModel& flow)
     }
 }
 
-void MapScene::_update_selection_visibility(const FlowModel& flow)
+void MapScene::_update_marker_visibility(const FlowModel& flow)
 {
-    _selection_ticks = (_selection_ticks + 1) % 16;
-    const bool selected_visible = _selection_ticks < 10;
-    const MapTarget selected = flow.selected_map_target();
-
-    _crystal_spot.set_visible(selected != MapTarget::CrystalLake || selected_visible);
-    _pier_spot.set_visible(selected != MapTarget::Pier || selected_visible);
-    _shop_spot.set_visible(selected != MapTarget::Shop || selected_visible);
-    _river_spot.set_visible(flow.map_target_enabled(MapTarget::River) &&
-                            (selected != MapTarget::River || selected_visible));
-    _ocean_spot.set_visible(flow.map_target_enabled(MapTarget::Ocean) &&
-                            (selected != MapTarget::Ocean || selected_visible));
-    _cave_spot.set_visible(flow.map_target_enabled(MapTarget::Cave) &&
-                           (selected != MapTarget::Cave || selected_visible));
+    _crystal_spot.set_visible(true);
+    _pier_spot.set_visible(true);
+    _shop_spot.set_visible(true);
+    _river_spot.set_visible(flow.map_target_enabled(MapTarget::River));
+    _ocean_spot.set_visible(flow.map_target_enabled(MapTarget::Ocean));
+    _cave_spot.set_visible(flow.map_target_enabled(MapTarget::Cave));
 }
 
+void MapScene::_update_character(const FlowModel& flow)
+{
+    const int character = flow.current_character();
+    if(character == _last_character)
+    {
+        return;
+    }
 
+    _last_character = character;
+    switch(character)
+    {
+    case 0:
+        _character.set_item(bn::sprite_items::map_character_0);
+        break;
+    case 1:
+        _character.set_item(bn::sprite_items::map_character_1);
+        break;
+    case 2:
+        _character.set_item(bn::sprite_items::map_character_2);
+        break;
+    case 3:
+        _character.set_item(bn::sprite_items::map_character_3);
+        break;
+    case 4:
+        _character.set_item(bn::sprite_items::map_character_4);
+        break;
+    case 5:
+        _character.set_item(bn::sprite_items::map_character_5);
+        break;
+    default:
+        _last_character = 0;
+        _character.set_item(bn::sprite_items::map_character_0);
+        break;
+    }
+    _text_dirty = true;
+}
+
+void MapScene::_update_selection(const FlowModel& flow)
+{
+    const MapTarget selected = flow.selected_map_target();
+    if(_has_last_target && selected == _last_target)
+    {
+        return;
+    }
+
+    _last_target = selected;
+    _has_last_target = true;
+    _text_dirty = true;
+
+    switch(selected)
+    {
+    case MapTarget::CrystalLake:
+        _selection_cursor.set_position(36, -48);
+        break;
+    case MapTarget::Pier:
+        _selection_cursor.set_position(20, 8);
+        break;
+    case MapTarget::Shop:
+        _selection_cursor.set_position(-12, -56);
+        break;
+    case MapTarget::River:
+        _selection_cursor.set_position(100, -56);
+        break;
+    case MapTarget::Ocean:
+        _selection_cursor.set_position(-4, 56);
+        break;
+    case MapTarget::Cave:
+        _selection_cursor.set_position(-92, 24);
+        break;
+    case MapTarget::Catalog:
+        _selection_cursor.set_position(-104, 72);
+        break;
+    }
+}
+
+void MapScene::_update_catalog(const FlowModel& flow)
+{
+    const bool visible = flow.map_target_enabled(MapTarget::Catalog);
+    for(bn::sprite_ptr& sprite : _catalog_parts)
+    {
+        sprite.set_visible(visible);
+    }
+}
+
+void MapScene::_update_text(const FlowModel& flow)
+{
+    if(! _text_dirty)
+    {
+        return;
+    }
+    _text_dirty = false;
+    _text_sprites.clear();
+
+    int character = flow.current_character();
+    if(character < 0 || character >= 6)
+    {
+        character = 0;
+    }
+    const char* character_name = CHARACTER_NAMES[character];
+    append_text(_text_sprites, character_name, 168, 144, 6);
+
+    const TargetLabel label = target_label(flow.selected_map_target());
+    const char* target_label = label.text;
+    const int target_label_length = label.length;
+    append_centered_text(_text_sprites, target_label, target_label_length, 80, 152, 12);
+}
 
 AudioCue MapScene::take_audio_event() noexcept
 {

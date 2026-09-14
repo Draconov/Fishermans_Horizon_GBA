@@ -161,7 +161,7 @@ def test_stage_m1_map_spots_uses_recovered_tiles_100_through_103(tmp_path: Path,
     assert palette[index_at(24 + 3, 7)] == (235, 255, 227)
 
     metadata = json.loads((out / "map_spots.json").read_text(encoding="utf-8"))
-    assert metadata == _expected_sprite_metadata(8, 16, bpp_mode="bpp_8", graphics_count=4)
+    assert metadata == _expected_sprite_metadata(8, 16, bpp_mode="bpp_4", graphics_count=4)
 
 
 def _first_opaque_pixel(image, x0: int, y0: int, width: int, height: int):
@@ -489,6 +489,8 @@ def test_stage_m4_progression_backgrounds_and_sprites_are_exact(tmp_path: Path, 
         "graphics/m4_catalog_cursor.bmp",
         "graphics/m4_shop_sold_out.bmp",
         "graphics/m4_event_cecil.bmp",
+            *{f"graphics/map_character_{index}.bmp" for index in range(6)},
+            "graphics/map_catalog_parts.bmp",
         *{f"graphics/fishing_char_m4_{index}.bmp" for index in range(6)},
     }
 
@@ -587,3 +589,48 @@ def test_stage_m7_intro_and_native_options_assets(tmp_path: Path, reference_apk:
     assert pidx(64 + 39, 23) != 0
     assert pidx(64 + 40, 23) == 0
     assert pidx(0, 24) == 0
+
+
+def test_stage_m4_map_presentation_uses_original_tiles_170_through_176(tmp_path: Path, reference_apk: Path):
+    from scripts.stage_reference_assets import stage_m4_assets
+
+    out = tmp_path / "graphics"
+    records = stage_m4_assets(reference_apk, out)
+    outputs = {record["output_path"] for record in records}
+    for character in range(6):
+        assert f"graphics/map_character_{character}.bmp" in outputs
+    assert "graphics/map_catalog_parts.bmp" in outputs
+
+    tiles = decode_rgba_png(read_apk_member(reference_apk, "assets/graphic/tile/tiles.png"))
+
+    # GameMap spriteNumber values 171..176 are exact 24x40 crops, padded to
+    # 32x64 OBJ frames without scaling.
+    portrait_sources = (
+        (0, 0, 224),
+        (1, 24, 224),
+        (2, 48, 224),
+        (3, 72, 224),
+        (4, 96, 224),
+        (5, 0, 264),
+    )
+    for frame, source_x, source_y in portrait_sources:
+        width, height, palette, index_at = _read_bmp(out / f"map_character_{frame}.bmp")
+        assert (width, height) == (32, 64)
+        dx, dy, rgb = _first_opaque_pixel(tiles, source_x, source_y, 24, 40)
+        assert palette[index_at(dx, dy)] == rgb
+        assert index_at(31, 63) == 0
+        assert json.loads((out / f"map_character_{frame}.json").read_text()) == _expected_sprite_metadata(
+            32, 64, bpp_mode="bpp_4", graphics_count=1
+        )
+
+    # GameMap.draw uses tile 170 at APK top-left (0, 136). Tile 170 is an
+    # 80x24 Catalog badge; split it into three 32x32 OBJ graphics for GBA.
+    width, height, palette, index_at = _read_bmp(out / "map_catalog_parts.bmp")
+    assert (width, height) == (32 * 3, 32)
+    for part, source_x, part_width in ((0, 0, 32), (1, 32, 32), (2, 64, 16)):
+        dx, dy, rgb = _first_opaque_pixel(tiles, source_x, 200, part_width, 24)
+        assert palette[index_at(part * 32 + dx, dy)] == rgb
+    assert index_at(2 * 32 + 31, 31) == 0
+    assert json.loads((out / "map_catalog_parts.json").read_text()) == _expected_sprite_metadata(
+        32, 32, bpp_mode="bpp_4", graphics_count=3
+    )

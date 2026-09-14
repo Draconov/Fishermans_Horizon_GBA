@@ -61,12 +61,14 @@ public:
 };
 
 class sprite_tiles_item {};
+class sprite_item;
 
 class sprite_ptr {
 public:
     sprite_ptr() = delete;
     explicit sprite_ptr(int) {}
     void set_tiles(const sprite_tiles_item&, int) {}
+    void set_item(const sprite_item&) {}
     void set_visible(bool) {}
     void set_position(int, int) {}
     void set_y(int) {}

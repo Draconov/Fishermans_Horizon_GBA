@@ -58,6 +58,17 @@ void append_number(bn::vector<bn::sprite_ptr, 64>& sprites, int value, int scree
     append_text(sprites, text, screen_x, screen_y, 3);
 }
 
+void append_money(bn::vector<bn::sprite_ptr, 64>& sprites, int value, int screen_x, int screen_y)
+{
+    const char text[4] = {
+        char('0' + (value / 100) % 10),
+        char('0' + (value / 10) % 10),
+        char('0' + value % 10),
+        0,
+    };
+    append_text(sprites, text, screen_x, screen_y, 3);
+}
+
 }
 
 ShopScene::ShopScene() :
@@ -136,23 +147,10 @@ void ShopScene::_render(FlowModel& flow)
     const ShopItemSpec* item = shop_item_spec(_model.selected_item());
     if(item)
     {
-        append_text(_text_sprites, item->name, 16, 144, 11);
-        append_number(_text_sprites, item->price, 194, 144);
+        append_text(_text_sprites, item->name, 126, 8, 11);
+        append_number(_text_sprites, item->price, 24, 144);
     }
-    append_number(_text_sprites, flow.money(), 194, 152);
-
-    if(_model.sold_out(flow))
-    {
-        append_text(_text_sprites, "SOLD OUT", 16, 152, 8);
-    }
-    else if(_last_result == ShopPurchaseResult::InsufficientFunds)
-    {
-        append_text(_text_sprites, "NO MONEY", 16, 152, 8);
-    }
-    else if(_last_result == ShopPurchaseResult::Purchased)
-    {
-        append_text(_text_sprites, "BOUGHT", 16, 152, 6);
-    }
+    append_money(_text_sprites, flow.money(), 193, 144);
 }
 
 

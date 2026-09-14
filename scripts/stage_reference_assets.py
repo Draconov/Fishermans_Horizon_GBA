@@ -54,10 +54,10 @@ _REGULAR_BG_METADATA = {
 _ANIMATED_REGULAR_BG_METADATA = {
     "type": "regular_bg",
     "bpp_mode": "bpp_8",
+    "height": 256,
     "tiles_compression": "auto_no_huffman",
     "palette_compression": "auto_no_huffman",
     "map_compression": "none",
-    "height": 256,
 }
 
 
@@ -209,7 +209,7 @@ def _stage_map_spots(apk_path: Path, graphics_dir: Path) -> dict[str, object]:
     write_indexed_bmp(bmp_path, sheet)
     _write_json(
         graphics_dir / "map_spots.json",
-        _sprite_metadata(8, 16, bpp_mode="bpp_8", graphics_count=len(frames)),
+        _sprite_metadata(8, 16, bpp_mode="bpp_4", graphics_count=len(frames)),
     )
     return _record(
         source_member=TILES_MEMBER,
@@ -719,6 +719,50 @@ def stage_m4_assets(apk_path: Path, graphics_dir: Path) -> list[dict[str, object
             output_path=f"graphics/{stem}.bmp", output_file=path,
             output_width=width * len(indices), output_height=height, offset_x=0, offset_y=0,
         ))
+
+    # GameMap.setSprite selects tiles 171..176 for the current character,
+    # while GameMap.draw places that 24x40 portrait at (183, 91). Keep the
+    # source crop exact and only pad it to a legal GBA OBJ size.
+    for character, index in enumerate(range(171, 177)):
+        frame = _crop_tile(tiles, index)
+        stem = f"map_character_{character}"
+        path = _write_sprite_sheet(
+            graphics_dir,
+            stem,
+            [frame],
+            frame_width=32,
+            frame_height=64,
+            bpp_mode="bpp_4",
+        )
+        records.append(_record(
+            source_member=TILES_MEMBER, source_bytes=tiles_bytes,
+            source_width=tiles.width, source_height=tiles.height,
+            output_path=f"graphics/{stem}.bmp", output_file=path,
+            output_width=32, output_height=64, offset_x=0, offset_y=0,
+        ))
+
+    # GameMap.draw uses tile 170 at (0, 136) when Catalog is unlocked. The
+    # Android tile is 80x24, so preserve it as three adjacent 32x32 OBJ parts
+    # instead of scaling or trimming it.
+    map_catalog_frames = [
+        crop_rgba(tiles, 0, 200, 32, 24),
+        crop_rgba(tiles, 32, 200, 32, 24),
+        crop_rgba(tiles, 64, 200, 16, 24),
+    ]
+    map_catalog_path = _write_sprite_sheet(
+        graphics_dir,
+        "map_catalog_parts",
+        map_catalog_frames,
+        frame_width=32,
+        frame_height=32,
+        bpp_mode="bpp_4",
+    )
+    records.append(_record(
+        source_member=TILES_MEMBER, source_bytes=tiles_bytes,
+        source_width=tiles.width, source_height=tiles.height,
+        output_path="graphics/map_catalog_parts.bmp", output_file=map_catalog_path,
+        output_width=32 * len(map_catalog_frames), output_height=32, offset_x=0, offset_y=0,
+    ))
 
     char_bytes = read_apk_member(apk_path, CHAR_SHEET_MEMBER)
     char = decode_rgba_png(char_bytes)

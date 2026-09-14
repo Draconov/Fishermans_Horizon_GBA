@@ -387,3 +387,70 @@ def test_multimap_regular_backgrounds_leave_map_data_uncompressed():
             offenders.append(f"{metadata_path.name}:{maps_count}")
 
     assert not offenders, f"compressed multi-map regular backgrounds are unsupported by Butano: {offenders}"
+
+
+def test_shop_scene_matches_original_apk_text_boxes():
+    source = Path("src/shop_scene.cpp").read_text(encoding="utf-8")
+
+    # GameShop.init creates DrawText(92, 8, 126, 8) for the selected item name,
+    # DrawText(32, 8, 24, 144) for price and DrawText(22, 8, 193, 144)
+    # for the player's coin amount.
+    assert "append_text(_text_sprites, item->name, 126, 8, 11)" in source
+    assert "append_number(_text_sprites, item->price, 24, 144)" in source
+    assert "append_money(_text_sprites, flow.money(), 193, 144)" in source
+
+    # The Android original has no second-row status text in the Shop HUD.
+    assert 'append_text(_text_sprites, "SOLD OUT"' not in source
+    assert 'append_text(_text_sprites, "NO MONEY"' not in source
+    assert 'append_text(_text_sprites, "BOUGHT"' not in source
+
+
+def test_map_scene_restores_original_character_panel_and_gba_selection_feedback():
+    header = Path("include/map_scene.h").read_text(encoding="utf-8")
+    source = Path("src/map_scene.cpp").read_text(encoding="utf-8")
+
+    # GameMap.draw renders tiles 171..176 at APK top-left (183, 91), while
+    # GameMap.init creates the character-name DrawText at (168, 144), 48x8.
+    for character in range(6):
+        assert f'#include "bn_sprite_items_map_character_{character}.h"' in source
+    assert "bn::sprite_items::map_character_0.create_sprite(79, 43, 0)" in source
+    for character in range(1, 6):
+        assert f"_character.set_item(bn::sprite_items::map_character_{character})" in source
+    assert "append_text(_text_sprites, character_name, 168, 144, 6)" in source
+    for name in ('"   Cid"', '"  Fran"', '"  Leon"', '"  Sazh"', '"  Rosa"', '"Shadow"'):
+        assert name in source
+
+    # The original Catalog badge (tile 170) is restored when Catalog is owned.
+    assert '#include "bn_sprite_items_map_catalog_parts.h"' in source
+    assert "_catalog_parts" in header
+    assert "map_target_enabled(MapTarget::Catalog)" in source
+
+    # GBA-only D-pad feedback: selected target gets the recovered tile-165
+    # corner cursor, and its name is shown in the free bottom-center row.
+    assert '#include "bn_sprite_items_m4_shop_cursor.h"' in source
+    assert "_selection_cursor" in header
+    for target, xy in (
+        ("CrystalLake", "36, -48"),
+        ("Pier", "20, 8"),
+        ("Shop", "-12, -56"),
+        ("River", "100, -56"),
+        ("Ocean", "-4, 56"),
+        ("Cave", "-92, 24"),
+        ("Catalog", "-104, 72"),
+    ):
+        assert f"case MapTarget::{target}:" in source
+        assert f"_selection_cursor.set_position({xy})" in source
+
+    for label in ('"Crystal Lake"', '"Pier"', '"Shop"', '"River"', '"Ocean"', '"Cave"', '"Catalog"'):
+        assert label in source
+    assert "append_centered_text(_text_sprites, target_label, target_label_length, 80, 152, 12)" in source
+
+    # Marker animation remains, but selected markers no longer blink now that
+    # an explicit cursor frame exists.
+    assert "_selection_ticks" not in header
+    assert "selected_visible" not in source
+
+
+def test_map_obj_assets_use_compatible_bpp4_palettes():
+    metadata = json.loads(Path("graphics/map_spots.json").read_text(encoding="utf-8"))
+    assert metadata["bpp_mode"] == "bpp_4"
