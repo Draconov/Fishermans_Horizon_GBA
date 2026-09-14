@@ -61,6 +61,25 @@ _ANIMATED_REGULAR_BG_METADATA = {
 }
 
 
+_DRAWTEXT_FILL = (25, 5, 36, 255)
+_SHOP_TEXT_FIELDS = ((126, 8, 92, 8), (24, 144, 32, 8), (193, 144, 22, 8))
+_FISHING_TEXT_FIELDS = ((126, 8, 92, 8), (193, 144, 22, 8))
+
+
+def _fill_rects(image: RgbaImage, rects: tuple[tuple[int, int, int, int], ...]) -> RgbaImage:
+    pixels = bytearray(image.pixels)
+    color = bytes(_DRAWTEXT_FILL)
+    for x, y, width, height in rects:
+        if x < 0 or y < 0 or x + width > image.width or y + height > image.height:
+            raise ValueError("DrawText backing rectangle outside source image")
+        for row in range(y, y + height):
+            start = (row * image.width + x) * 4
+            for column in range(width):
+                pos = start + column * 4
+                pixels[pos:pos + 4] = color
+    return RgbaImage(image.width, image.height, bytes(pixels))
+
+
 def read_apk_member(apk_path: Path, member: str) -> bytes:
     with zipfile.ZipFile(apk_path, "r") as archive:
         return archive.read(member)
@@ -133,6 +152,7 @@ def _stage_regular_bg(
     *,
     member: str,
     stem: str,
+    drawtext_fields: tuple[tuple[int, int, int, int], ...] = (),
 ) -> dict[str, object]:
     source = read_apk_member(apk_path, member)
     image = decode_rgba_png(source)
@@ -140,6 +160,8 @@ def _stage_regular_bg(
         raise ValueError(
             f"unexpected {stem} dimensions: {image.width}x{image.height}, expected 240x160"
         )
+    if drawtext_fields:
+        image = _fill_rects(image, drawtext_fields)
     bmp_path = graphics_dir / f"{stem}.bmp"
     offset_x, offset_y = write_centered_indexed_bmp(bmp_path, image)
     _write_json(graphics_dir / f"{stem}.json", _REGULAR_BG_METADATA)
@@ -533,11 +555,14 @@ def _stage_fishing_area_background(
     stem: str,
     sea_bytes: bytes,
     sea: RgbaImage,
+    drawtext_fields: tuple[tuple[int, int, int, int], ...] = _FISHING_TEXT_FIELDS,
 ) -> dict[str, object]:
     background_bytes = read_apk_member(apk_path, member)
     background = decode_rgba_png(background_bytes)
     if (background.width, background.height) != (240, 160):
         raise ValueError(f"{stem} requires a canonical 240x160 fishing background")
+    if drawtext_fields:
+        background = _fill_rects(background, drawtext_fields)
 
     maps = []
     for source_y in (0, 4, 8):
@@ -660,7 +685,7 @@ def _stage_m4_animated_background(
     sea: RgbaImage,
 ) -> dict[str, object]:
     return _stage_fishing_area_background(
-        apk_path, graphics_dir, member=member, stem=stem, sea_bytes=sea_bytes, sea=sea
+        apk_path, graphics_dir, member=member, stem=stem, sea_bytes=sea_bytes, sea=sea, drawtext_fields=()
     )
 
 
@@ -669,7 +694,9 @@ def stage_m4_assets(apk_path: Path, graphics_dir: Path) -> list[dict[str, object
     graphics_dir.mkdir(parents=True, exist_ok=True)
     records: list[dict[str, object]] = []
 
-    records.append(_stage_regular_bg(apk_path, graphics_dir, member=SHOP_MEMBER, stem="m4_shop"))
+    records.append(_stage_regular_bg(
+        apk_path, graphics_dir, member=SHOP_MEMBER, stem="m4_shop", drawtext_fields=_SHOP_TEXT_FIELDS
+    ))
 
     sea_bytes = read_apk_member(apk_path, SEA_TILES_MEMBER)
     sea = decode_rgba_png(sea_bytes)

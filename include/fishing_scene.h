@@ -28,6 +28,7 @@ public:
 
 private:
     void _render();
+    void _render_hud_text(const FlowModel& flow);
     void _render_bait_or_fish();
     void _render_line();
     void _start_result_dialog();
@@ -49,8 +50,12 @@ private:
     bn::sprite_ptr _back_icon;
     bn::sprite_ptr _bait_icon;
     bn::sprite_ptr _meter;
+    bn::vector<bn::sprite_ptr, 16> _hud_text_sprites;
     bn::vector<bn::sprite_ptr, 32> _line_dots;
     int _background_map_index = -1;
+    int _last_hud_bait = -1;
+    int _last_hud_money = -1;
+    bool _last_hud_dialog_active = false;
     AudioCue _audio_event = AudioCue::None;
     DialogModel _dialog;
     DialogRenderer _dialog_renderer;

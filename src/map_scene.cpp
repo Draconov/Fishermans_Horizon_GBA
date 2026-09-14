@@ -21,12 +21,6 @@ namespace fh
 namespace
 {
 
-struct TargetLabel
-{
-    const char* text;
-    int length;
-};
-
 constexpr const char* CHARACTER_NAMES[] = {
     "   Cid",
     "  Fran",
@@ -57,35 +51,6 @@ void append_text(bn::vector<bn::sprite_ptr, 24>& sprites, const char* text, int 
     }
 }
 
-void append_centered_text(bn::vector<bn::sprite_ptr, 24>& sprites, const char* text, int length,
-                          int screen_x, int screen_y, int max_chars)
-{
-    const int clamped_length = length > max_chars ? max_chars : length;
-    const int centered_x = screen_x + (max_chars - clamped_length) * 4;
-    append_text(sprites, text, centered_x, screen_y, max_chars);
-}
-
-TargetLabel target_label(MapTarget target)
-{
-    switch(target)
-    {
-    case MapTarget::CrystalLake:
-        return {"Crystal Lake", 12};
-    case MapTarget::Pier:
-        return {"Pier", 4};
-    case MapTarget::Shop:
-        return {"Shop", 4};
-    case MapTarget::River:
-        return {"River", 5};
-    case MapTarget::Ocean:
-        return {"Ocean", 5};
-    case MapTarget::Cave:
-        return {"Cave", 4};
-    case MapTarget::Catalog:
-        return {"Catalog", 7};
-    }
-    return {"", 0};
-}
 
 }
 
@@ -250,7 +215,6 @@ void MapScene::_update_selection(const FlowModel& flow)
 
     _last_target = selected;
     _has_last_target = true;
-    _text_dirty = true;
 
     switch(selected)
     {
@@ -304,10 +268,6 @@ void MapScene::_update_text(const FlowModel& flow)
     const char* character_name = CHARACTER_NAMES[character];
     append_text(_text_sprites, character_name, 168, 144, 6);
 
-    const TargetLabel label = target_label(flow.selected_map_target());
-    const char* target_label = label.text;
-    const int target_label_length = label.length;
-    append_centered_text(_text_sprites, target_label, target_label_length, 80, 152, 12);
 }
 
 AudioCue MapScene::take_audio_event() noexcept

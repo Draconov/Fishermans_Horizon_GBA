@@ -100,7 +100,7 @@ def scene_oam_budgets() -> dict[str, int]:
     return {
         "title": 0,
         "map": 6,
-        "fishing": 115,  # 13 fixed + 32 line dots + 6 dialog chrome + up to 64 dialog glyphs.
+        "fishing": 125,  # 13 fixed + 32 line dots + 6 dialog chrome + 64 dialog glyphs + up to 10 bait-name glyphs.
         "shop": 82,      # keeper + cursor + 16 sold-out + 64 text.
         "catalog": 109,  # cursor + 44 fish + 64 text.
         "options": 33,   # cursor + 32 text.
@@ -136,6 +136,18 @@ def _compare(stem: str, expected: list[RgbaImage], graphics_dir: Path, errors: l
             errors.append(f"{stem}[{index}]: visible 240x160 pixels differ")
 
 
+def _fill_runtime_text_fields(image: RgbaImage, rects: tuple[tuple[int, int, int, int], ...]) -> RgbaImage:
+    pixels = bytearray(image.pixels)
+    color = bytes((25, 5, 36, 255))
+    for x, y, width, height in rects:
+        for row in range(y, y + height):
+            start = (row * image.width + x) * 4
+            for column in range(width):
+                pos = start + column * 4
+                pixels[pos:pos + 4] = color
+    return RgbaImage(image.width, image.height, bytes(pixels))
+
+
 def validate_visual_parity(apk_path: Path, graphics_dir: Path) -> list[str]:
     errors: list[str] = []
     with zipfile.ZipFile(apk_path, "r") as archive:
@@ -159,8 +171,15 @@ def validate_visual_parity(apk_path: Path, graphics_dir: Path) -> list[str]:
             ("m4_event_anim", "assets/graphic/background/crystalLakeNoHud.png"),
         ):
             background = _read_apk_rgba(archive, member)
+            if stem.startswith("fishing_area_"):
+                background = _fill_runtime_text_fields(
+                    background, ((126, 8, 92, 8), (193, 144, 22, 8))
+                )
             _compare(stem, [composite_rgba(background, frame, 0, 128) for frame in sea_frames], graphics_dir, errors)
 
         shop = _read_apk_rgba(archive, "assets/graphic/background/shop.png")
+        shop = _fill_runtime_text_fields(
+            shop, ((126, 8, 92, 8), (24, 144, 32, 8), (193, 144, 22, 8))
+        )
         _compare("m4_shop", [shop], graphics_dir, errors)
     return errors

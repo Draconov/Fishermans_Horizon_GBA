@@ -17,6 +17,10 @@ public:
 
     void next() noexcept;
     void previous() noexcept;
+    void move_left() noexcept;
+    void move_right() noexcept;
+    void move_up() noexcept;
+    void move_down() noexcept;
     void select(int slot) noexcept;
     [[nodiscard]] ShopPurchaseResult purchase(FlowModel& flow) const noexcept;
 

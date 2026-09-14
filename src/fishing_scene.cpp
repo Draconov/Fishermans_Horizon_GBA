@@ -20,12 +20,14 @@
 #include "bn_sprite_items_fishing_hud.h"
 #include "bn_sprite_items_fishing_line_dot.h"
 #include "bn_sprite_items_fishing_meter.h"
+#include "bn_sprite_items_m4_font.h"
 #include "bn_sprite_items_fishing_rods_left.h"
 #include "bn_sprite_items_fishing_rods_right.h"
 #include "bn_sprite_items_fishing_splash.h"
 
 #include "audio_policy.h"
 #include "flow_model.h"
+#include "m4_font.h"
 
 namespace fh
 {
@@ -255,6 +257,50 @@ void append_dialog_number(char* output, int& length, int capacity, int value)
     output[length] = '\0';
 }
 
+const char* bait_name_for_index(int equipped_bait)
+{
+    constexpr const char* NAMES[] = {
+        "Worm", "Bread", "Candy", "Bitter Gum", "Steak", "Rainboworm", "Bait X",
+    };
+    if(equipped_bait < 0 || equipped_bait >= 7)
+    {
+        return NAMES[0];
+    }
+    return NAMES[equipped_bait];
+}
+
+void append_text(bn::vector<bn::sprite_ptr, 16>& sprites, const char* text, int screen_x, int screen_y,
+                 int max_chars)
+{
+    int column = 0;
+    while(*text && column < max_chars && sprites.size() < sprites.max_size())
+    {
+        const char character = *text++;
+        if(character == '#')
+        {
+            break;
+        }
+        const int glyph = m4_font_glyph(character);
+        if(glyph >= 0)
+        {
+            sprites.push_back(bn::sprite_items::m4_font.create_sprite(
+                screen_x + column * 8 + 4 - 120, screen_y + 4 - 80, glyph));
+        }
+        ++column;
+    }
+}
+
+void append_money(bn::vector<bn::sprite_ptr, 16>& sprites, int value, int screen_x, int screen_y)
+{
+    const char text[4] = {
+        char('0' + (value / 100) % 10),
+        char('0' + (value / 10) % 10),
+        char('0' + value % 10),
+        0,
+    };
+    append_text(sprites, text, screen_x, screen_y, 3);
+}
+
 int absolute(int value)
 {
     return value < 0 ? -value : value;
@@ -277,8 +323,8 @@ FishingScene::FishingScene(int pool, int rod_index, int equipped_bait, int chara
     _splash(bn::sprite_items::fishing_splash.create_sprite(-64, 44, 0)),
     _coin(bn::sprite_items::fishing_coin.create_sprite(-68, 0, 0)),
     _back_icon(bn::sprite_items::fishing_hud.create_sprite(-108, -68, 0)),
-    _bait_icon(bn::sprite_items::fishing_hud.create_sprite(80, -68, 1)),
-    _meter(bn::sprite_items::fishing_meter.create_sprite(-79, 52, 0))
+    _bait_icon(bn::sprite_items::fishing_hud.create_sprite(108, -68, 1)),
+    _meter(bn::sprite_items::fishing_meter.create_sprite(-79, 69, 0))
 {
     _fish_bank0.set_visible(false);
     _fish_bank1.set_visible(false);
@@ -355,6 +401,7 @@ void FishingScene::update(FlowModel& flow)
     }
 
     _render();
+    _render_hud_text(flow);
     if(_dialog.active())
     {
         _dialog_renderer.render(_dialog);
@@ -398,7 +445,7 @@ void FishingScene::_render()
     _rod_right_top.set_tiles(bn::sprite_items::fishing_rods_right.tiles_item(), rod_frame * 2);
     _rod_right_bottom.set_tiles(bn::sprite_items::fishing_rods_right.tiles_item(), rod_frame * 2 + 1);
 
-    _meter.set_position(_model.meter_x() - 116, 52);
+    _meter.set_position(_model.meter_x() - 116, 69);
 
     _splash.set_visible(_model.draw_splash());
     if(_model.draw_splash())
@@ -420,6 +467,32 @@ void FishingScene::_render()
     const bool hud_visible = ! _model.dialog_alive() || ((_model.ticks() / 8) % 2 == 0);
     _back_icon.set_visible(hud_visible);
     _bait_icon.set_visible(hud_visible);
+}
+
+void FishingScene::_render_hud_text(const FlowModel& flow)
+{
+    const int equipped_bait = _model.equipped_bait();
+    const int money = flow.money();
+    const bool dialog_active = _dialog.active();
+    if(equipped_bait == _last_hud_bait && money == _last_hud_money &&
+       dialog_active == _last_hud_dialog_active)
+    {
+        return;
+    }
+
+    _last_hud_bait = equipped_bait;
+    _last_hud_money = money;
+    _last_hud_dialog_active = dialog_active;
+    _hud_text_sprites.clear();
+
+    const char* bait_name = bait_name_for_index(equipped_bait);
+    append_text(_hud_text_sprites, bait_name, 126, 8, 11);
+    // The result dialog covers the bottom HUD, so release its three money
+    // glyphs while the dialog is active to preserve GBA OAM headroom.
+    if(! dialog_active)
+    {
+        append_money(_hud_text_sprites, flow.money(), 193, 144);
+    }
 }
 
 void FishingScene::_render_bait_or_fish()

@@ -96,17 +96,31 @@ void ShopScene::update(FlowModel& flow)
         return;
     }
 
-    if(bn::keypad::left_pressed() || bn::keypad::up_pressed())
+    if(bn::keypad::left_pressed())
     {
         _audio_event = AudioCue::NextPage;
-        _model.previous();
+        _model.move_left();
         _last_result = ShopPurchaseResult::InvalidItem;
         _dirty = true;
     }
-    else if(bn::keypad::right_pressed() || bn::keypad::down_pressed())
+    else if(bn::keypad::right_pressed())
     {
         _audio_event = AudioCue::NextPage;
-        _model.next();
+        _model.move_right();
+        _last_result = ShopPurchaseResult::InvalidItem;
+        _dirty = true;
+    }
+    else if(bn::keypad::up_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        _model.move_up();
+        _last_result = ShopPurchaseResult::InvalidItem;
+        _dirty = true;
+    }
+    else if(bn::keypad::down_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        _model.move_down();
         _last_result = ShopPurchaseResult::InvalidItem;
         _dirty = true;
     }

@@ -426,7 +426,7 @@ def test_map_scene_restores_original_character_panel_and_gba_selection_feedback(
     assert "map_target_enabled(MapTarget::Catalog)" in source
 
     # GBA-only D-pad feedback: selected target gets the recovered tile-165
-    # corner cursor, and its name is shown in the free bottom-center row.
+    # corner cursor. Location-name text is intentionally not added.
     assert '#include "bn_sprite_items_m4_shop_cursor.h"' in source
     assert "_selection_cursor" in header
     for target, xy in (
@@ -441,10 +441,6 @@ def test_map_scene_restores_original_character_panel_and_gba_selection_feedback(
         assert f"case MapTarget::{target}:" in source
         assert f"_selection_cursor.set_position({xy})" in source
 
-    for label in ('"Crystal Lake"', '"Pier"', '"Shop"', '"River"', '"Ocean"', '"Cave"', '"Catalog"'):
-        assert label in source
-    assert "append_centered_text(_text_sprites, target_label, target_label_length, 80, 152, 12)" in source
-
     # Marker animation remains, but selected markers no longer blink now that
     # an explicit cursor frame exists.
     assert "_selection_ticks" not in header
@@ -454,3 +450,85 @@ def test_map_scene_restores_original_character_panel_and_gba_selection_feedback(
 def test_map_obj_assets_use_compatible_bpp4_palettes():
     metadata = json.loads(Path("graphics/map_spots.json").read_text(encoding="utf-8"))
     assert metadata["bpp_mode"] == "bpp_4"
+
+
+
+def _bmp_rgb_at(path: Path, x: int, y: int) -> tuple[int, int, int]:
+    data = path.read_bytes()
+    assert data[:2] == b"BM"
+    pixel_offset = struct.unpack_from("<I", data, 10)[0]
+    dib_size = struct.unpack_from("<I", data, 14)[0]
+    width = struct.unpack_from("<i", data, 18)[0]
+    height = struct.unpack_from("<i", data, 22)[0]
+    assert dib_size == 40 and width > 0 and height > 0
+    bpp = struct.unpack_from("<H", data, 28)[0]
+    assert bpp == 8
+    palette_offset = 14 + dib_size
+    row_stride = (width + 3) & ~3
+    row_from_bottom = height - 1 - y
+    palette_index = data[pixel_offset + row_from_bottom * row_stride + x]
+    blue, green, red, _ = struct.unpack_from("<BBBB", data, palette_offset + palette_index * 4)
+    return red, green, blue
+
+
+def test_shop_scene_uses_spatial_four_way_dpad_navigation():
+    header = Path("include/shop_model.h").read_text(encoding="utf-8")
+    model = Path("src/shop_model.cpp").read_text(encoding="utf-8")
+    scene = Path("src/shop_scene.cpp").read_text(encoding="utf-8")
+
+    for method in ("move_left", "move_right", "move_up", "move_down"):
+        assert f"void {method}() noexcept" in header
+        assert f"ShopModel::{method}() noexcept" in model
+        assert f"_model.{method}();" in scene
+
+    assert "left_pressed() || bn::keypad::up_pressed()" not in scene
+    assert "right_pressed() || bn::keypad::down_pressed()" not in scene
+
+
+def test_shop_and_fishing_backgrounds_bake_original_drawtext_field_fill():
+    # Android DrawText owns opaque 25,5,36 RGB backing bitmaps. The GBA port
+    # bakes those static rectangles into the BG so dynamic glyph sprites do not
+    # expose the decorative art underneath them.
+    fill = (25, 5, 36)
+
+    # All source 240x160 screens are centered at (+8,+48) in a 256x256 BG.
+    for x, y in ((126, 8), (24, 144), (193, 144)):
+        assert _bmp_rgb_at(Path("graphics/m4_shop.bmp"), x + 8, y + 48) == fill
+
+    for stem in (
+        "fishing_area_crystal", "fishing_area_pier", "fishing_area_river",
+        "fishing_area_ocean", "fishing_area_cave",
+    ):
+        path = Path("graphics") / f"{stem}.bmp"
+        for frame in range(3):
+            frame_y = frame * 256
+            assert _bmp_rgb_at(path, 126 + 8, frame_y + 8 + 48) == fill
+            assert _bmp_rgb_at(path, 193 + 8, frame_y + 144 + 48) == fill
+
+
+def test_fishing_scene_restores_original_hud_text_and_positions():
+    header = Path("include/fishing_scene.h").read_text(encoding="utf-8")
+    source = Path("src/fishing_scene.cpp").read_text(encoding="utf-8")
+
+    assert '#include "bn_sprite_items_m4_font.h"' in source
+    assert "_hud_text_sprites" in header
+    for name in ('"Worm"', '"Bread"', '"Candy"', '"Bitter Gum"', '"Steak"', '"Rainboworm"', '"Bait X"'):
+        assert name in source
+    assert "append_text(_hud_text_sprites, bait_name, 126, 8, 11)" in source
+    assert "append_money(_hud_text_sprites, flow.money(), 193, 144)" in source
+
+    # APK top-left (220,4) for tile 98 => Butano center (108,-68).
+    assert "fishing_hud.create_sprite(108, -68, 1)" in source
+    # APK meter tile top-left Y=145 => Butano 8x8 center Y=69.
+    assert "_meter.set_position(_model.meter_x() - 116, 69)" in source
+
+
+def test_map_scene_does_not_add_gba_only_location_names():
+    source = Path("src/map_scene.cpp").read_text(encoding="utf-8")
+    # Keep the original APK character-name field, but no extra target-name UI.
+    assert "append_text(_text_sprites, character_name, 168, 144, 6)" in source
+    assert "TargetLabel" not in source
+    assert "target_label(" not in source
+    assert "append_centered_text" not in source
+    for label in ('"Crystal Lake"', '"Pier"', '"Shop"', '"River"', '"Ocean"', '"Cave"', '"Catalog"'):
+        assert label not in source

@@ -136,6 +136,48 @@ int main()
     }
 
     {
+        // GBA spatial navigation keeps the 4x4 Shop layout instead of treating
+        // it as a single wrapping list. Edges clamp in their current row/column.
+        fh::ShopModel shop;
+        assert(shop.selected_item() == 0);
+        shop.move_left();
+        assert(shop.selected_item() == 0);
+        shop.move_up();
+        assert(shop.selected_item() == 0);
+
+        shop.move_right();
+        assert(shop.selected_item() == 1);
+        shop.move_down();
+        assert(shop.selected_item() == 5);
+        shop.move_down();
+        assert(shop.selected_item() == 9);
+        shop.move_down();
+        assert(shop.selected_item() == 13);
+        shop.move_down();
+        assert(shop.selected_item() == 13);
+
+        shop.move_left();
+        assert(shop.selected_item() == 12);
+        shop.move_left();
+        assert(shop.selected_item() == 12);
+        shop.move_up();
+        assert(shop.selected_item() == 8);
+        shop.move_up();
+        assert(shop.selected_item() == 4);
+        shop.move_up();
+        assert(shop.selected_item() == 0);
+        shop.move_up();
+        assert(shop.selected_item() == 0);
+
+        shop.select(3);
+        shop.move_right();
+        assert(shop.selected_item() == 3);
+        shop.select(15);
+        shop.move_right();
+        assert(shop.selected_item() == 15);
+    }
+
+    {
         fh::ProgressState progress;
         progress.money = 999;
         fh::FlowModel flow(progress);

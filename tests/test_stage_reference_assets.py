@@ -634,3 +634,29 @@ def test_stage_m4_map_presentation_uses_original_tiles_170_through_176(tmp_path:
     assert json.loads((out / "map_catalog_parts.json").read_text()) == _expected_sprite_metadata(
         32, 32, bpp_mode="bpp_4", graphics_count=3
     )
+
+
+
+def test_stage_shop_and_fishing_bake_original_drawtext_backing_fields(tmp_path: Path, reference_apk: Path):
+    from scripts.stage_reference_assets import stage_m3_assets, stage_m4_assets
+
+    out = tmp_path / "graphics"
+    stage_m3_assets(reference_apk, out)
+    stage_m4_assets(reference_apk, out)
+    fill = (25, 5, 36)
+
+    width, height, palette, index_at = _read_bmp(out / "m4_shop.bmp")
+    assert (width, height) == (256, 256)
+    for x, y in ((126, 8), (24, 144), (193, 144)):
+        assert palette[index_at(x + 8, y + 48)] == fill
+
+    for stem in (
+        "fishing_area_crystal", "fishing_area_pier", "fishing_area_river",
+        "fishing_area_ocean", "fishing_area_cave",
+    ):
+        width, height, palette, index_at = _read_bmp(out / f"{stem}.bmp")
+        assert (width, height) == (256, 256 * 3)
+        for frame in range(3):
+            y0 = frame * 256
+            assert palette[index_at(126 + 8, y0 + 8 + 48)] == fill
+            assert palette[index_at(193 + 8, y0 + 144 + 48)] == fill
