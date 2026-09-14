@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 import shutil
 import wave
@@ -74,3 +75,25 @@ def test_staged_audio_names_are_safe_butano_cpp_identifiers():
         assert re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', stem), stem
         assert stem not in cpp_keywords, stem
         assert not keyword.iskeyword(stem), stem
+
+
+def test_title_music_is_staged_with_gba_loudness_gain(tmp_path: Path):
+    if shutil.which('ffmpeg') is None:
+        pytest.skip('ffmpeg unavailable')
+
+    out = tmp_path / 'audio'
+    manifest_path = tmp_path / 'manifest.json'
+    manifest = stage_audio_assets(APK, out, manifest_path)
+    title = next(item for item in manifest['assets'] if item['output'] == 'title.wav')
+    assert title['gain_db'] == 6.0
+
+    with wave.open(str(out / 'title.wav'), 'rb') as wav:
+        pcm = wav.readframes(wav.getnframes())
+    centered = [sample - 128 for sample in pcm]
+    rms = math.sqrt(sum(sample * sample for sample in centered) / len(centered))
+    peak = max(abs(sample) for sample in centered)
+
+    # Canonical decode is about -30.8dBFS / peak 28. +6dB raises it into
+    # the practical range of the other scene tracks without clipping.
+    assert 7.0 <= rms <= 8.5
+    assert 52 <= peak <= 58

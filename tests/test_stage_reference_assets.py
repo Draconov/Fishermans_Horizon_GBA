@@ -108,6 +108,9 @@ def test_stage_m1_title_animation_uses_exact_sea_tile_crops(tmp_path: Path, refe
     }
     assert {record["output_path"] for record in records} == {
         "graphics/title_anim.bmp",
+        "graphics/title_frame_112.bmp",
+        "graphics/title_frame_113.bmp",
+        "graphics/title_frame_114.bmp",
         "graphics/map.bmp",
         "graphics/map_spots.bmp",
         "graphics/crystal_lake.bmp",
@@ -660,3 +663,31 @@ def test_stage_shop_and_fishing_bake_original_drawtext_backing_fields(tmp_path: 
             y0 = frame * 256
             assert palette[index_at(126 + 8, y0 + 8 + 48)] == fill
             assert palette[index_at(193 + 8, y0 + 144 + 48)] == fill
+
+
+def test_stage_title_animation_exports_three_safe_single_map_frames(tmp_path: Path, reference_apk: Path):
+    from scripts.stage_reference_assets import stage_m1_assets
+
+    out = tmp_path / "graphics"
+    records = stage_m1_assets(reference_apk, out)
+    outputs = {record["output_path"] for record in records}
+
+    for tile, source_y in ((112, 0), (113, 4), (114, 8)):
+        stem = f"title_frame_{tile}"
+        width, height, palette, index_at = _read_bmp(out / f"{stem}.bmp")
+        assert (width, height) == (256, 256)
+        metadata = json.loads((out / f"{stem}.json").read_text(encoding="utf-8"))
+        assert metadata == {
+            "type": "regular_bg",
+            "bpp_mode": "bpp_8",
+            "compression": "auto_no_huffman",
+        }
+        assert f"graphics/{stem}.bmp" in outputs
+
+    # Spot-check the three recovered 4px sea strips at their title position.
+    w, h, pal, idx = _read_bmp(out / "title_frame_112.bmp")
+    assert pal[idx(8 + 6, 48 + 128)] == (235, 255, 227)
+    w, h, pal, idx = _read_bmp(out / "title_frame_113.bmp")
+    assert pal[idx(8 + 6, 48 + 128)] == (80, 156, 204)
+    w, h, pal, idx = _read_bmp(out / "title_frame_114.bmp")
+    assert pal[idx(8 + 4, 48 + 129)] == (58, 77, 186)

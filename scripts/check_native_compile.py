@@ -45,12 +45,14 @@ private:
 };
 
 class regular_bg_map_item {};
+class regular_bg_item;
 
 class regular_bg_ptr {
 public:
     regular_bg_ptr() = delete;
     explicit regular_bg_ptr(int) {}
     void set_map(const regular_bg_map_item&, int) {}
+    void set_item(const regular_bg_item&) {}
 };
 
 class regular_bg_item {

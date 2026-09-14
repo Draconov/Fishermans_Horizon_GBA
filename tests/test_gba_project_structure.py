@@ -42,12 +42,14 @@ def test_game_state_starts_at_intro():
     assert "return GameState::Intro;" in source
 
 
-def test_title_scene_uses_single_map_background_during_native_bringup():
+def test_title_scene_uses_safe_single_map_animation_frames():
     text = Path("src/title_scene.cpp").read_text(encoding="utf-8")
-    assert '#include "bn_regular_bg_items_title.h"' in text
     assert '#include "bn_regular_bg_items_title_anim.h"' not in text
+    assert '#include "bn_regular_bg_items_title_frame_112.h"' in text
+    assert '#include "bn_regular_bg_items_title_frame_113.h"' in text
+    assert '#include "bn_regular_bg_items_title_frame_114.h"' in text
     assert '#include "bn_keypad.h"' in text
-    assert "bn::regular_bg_items::title.create_bg(0, 0)" in text
+    assert "bn::regular_bg_items::title_frame_112.create_bg(0, 0)" in text
     assert "bn::keypad::a_pressed()" in text
     assert "bn::keypad::start_pressed()" in text
     assert "set_map" not in text
@@ -170,7 +172,7 @@ def test_app_owns_flow_model_and_only_active_scene_resources():
 
 
 def test_m1_generated_assets_are_declared_for_butano():
-    for stem in ("title_anim", "map", "map_spots", "crystal_lake"):
+    for stem in ("title_anim", "title_frame_112", "title_frame_113", "title_frame_114", "map", "map_spots", "crystal_lake"):
         assert Path(f"graphics/{stem}.bmp").is_file()
         assert Path(f"graphics/{stem}.json").is_file()
 
@@ -532,3 +534,31 @@ def test_map_scene_does_not_add_gba_only_location_names():
     assert "append_centered_text" not in source
     for label in ('"Crystal Lake"', '"Pier"', '"Shop"', '"River"', '"Ocean"', '"Cave"', '"Catalog"'):
         assert label not in source
+
+
+def test_runtime_parity_regressions_title_dialog_and_shop_cursor():
+    fishing = Path("src/fishing_scene.cpp").read_text(encoding="utf-8")
+    title = Path("src/title_scene.cpp").read_text(encoding="utf-8")
+    shop = Path("src/shop_scene.cpp").read_text(encoding="utf-8")
+
+    # A fresh catch/line-break dialogue must be allowed to restart the shared
+    # DialogModel even after a previous dialogue reached its done() latch.
+    assert "if(_model.dialog_alive() && ! _dialog.active())" in fishing
+    assert "if(_model.dialog_alive() && ! _dialog.active() && ! _dialog.done())" not in fishing
+
+    # The unsafe stacked multi-map title item stays out of runtime. The three
+    # recovered sea frames are independent single-map BG items instead.
+    assert '#include "bn_regular_bg_items_title_frame_112.h"' in title
+    assert '#include "bn_regular_bg_items_title_frame_113.h"' in title
+    assert '#include "bn_regular_bg_items_title_frame_114.h"' in title
+    assert "flow.title_sea_tile()" in title
+    assert "_background.set_item(bn::regular_bg_items::title_frame_113)" in title
+    assert "_background.set_item(bn::regular_bg_items::title_frame_114)" in title
+    assert "_background.set_item(bn::regular_bg_items::title_frame_112)" in title
+    assert '#include "bn_regular_bg_items_title_anim.h"' not in title
+
+    # Tile 165 is a 24x24 cursor padded at the top-left of a 32x32 OBJ. Shift
+    # its sprite center by +4,+4 so the visible 24x24 box is centered on each
+    # 24px-spaced Shop item.
+    assert "m4_shop_cursor.create_sprite(16, -40, 0)" in shop
+    assert "_cursor.set_position(16 + (slot % 4) * 24, -40 + (slot / 4) * 24)" in shop

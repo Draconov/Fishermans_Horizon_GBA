@@ -74,7 +74,7 @@ void append_money(bn::vector<bn::sprite_ptr, 64>& sprites, int value, int screen
 ShopScene::ShopScene() :
     _background(bn::regular_bg_items::m4_shop.create_bg(0, 0)),
     _keeper(bn::sprite_items::m4_shop_keeper.create_sprite(-84, 21, 0)),
-    _cursor(bn::sprite_items::m4_shop_cursor.create_sprite(12, -44, 0))
+    _cursor(bn::sprite_items::m4_shop_cursor.create_sprite(16, -40, 0))
 {
     for(int slot = 0; slot < 16; ++slot)
     {
@@ -140,7 +140,7 @@ void ShopScene::update(FlowModel& flow)
     }
 
     const int slot = _model.selected_item();
-    _cursor.set_position(12 + (slot % 4) * 24, -44 + (slot / 4) * 24);
+    _cursor.set_position(16 + (slot % 4) * 24, -40 + (slot / 4) * 24);
     _render(flow);
 }
 

@@ -382,7 +382,7 @@ void FishingScene::update(FlowModel& flow)
         _flash_request = true;
     }
 
-    if(_model.dialog_alive() && ! _dialog.active() && ! _dialog.done())
+    if(_model.dialog_alive() && ! _dialog.active())
     {
         _start_result_dialog();
     }

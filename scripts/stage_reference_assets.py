@@ -219,6 +219,40 @@ def _stage_title_animation(apk_path: Path, graphics_dir: Path) -> dict[str, obje
     )
 
 
+def _stage_title_frames(apk_path: Path, graphics_dir: Path) -> list[dict[str, object]]:
+    title_source = read_apk_member(apk_path, TITLE_MEMBER)
+    sea_source = read_apk_member(apk_path, SEA_TILES_MEMBER)
+    title = decode_rgba_png(title_source)
+    sea = decode_rgba_png(sea_source)
+    if (title.width, title.height) != (240, 160):
+        raise ValueError("title animation requires a 240x160 title source")
+    if (sea.width, sea.height) != (240, 16):
+        raise ValueError("title animation requires a 240x16 seaTiles source")
+
+    combined_source = title_source + sea_source
+    records: list[dict[str, object]] = []
+    for tile, source_y in ((112, 0), (113, 4), (114, 8)):
+        sea_frame = crop_rgba(sea, 0, source_y, 240, 4)
+        composited = composite_rgba(title, sea_frame, 0, 128)
+        stem = f"title_frame_{tile}"
+        bmp_path = graphics_dir / f"{stem}.bmp"
+        offset_x, offset_y = write_centered_indexed_bmp(bmp_path, composited)
+        _write_json(graphics_dir / f"{stem}.json", _REGULAR_BG_METADATA)
+        records.append(_record(
+            source_member=f"{TITLE_MEMBER}+{SEA_TILES_MEMBER}",
+            source_bytes=combined_source,
+            source_width=240,
+            source_height=176,
+            output_path=f"graphics/{stem}.bmp",
+            output_file=bmp_path,
+            output_width=256,
+            output_height=256,
+            offset_x=offset_x,
+            offset_y=offset_y,
+        ))
+    return records
+
+
 def _stage_map_spots(apk_path: Path, graphics_dir: Path) -> dict[str, object]:
     source = read_apk_member(apk_path, TILES_MEMBER)
     tiles = decode_rgba_png(source)
@@ -251,6 +285,7 @@ def stage_m1_assets(apk_path: Path, graphics_dir: Path) -> list[dict[str, object
     graphics_dir.mkdir(parents=True, exist_ok=True)
     return [
         _stage_title_animation(apk_path, graphics_dir),
+        *_stage_title_frames(apk_path, graphics_dir),
         _stage_regular_bg(apk_path, graphics_dir, member=MAP_MEMBER, stem="map"),
         _stage_map_spots(apk_path, graphics_dir),
         _stage_regular_bg(

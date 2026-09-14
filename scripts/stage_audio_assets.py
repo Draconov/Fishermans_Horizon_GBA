@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from hashlib import sha256
 import json
+import math
 from pathlib import Path
 import shutil
 import struct
@@ -28,6 +29,22 @@ def _wav_bytes(pcm: bytes) -> bytes:
     fmt = struct.pack("<HHIIHH", 1, CHANNELS, SAMPLE_RATE, byte_rate, block_align, SAMPLE_WIDTH_BITS)
     riff_size = 4 + (8 + len(fmt)) + (8 + len(pcm))
     return b"RIFF" + struct.pack("<I", riff_size) + b"WAVE" + b"fmt " + struct.pack("<I", len(fmt)) + fmt + b"data" + struct.pack("<I", len(pcm)) + pcm
+
+
+def _apply_gain_u8(pcm: bytes, gain_db: float) -> bytes:
+    if gain_db == 0:
+        return pcm
+    scale = math.pow(10.0, gain_db / 20.0)
+    result = bytearray(len(pcm))
+    for index, sample in enumerate(pcm):
+        centered = sample - 128
+        amplified = int(round(centered * scale))
+        if amplified < -128:
+            amplified = -128
+        elif amplified > 127:
+            amplified = 127
+        result[index] = amplified + 128
+    return bytes(result)
 
 
 def _decode_mp3(mp3_path: Path) -> bytes:
@@ -65,6 +82,8 @@ def stage_audio_assets(apk_path: Path, output_dir: Path, manifest_path: Path) ->
             source_path = temp_dir / Path(source).name
             source_path.write_bytes(raw)
             pcm = _decode_mp3(source_path)
+            gain_db = 6.0 if output_name == "title.wav" else 0.0
+            pcm = _apply_gain_u8(pcm, gain_db)
             wav = _wav_bytes(pcm)
             output_path = output_dir / output_name
             output_path.write_bytes(wav)
@@ -72,6 +91,7 @@ def stage_audio_assets(apk_path: Path, output_dir: Path, manifest_path: Path) ->
                 "source": source,
                 "source_sha256": by_source[source]["sha256"],
                 "output": output_name,
+                "gain_db": gain_db,
                 "frames": len(pcm),
                 "duration_ms": round(len(pcm) * 1000 / SAMPLE_RATE, 3),
                 "bytes": len(wav),

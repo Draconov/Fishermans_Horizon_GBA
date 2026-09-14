@@ -20,6 +20,7 @@ public:
 
 private:
     bn::regular_bg_ptr _background;
+    int _sea_tile = 112;
     AudioCue _audio_event = AudioCue::None;
 };
 
