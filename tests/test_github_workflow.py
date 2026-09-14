@@ -40,6 +40,31 @@ def test_workflow_pins_r67_toolchain_butano_and_build_steps():
     assert '--devkitpro /opt/devkitpro' in text
     assert '--butano "$GITHUB_WORKSPACE/../butano/butano"' in text
     assert 'python3 -m pytest -q' in text
+    assert 'tests/test_audio_manager.py' in text
+    assert 'tests/test_save_codec.py' in text
+    assert 'tests/test_github_workflow.py' in text
+    for forbidden in (
+        'test_reference_apk.py',
+        'test_recover_m1.py',
+        'test_recover_m2.py',
+        'test_recover_m3.py',
+        'test_recover_m4.py',
+        'test_recover_m5.py',
+        'test_recover_m7.py',
+        'test_recover_surface.py',
+        'test_stage_reference_assets.py',
+        'test_m5_visual_parity.py',
+        'test_verify_m0.py',
+        'test_verify_m1.py',
+        'test_verify_m2.py',
+        'test_verify_m3.py',
+        'test_verify_m4.py',
+        'test_verify_m5.py',
+        'test_verify_m6.py',
+        'test_verify_m7.py',
+    ):
+        assert forbidden not in text
+    assert 'FH_REFERENCE_APK' not in text
     assert 'make' in text and 'LIBBUTANO' in text
     assert 'python3 scripts/package_rom.py' in text
     assert 'mgba-sdl' in text and 'xvfb' in text

@@ -151,7 +151,7 @@ As with earlier gates, ROM compilation is reported separately: it is only marked
 
 ## M6 release hardening
 
-The GitHub release pipeline lives in `.github/workflows/gba.yml`. It builds with the pinned `devkitpro/devkitarm:20260221` image (the r67-era image required by the M8 toolchain contract) and Butano `21.7.1`, runs the host tests, validates the pinned toolchain, compiles the ROM, packages it with `scripts/package_rom.py`, verifies its SHA-256, and performs a bounded mGBA boot smoke test. Every successful workflow run uploads a downloadable `gba-rom` artifact containing exactly `Fishermans_Horizon_GBA.gba` and `Fishermans_Horizon_GBA.gba.sha256`.
+The GitHub release pipeline lives in `.github/workflows/gba.yml`. It builds with the pinned `devkitpro/devkitarm:20260221` image (the r67-era image required by the M8 toolchain contract) and Butano `21.7.1`, runs only the self-contained GBA project tests, validates the pinned toolchain, compiles the ROM, packages it with `scripts/package_rom.py`, verifies its SHA-256, and performs a bounded mGBA boot smoke test. **Release CI never reads, downloads, or requires the original Android APK and does not run any APK/reference/recovery parity tests.** Those recovery tests remain local reverse-engineering tools only. Every successful workflow run uploads a downloadable `gba-rom` artifact containing exactly `Fishermans_Horizon_GBA.gba` and `Fishermans_Horizon_GBA.gba.sha256`.
 
 A tag beginning with `v` automatically builds and publishes a GitHub Release. For example:
 
@@ -168,7 +168,7 @@ Run the complete local M6 gate with:
 python scripts/verify_m6.py --apk /path/to/fishermans-horizon-1-1.apk
 ```
 
-The gate chains the full M5 canonical parity suite, validates the release workflow and deterministic ROM/checksum packaging contract, and then attempts a real local ROM build and mGBA smoke test. If devkitARM/Butano or mGBA are absent locally, that capability is reported as `INFO` and **release eligibility is not claimed**. CI is strict: the pinned build container installs mGBA and must complete both the ROM build and emulator smoke test before an explicit release can run.
+The local M6 gate can still be used when doing reverse-engineering work with a privately supplied reference APK. That is separate from release CI. GitHub Release CI uses only the self-contained project-test allowlist, then requires the pinned build container to complete the real ROM build, deterministic package/checksum validation, and mGBA smoke test before a release can run.
 
 ## M7 final parity
 
