@@ -3,7 +3,7 @@ namespace fh
 {
 namespace
 {
-constexpr std::array<FishingAreaSpec, 5> AREAS = {{
+constexpr std::array<FishingAreaSpec, 6> AREAS = {{
     {
         1,
         "graphic/background/crystalLake.png",
@@ -77,6 +77,21 @@ constexpr std::array<FishingAreaSpec, 5> AREAS = {{
             {"SYNAMELL", 42, 3, 2, 1, 80, 141, 25},
             {"CRYSTALINE", 43, 3, 3, 1, 80, 147, 25},
             {"???", 44, 4, 6, 1, 80, 148, 1},
+        }},
+    },
+    {
+        6,
+        "graphics/fishing_area_lagoon.bmp",
+        {{
+            {"CAN", 4, 0, 7, 2, 40, 120, 1},
+            {"SIRIRIDINE", 1, 1, 0, 1, 80, 110, 5},
+            {"DRAGFISH", 2, 1, 2, 1, 80, 111, 5},
+            {"SHRAMP", 22, 1, 2, 1, 80, 151, 5},
+            {"SLIMEFISH", 17, 2, 3, 1, 80, 135, 10},
+            {"GRABCRAB", 18, 2, 1, 1, 80, 136, 10},
+            {"SHELLIPOP", 25, 2, 2, 1, 80, 143, 10},
+            {"LAMBARI", 23, 2, 0, 1, 80, 154, 10},
+            {"TROLLSHARK", 33, 3, 4, 1, 80, 161, 25},
         }},
     },
 }};

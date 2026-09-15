@@ -148,6 +148,7 @@ def test_m2_fishing_scene_is_thin_adapter_over_fishing_model():
         'bn_regular_bg_items_fishing_area_river.h',
         'bn_regular_bg_items_fishing_area_ocean.h',
         'bn_regular_bg_items_fishing_area_cave.h',
+        'bn_regular_bg_items_fishing_area_lagoon.h',
         'bn_sprite_items_fishing_char.h',
         'bn_sprite_items_fishing_rods_left.h',
         'bn_sprite_items_fishing_rods_right.h',
@@ -182,7 +183,7 @@ def test_m2_fishing_scene_is_thin_adapter_over_fishing_model():
     assert "FishingScene(int pool, int rod_index, int equipped_bait, int character_index)" in header
     assert "_flow.current_character()" in app
     assert "_flow.fishing_pool() >= 1" in app
-    assert "_flow.fishing_pool() <= 5" in app
+    assert "_flow.fishing_pool() <= 6" in app
 
 
 def test_m2_generated_fishing_assets_are_declared_for_butano():
@@ -226,7 +227,7 @@ def test_m3_fishing_scene_uses_generic_area_fish_and_rod_assets():
 
     for stem in (
         "fishing_area_crystal", "fishing_area_pier", "fishing_area_river",
-        "fishing_area_ocean", "fishing_area_cave",
+        "fishing_area_ocean", "fishing_area_cave", "fishing_area_lagoon",
     ):
         assert f'#include "bn_regular_bg_items_{stem}.h"' in source
     for stem in ("fishing_fish_m3_0", "fishing_fish_m3_1", "fishing_rods_left", "fishing_rods_right"):
@@ -587,7 +588,7 @@ def test_shop_and_fishing_backgrounds_bake_original_drawtext_field_fill():
 
     for stem in (
         "fishing_area_crystal", "fishing_area_pier", "fishing_area_river",
-        "fishing_area_ocean", "fishing_area_cave",
+        "fishing_area_ocean", "fishing_area_cave", "fishing_area_lagoon",
     ):
         path = Path("graphics") / f"{stem}.bmp"
         for frame in range(3):

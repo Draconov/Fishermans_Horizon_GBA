@@ -3,6 +3,7 @@
 #include "bn_keypad.h"
 #include "bn_regular_bg_items_fishing_area_cave.h"
 #include "bn_regular_bg_items_fishing_area_crystal.h"
+#include "bn_regular_bg_items_fishing_area_lagoon.h"
 #include "bn_regular_bg_items_fishing_area_ocean.h"
 #include "bn_regular_bg_items_fishing_area_pier.h"
 #include "bn_regular_bg_items_fishing_area_river.h"
@@ -43,6 +44,7 @@ bn::regular_bg_ptr create_fishing_background(int pool)
     case 3: return bn::regular_bg_items::fishing_area_river.create_bg(0, 0, 0);
     case 4: return bn::regular_bg_items::fishing_area_ocean.create_bg(0, 0, 0);
     case 5: return bn::regular_bg_items::fishing_area_cave.create_bg(0, 0, 0);
+    case 6: return bn::regular_bg_items::fishing_area_lagoon.create_bg(0, 0, 0);
     default: return bn::regular_bg_items::fishing_area_crystal.create_bg(0, 0, 0);
     }
 }
@@ -62,6 +64,9 @@ void set_fishing_background_map(bn::regular_bg_ptr& background, int pool, int ma
         break;
     case 5:
         background.set_map(bn::regular_bg_items::fishing_area_cave.map_item(), map_index);
+        break;
+    case 6:
+        background.set_map(bn::regular_bg_items::fishing_area_lagoon.map_item(), map_index);
         break;
     default:
         background.set_map(bn::regular_bg_items::fishing_area_crystal.map_item(), map_index);

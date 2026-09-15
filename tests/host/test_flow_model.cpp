@@ -445,27 +445,39 @@ int main()
         model.complete_intro();
         model.handle_title_command(fh::TitleCommand::Play);
 
-        // The new markers are map-only in phase 1: Confirm must not enter Fishing
-        // until pools 6-8 have backgrounds and fish populations.
+        // Lagoon is the first fully playable custom fishing spot.
         model.handle_map_command(fh::MapCommand::Left);
         model.handle_map_command(fh::MapCommand::Down);
         assert(model.selected_map_target() == fh::MapTarget::Lagoon);
         model.handle_map_command(fh::MapCommand::Confirm);
-        assert(model.state() == fh::GameState::Map);
-        assert(model.fishing_pool() == 0);
+        assert(model.state() == fh::GameState::Fishing);
+        assert(model.fishing_pool() == 6);
 
-        model.handle_map_command(fh::MapCommand::Down);
-        model.handle_map_command(fh::MapCommand::Right);
-        assert(model.selected_map_target() == fh::MapTarget::Beach);
-        model.handle_map_command(fh::MapCommand::Confirm);
-        assert(model.state() == fh::GameState::Map);
-        assert(model.fishing_pool() == 0);
+        // Beach and Waterfall remain map-only until their own art/content land.
+        fh::FlowModel beach_model(progress);
+        beach_model.complete_intro();
+        beach_model.handle_title_command(fh::TitleCommand::Play);
+        beach_model.handle_map_command(fh::MapCommand::Left);
+        beach_model.handle_map_command(fh::MapCommand::Down);
+        beach_model.handle_map_command(fh::MapCommand::Down);
+        beach_model.handle_map_command(fh::MapCommand::Right);
+        assert(beach_model.selected_map_target() == fh::MapTarget::Beach);
+        beach_model.handle_map_command(fh::MapCommand::Confirm);
+        assert(beach_model.state() == fh::GameState::Map);
+        assert(beach_model.fishing_pool() == 0);
 
-        model.handle_map_command(fh::MapCommand::Down);
-        assert(model.selected_map_target() == fh::MapTarget::Waterfall);
-        model.handle_map_command(fh::MapCommand::Confirm);
-        assert(model.state() == fh::GameState::Map);
-        assert(model.fishing_pool() == 0);
+        fh::FlowModel waterfall_model(progress);
+        waterfall_model.complete_intro();
+        waterfall_model.handle_title_command(fh::TitleCommand::Play);
+        waterfall_model.handle_map_command(fh::MapCommand::Left);
+        waterfall_model.handle_map_command(fh::MapCommand::Down);
+        waterfall_model.handle_map_command(fh::MapCommand::Down);
+        waterfall_model.handle_map_command(fh::MapCommand::Right);
+        waterfall_model.handle_map_command(fh::MapCommand::Down);
+        assert(waterfall_model.selected_map_target() == fh::MapTarget::Waterfall);
+        waterfall_model.handle_map_command(fh::MapCommand::Confirm);
+        assert(waterfall_model.state() == fh::GameState::Map);
+        assert(waterfall_model.fishing_pool() == 0);
     }
 
     return 0;

@@ -35,7 +35,7 @@ void hash_string(std::uint64_t& hash, const char* text)
 
 int main()
 {
-    assert(fh::fishing_area_count() == 5);
+    assert(fh::fishing_area_count() == 6);
     assert(fh::fishing_area_spec(0).pool == 1);
     assert(fh::fishing_area_spec(99).pool == 1);
 
@@ -44,8 +44,9 @@ int main()
     assert(std::strcmp(fh::fish_for_roll(3, 9)->name, "PINKSHARK") == 0);
     assert(std::strcmp(fh::fish_for_roll(4, 9)->name, "HAMMERHEAD") == 0);
     assert(std::strcmp(fh::fish_for_roll(5, 9)->name, "???") == 0);
+    assert(std::strcmp(fh::fish_for_roll(6, 9)->name, "TROLLSHARK") == 0);
     assert(fh::fish_for_roll(1, 0) == nullptr);
-    assert(fh::fish_for_roll(5, 10) == nullptr);
+    assert(fh::fish_for_roll(6, 10) == nullptr);
 
     std::uint64_t hash = 1469598103934665603ULL;
     for(int pool = 1; pool <= fh::fishing_area_count(); ++pool)
@@ -66,7 +67,7 @@ int main()
             hash_int(hash, fish->reward);
         }
     }
-    assert(hash == 0x5DBBF209D221CEB3ULL);
+    assert(hash == 0x407DAD1EBA58EF02ULL);
 
     return 0;
 }
