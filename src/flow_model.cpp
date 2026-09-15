@@ -447,6 +447,21 @@ bool FlowModel::catalog_has_fish(int fish_number) const noexcept
            _progress.fish_catalog[fish_number - 1];
 }
 
+void FlowModel::grant_money(int amount) noexcept
+{
+    if(amount <= 0 || _progress.money >= 999)
+    {
+        return;
+    }
+
+    _progress.money += amount;
+    if(_progress.money > 999)
+    {
+        _progress.money = 999;
+    }
+    ++_progress_revision;
+}
+
 void FlowModel::apply_fishing_reward(int fish_number, int reward) noexcept
 {
     if(fish_number < 1 || fish_number > int(_progress.fish_catalog.size()) || reward < 0)

@@ -17,7 +17,7 @@ def test_dialog_model_host_contract(tmp_path: Path):
     result = subprocess.run(
         [
             compiler, "-std=c++17", "-Wall", "-Wextra", "-pedantic", "-Iinclude",
-            "tests/host/test_dialog_model.cpp", "src/dialog_model.cpp", "-o", str(executable),
+            "tests/host/test_dialog_model.cpp", "src/dialog_model.cpp", "src/progression_content.cpp", "-o", str(executable),
         ],
         cwd=ROOT, capture_output=True, text=True, check=False,
     )

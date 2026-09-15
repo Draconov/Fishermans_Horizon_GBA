@@ -223,5 +223,56 @@ int main()
         assert(flow.rod_owned(2));
     }
 
+    {
+        // Secret Shop-only Konami tracker: Up Up Down Down Left Right Left Right B A.
+        // It must finish within 300 frames (5 seconds at 60 Hz).
+        fh::ShopModel shop;
+        using Key = fh::ShopCheatKey;
+        using Result = fh::ShopCheatResult;
+        assert(shop.push_cheat_key(Key::Up, 10) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Up, 20) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Down, 30) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Down, 40) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Left, 50) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Right, 60) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Left, 70) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Right, 80) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::B, 90) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::A, 100) == Result::Completed);
+
+        // Completion resets the sequence.
+        assert(shop.push_cheat_key(Key::A, 101) == Result::NoProgress);
+
+        // Timeout resets the sequence, but a new Up can immediately restart it.
+        assert(shop.push_cheat_key(Key::Up, 200) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Up, 501) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Down, 502) == Result::NoProgress);
+
+        // Wrong keys reset; Up itself can become a fresh prefix.
+        assert(shop.push_cheat_key(Key::Up, 600) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Right, 601) == Result::NoProgress);
+        assert(shop.push_cheat_key(Key::Up, 602) == Result::Progressed);
+        assert(shop.push_cheat_key(Key::Up, 603) == Result::Progressed);
+    }
+
+    {
+        // Cheat reward uses the same progress revision/save path as real progression.
+        fh::ProgressState progress;
+        progress.money = 10;
+        fh::FlowModel flow(progress);
+        const auto revision = flow.progress_revision();
+        flow.grant_money(30);
+        assert(flow.money() == 40);
+        assert(flow.progress_revision() == revision + 1);
+        flow.grant_money(1000);
+        assert(flow.money() == 999);
+        const auto capped_revision = flow.progress_revision();
+        flow.grant_money(30);
+        assert(flow.money() == 999);
+        assert(flow.progress_revision() == capped_revision);
+        flow.grant_money(-1);
+        assert(flow.money() == 999);
+    }
+
     return 0;
 }

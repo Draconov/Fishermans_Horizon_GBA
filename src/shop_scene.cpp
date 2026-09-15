@@ -83,6 +83,10 @@ ShopScene::ShopScene() :
     _locked_overlay(bn::sprite_items::m4_shop_locked.create_sprite(88, -16, 0)),
     _buy_enabled(bn::sprite_items::m4_shop_buy_enabled.create_sprite(-108, 72, 0))
 {
+    // Lower z-order is drawn later/on top in Butano. The locked Nova overlay
+    // is opaque, so keep it behind the selection cursor.
+    _locked_overlay.set_z_order(1);
+    _cursor.set_z_order(0);
     _locked_overlay.set_visible(false);
     _buy_enabled.set_visible(false);
 
@@ -99,59 +103,18 @@ ShopScene::ShopScene() :
 
 void ShopScene::update(FlowModel& flow)
 {
-    if(_needs_description)
-    {
-        _start_description(flow);
-    }
+    ++_shop_ticks;
 
-    if(bn::keypad::b_pressed())
+    if(_dialog.active())
     {
-        _audio_event = AudioCue::NextPage;
-        if(_dialog.active())
+        if(bn::keypad::b_pressed())
         {
+            _audio_event = AudioCue::NextPage;
             _dialog.clear();
             _dialog_renderer.hide();
             _dirty = true;
         }
         else
-        {
-            flow.handle_shop_back();
-            return;
-        }
-    }
-    else
-    {
-        bool moved = false;
-        if(bn::keypad::left_pressed())
-        {
-            _model.move_left();
-            moved = true;
-        }
-        else if(bn::keypad::right_pressed())
-        {
-            _model.move_right();
-            moved = true;
-        }
-        else if(bn::keypad::up_pressed())
-        {
-            _model.move_up();
-            moved = true;
-        }
-        else if(bn::keypad::down_pressed())
-        {
-            _model.move_down();
-            moved = true;
-        }
-
-        if(moved)
-        {
-            _audio_event = AudioCue::NextPage;
-            _last_result = ShopPurchaseResult::InvalidItem;
-            _dirty = true;
-            _needs_description = true;
-            _start_description(flow);
-        }
-        else if(_dialog.active())
         {
             const DialogEvent event = _dialog.update(bn::keypad::a_pressed());
             if(event == DialogEvent::NextPage)
@@ -163,11 +126,79 @@ void ShopScene::update(FlowModel& flow)
                 _dirty = true;
             }
         }
+    }
+    else
+    {
+        bool moved = false;
+        if(bn::keypad::left_pressed())
+        {
+            (void) _model.push_cheat_key(ShopCheatKey::Left, _shop_ticks);
+            _model.move_left();
+            moved = true;
+        }
+        else if(bn::keypad::right_pressed())
+        {
+            (void) _model.push_cheat_key(ShopCheatKey::Right, _shop_ticks);
+            _model.move_right();
+            moved = true;
+        }
+        else if(bn::keypad::up_pressed())
+        {
+            (void) _model.push_cheat_key(ShopCheatKey::Up, _shop_ticks);
+            _model.move_up();
+            moved = true;
+        }
+        else if(bn::keypad::down_pressed())
+        {
+            (void) _model.push_cheat_key(ShopCheatKey::Down, _shop_ticks);
+            _model.move_down();
+            moved = true;
+        }
+
+        if(moved)
+        {
+            _audio_event = AudioCue::NextPage;
+            _last_result = ShopPurchaseResult::InvalidItem;
+            _dirty = true;
+        }
+        else if(bn::keypad::select_pressed())
+        {
+            _model.reset_cheat();
+            _start_description(flow);
+            if(_dialog.active())
+            {
+                _audio_event = AudioCue::NextPage;
+                _dirty = true;
+            }
+        }
+        else if(bn::keypad::b_pressed())
+        {
+            const ShopCheatResult cheat = _model.push_cheat_key(ShopCheatKey::B, _shop_ticks);
+            if(cheat != ShopCheatResult::Progressed)
+            {
+                flow.handle_shop_back();
+                return;
+            }
+        }
         else if(bn::keypad::a_pressed())
         {
-            _last_result = _model.purchase(flow);
-            _audio_event = _last_result == ShopPurchaseResult::Purchased ? AudioCue::Coin : AudioCue::NextPage;
-            _dirty = true;
+            const ShopCheatResult cheat = _model.push_cheat_key(ShopCheatKey::A, _shop_ticks);
+            if(cheat == ShopCheatResult::Completed)
+            {
+                flow.grant_money(30);
+                _audio_event = AudioCue::Coin;
+                _dirty = true;
+            }
+            else
+            {
+                _last_result = _model.purchase(flow);
+                _audio_event = _last_result == ShopPurchaseResult::Purchased ? AudioCue::Coin : AudioCue::NextPage;
+                _dirty = true;
+            }
+        }
+        else if(bn::keypad::l_pressed() || bn::keypad::r_pressed())
+        {
+            _model.reset_cheat();
         }
     }
 
@@ -189,7 +220,6 @@ void ShopScene::update(FlowModel& flow)
 
 void ShopScene::_start_description(const FlowModel& flow)
 {
-    _needs_description = false;
     if(flow.shop_item_locked(_model.selected_item()))
     {
         _dialog.clear();
@@ -246,6 +276,13 @@ void ShopScene::_render(FlowModel& flow)
 
     _locked_overlay.set_visible(flow.shop_item_locked(7));
     _buy_enabled.set_visible(! _dialog.active() && flow.shop_item_purchasable(_model.selected_item()));
+
+    if(_dialog.active())
+    {
+        _text_sprites.clear();
+        _dirty = true;
+        return;
+    }
 
     if(! _dirty)
     {

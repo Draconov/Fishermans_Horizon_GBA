@@ -8,6 +8,23 @@ namespace fh
 
 class FlowModel;
 
+enum class ShopCheatKey
+{
+    Up,
+    Down,
+    Left,
+    Right,
+    B,
+    A,
+};
+
+enum class ShopCheatResult
+{
+    NoProgress,
+    Progressed,
+    Completed,
+};
+
 class ShopModel
 {
 public:
@@ -23,9 +40,13 @@ public:
     void move_down() noexcept;
     void select(int slot) noexcept;
     [[nodiscard]] ShopPurchaseResult purchase(FlowModel& flow) const noexcept;
+    [[nodiscard]] ShopCheatResult push_cheat_key(ShopCheatKey key, int frame) noexcept;
+    void reset_cheat() noexcept;
 
 private:
     int _selected_item = 0;
+    int _cheat_index = 0;
+    int _cheat_start_frame = 0;
 };
 
 }

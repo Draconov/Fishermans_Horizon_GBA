@@ -2,6 +2,7 @@
 #include <cstring>
 
 #include "dialog_model.h"
+#include "progression_content.h"
 
 int main()
 {
@@ -87,6 +88,27 @@ int main()
         assert(! dialog.active());
         assert(! dialog.talking());
         assert(! dialog.done());
+    }
+
+    {
+        // Every Shop description must paginate through the shared DialogBox
+        // without overflowing/stalling, including the longest character blurbs.
+        for(int slot = 0; slot < fh::shop_item_count(); ++slot)
+        {
+            const fh::ShopItemSpec* item = fh::shop_item_spec(slot);
+            assert(item);
+            fh::DialogModel dialog(item->description);
+            int guard = 0;
+            while(! dialog.done() && guard < 1000)
+            {
+                const bool advance = dialog.waiting_for_advance();
+                dialog.update(advance);
+                assert(dialog.cursor_x() <= 210);
+                ++guard;
+            }
+            assert(dialog.done());
+            assert(guard < 1000);
+        }
     }
 
     return 0;

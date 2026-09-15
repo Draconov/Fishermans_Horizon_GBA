@@ -103,6 +103,7 @@ public:
     [[nodiscard]] int cycle_owned_bait() noexcept;
     [[nodiscard]] bool catalog_has_fish(int fish_number) const noexcept;
     void apply_fishing_reward(int fish_number, int reward) noexcept;
+    void grant_money(int amount) noexcept;
 
 private:
     void _select_relative_map_target(int direction) noexcept;

@@ -614,3 +614,34 @@ def test_parity_pass_shop_assets_exist():
     for stem in ("m4_shop_locked", "m4_shop_buy_enabled"):
         assert Path(f"graphics/{stem}.bmp").is_file()
         assert Path(f"graphics/{stem}.json").is_file()
+
+
+def test_shop_modal_descriptions_locked_cursor_and_konami_contract():
+    shop_h = Path("include/shop_scene.h").read_text(encoding="utf-8")
+    shop = Path("src/shop_scene.cpp").read_text(encoding="utf-8")
+    model_h = Path("include/shop_model.h").read_text(encoding="utf-8")
+
+    # Moving only selects; SELECT explicitly opens the description.
+    assert "bn::keypad::select_pressed()" in shop
+    assert "_start_description(flow);" in shop
+    movement_block = shop[shop.index("if(moved)"):shop.index("else if(bn::keypad::select_pressed())")]
+    assert "_start_description(flow);" not in movement_block
+
+    # The modal dialog owns the bottom HUD while open, so money/price glyphs
+    # cannot render over long descriptions or their advance marker.
+    assert "if(_dialog.active())" in shop
+    assert "_text_sprites.clear();" in shop
+    assert "_dirty = true;" in shop
+
+    # Locked Nova is opaque, so force it behind the cursor.
+    assert "_locked_overlay.set_z_order(1)" in shop
+    assert "_cursor.set_z_order(0)" in shop
+
+    # Konami is Shop-only and tracks the canonical sequence.
+    assert "enum class ShopCheatKey" in model_h
+    assert "enum class ShopCheatResult" in model_h
+    for key in ("Up", "Down", "Left", "Right", "B", "A"):
+        assert f"ShopCheatKey::{key}" in shop
+    assert "flow.grant_money(30)" in shop
+    assert "AudioCue::Coin" in shop
+    assert "300" in Path("src/shop_model.cpp").read_text(encoding="utf-8")

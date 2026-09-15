@@ -74,6 +74,7 @@ public:
     void set_visible(bool) {}
     void set_position(int, int) {}
     void set_y(int) {}
+    void set_z_order(int) {}
 };
 
 class sprite_item {
