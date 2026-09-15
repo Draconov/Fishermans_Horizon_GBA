@@ -13,7 +13,7 @@ GRAPHICS := graphics
 AUDIO := audio
 AUDIOBACKEND := maxmod
 AUDIOTOOL :=
-DMGAUDIO := audio
+DMGAUDIO :=
 DMGAUDIOBACKEND := default
 
 ROMTITLE := FISH HORIZON

@@ -562,3 +562,10 @@ def test_runtime_parity_regressions_title_dialog_and_shop_cursor():
     # 24px-spaced Shop item.
     assert "m4_shop_cursor.create_sprite(16, -40, 0)" in shop
     assert "_cursor.set_position(16 + (slot % 4) * 24, -40 + (slot / 4) * 24)" in shop
+
+
+def test_direct_sound_audio_is_not_reprocessed_by_dmg_pipeline():
+    text = Path("Makefile").read_text(encoding="utf-8")
+    assert "AUDIO := audio" in text
+    assert "DMGAUDIO := audio" not in text
+    assert "DMGAUDIO :=\n" in text
