@@ -101,10 +101,16 @@ def test_phase1_map_adds_lagoon_beach_waterfall_with_existing_marker_art():
     for member in ("_lagoon_spot", "_beach_spot", "_waterfall_spot"):
         assert member in header
 
-    # User-marked map centers converted to Butano centered coordinates.
-    assert "create_sprite(-33, -42, 0)" in source  # Lagoon
-    assert "create_sprite(46, 24, 0)" in source   # Beach
-    assert "create_sprite(18, 59, 0)" in source   # Waterfall
+    # Arrow-tip positions from the approved 5x mGBA screenshot, converted
+    # back to 240x160 screen coordinates and then to Butano centers.
+    assert "create_sprite(-32, -42, 0)" in source  # Lagoon: screen (88, 38)
+    assert "create_sprite(43, 18, 0)" in source    # Beach: screen (163, 98)
+    assert "create_sprite(18, 60, 0)" in source    # Waterfall: screen (138, 140)
+
+    # The 32x32 selection frame remains +4,+4 from each 8x16 marker center.
+    assert "_selection_cursor.set_position(-28, -38)" in source
+    assert "_selection_cursor.set_position(47, 22)" in source
+    assert "_selection_cursor.set_position(22, 64)" in source
 
     # All three reuse the normal animated fishing marker bank.
     assert "_lagoon_spot.set_tiles" in source
@@ -378,6 +384,20 @@ def test_m7_fishing_dialogs_and_global_presentation_effects_are_wired():
     assert "bn::sprite_palettes::set_fade_intensity" in app_source
 
 
+
+
+def test_every_butano_graphics_bitmap_has_matching_json_metadata():
+    """Butano scans every BMP in GRAPHICS and requires same-stem JSON metadata."""
+    missing_metadata = [
+        bitmap_path.with_suffix(".json").name
+        for bitmap_path in sorted(Path("graphics").glob("*.bmp"))
+        if not bitmap_path.with_suffix(".json").is_file()
+    ]
+
+    assert not missing_metadata, (
+        "graphics BMP files missing Butano JSON metadata: "
+        f"{missing_metadata}"
+    )
 
 def test_multigraphic_sprites_leave_tile_data_uncompressed():
     """Butano cannot index compressed sprite tiles when a sheet contains multiple graphics."""

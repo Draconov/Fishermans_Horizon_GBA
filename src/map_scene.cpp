@@ -73,9 +73,11 @@ MapScene::MapScene() :
     // Reference top-left (20,92), 8x16 -> Butano center (-96,20).
     _cave_spot(bn::sprite_items::map_spots.create_sprite(-96, 20, 0)),
     // New user-marked fishing spots reuse the normal animated marker art.
-    _lagoon_spot(bn::sprite_items::map_spots.create_sprite(-33, -42, 0)),
-    _beach_spot(bn::sprite_items::map_spots.create_sprite(46, 24, 0)),
-    _waterfall_spot(bn::sprite_items::map_spots.create_sprite(18, 59, 0)),
+    // Centers are pinned to the arrow tips in the approved 5x mGBA map capture:
+    // Lagoon screen (88,38), Beach (163,98), Waterfall (138,140).
+    _lagoon_spot(bn::sprite_items::map_spots.create_sprite(-32, -42, 0)),
+    _beach_spot(bn::sprite_items::map_spots.create_sprite(43, 18, 0)),
+    _waterfall_spot(bn::sprite_items::map_spots.create_sprite(18, 60, 0)),
     // Reference GameMap.draw top-left (183,91), 24x40 padded to 32x64.
     _character(bn::sprite_items::map_character_0.create_sprite(79, 43, 0)),
     // Default selection is Crystal Lake. Tile 165 is a 24x24 corner frame
@@ -278,13 +280,13 @@ void MapScene::_update_selection(const FlowModel& flow)
         _selection_cursor.set_position(-92, 24);
         break;
     case MapTarget::Lagoon:
-        _selection_cursor.set_position(-29, -38);
+        _selection_cursor.set_position(-28, -38);
         break;
     case MapTarget::Beach:
-        _selection_cursor.set_position(50, 28);
+        _selection_cursor.set_position(47, 22);
         break;
     case MapTarget::Waterfall:
-        _selection_cursor.set_position(22, 63);
+        _selection_cursor.set_position(22, 64);
         break;
     case MapTarget::Catalog:
         _selection_cursor.set_position(-104, 72);
