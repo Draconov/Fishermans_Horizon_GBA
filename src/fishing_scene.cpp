@@ -349,8 +349,8 @@ void FishingScene::update(FlowModel& flow)
         dialog_event = _dialog.update(bn::keypad::a_pressed());
     }
 
-    if(bn::keypad::select_pressed() && _model.state() == FishingState::Stand && ! _model.dialog_alive() &&
-       ! _dialog.active())
+    const bool select_pressed = bn::keypad::select_pressed();
+    if(select_pressed && _model.state() == FishingState::Stand && ! _model.dialog_alive() && ! _dialog.active())
     {
         _model.set_equipped_bait(flow.cycle_owned_bait());
     }
@@ -363,6 +363,8 @@ void FishingScene::update(FlowModel& flow)
         input.confirm_dialog = true;
     }
     input.back = bn::keypad::b_pressed() && ! _model.dialog_alive() && ! _dialog.active();
+    input.cancel_cast = select_pressed && _model.state() == FishingState::BaitInWater &&
+                        ! _model.dialog_alive() && ! _dialog.active();
 
     const int random_roll = _model.needs_random_roll() ? _random.get_int(10) : 0;
     _model.update(input, random_roll);

@@ -19,6 +19,7 @@ enum class ShopPurchaseResult
 {
     Purchased,
     SoldOut,
+    Locked,
     InsufficientFunds,
     InvalidItem,
 };

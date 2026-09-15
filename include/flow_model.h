@@ -97,6 +97,8 @@ public:
     [[nodiscard]] bool character_owned(int character) const noexcept;
     [[nodiscard]] int cycle_owned_character() noexcept;
     [[nodiscard]] bool shop_item_owned(int slot) const noexcept;
+    [[nodiscard]] bool shop_item_locked(int slot) const noexcept;
+    [[nodiscard]] bool shop_item_purchasable(int slot) const noexcept;
     [[nodiscard]] ShopPurchaseResult purchase_shop_item(int slot) noexcept;
     [[nodiscard]] int cycle_owned_bait() noexcept;
     [[nodiscard]] bool catalog_has_fish(int fish_number) const noexcept;

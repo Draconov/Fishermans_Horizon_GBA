@@ -79,7 +79,8 @@ bn::sprite_ptr create_fish_sprite(int source_sprite, int x, int y)
     return bn::sprite_items::fishing_fish_m3_0.create_sprite(x, y, frame);
 }
 
-void append_text(bn::vector<bn::sprite_ptr, 64>& sprites, const char* text, int screen_x, int screen_y,
+template<int MaxSprites>
+void append_text(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, const char* text, int screen_x, int screen_y,
                  int max_chars)
 {
     int column = 0;
@@ -119,23 +120,65 @@ void CatalogScene::update(FlowModel& flow)
     if(bn::keypad::b_pressed())
     {
         _audio_event = AudioCue::NextPage;
-        flow.handle_catalog_back(_model.complete(flow));
-        return;
+        if(_dialog.active())
+        {
+            _dialog.clear();
+            _dialog_renderer.hide();
+        }
+        else
+        {
+            flow.handle_catalog_back(_model.complete(flow));
+            return;
+        }
     }
-    if(bn::keypad::left_pressed() || bn::keypad::up_pressed())
+    else if(_dialog.active())
+    {
+        const DialogEvent event = _dialog.update(bn::keypad::a_pressed());
+        if(event == DialogEvent::NextPage)
+        {
+            _audio_event = AudioCue::NextPage;
+        }
+    }
+    else if(bn::keypad::left_pressed())
     {
         _audio_event = AudioCue::NextPage;
-        _model.previous();
+        _model.move_left();
     }
-    else if(bn::keypad::right_pressed() || bn::keypad::down_pressed())
+    else if(bn::keypad::right_pressed())
     {
         _audio_event = AudioCue::NextPage;
-        _model.next();
+        _model.move_right();
+    }
+    else if(bn::keypad::up_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        _model.move_up();
+    }
+    else if(bn::keypad::down_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        _model.move_down();
+    }
+    else if(bn::keypad::a_pressed() && _model.selected_caught(flow))
+    {
+        if(const CatalogEntrySpec* entry = _model.selected_entry())
+        {
+            _dialog.start(entry->description);
+            _audio_event = AudioCue::NextPage;
+        }
     }
 
     _advance_background();
     _update_cursor();
     _render_text(flow);
+    if(_dialog.active())
+    {
+        _dialog_renderer.render(_dialog);
+    }
+    else
+    {
+        _dialog_renderer.hide();
+    }
 }
 
 void CatalogScene::_advance_background()
@@ -184,12 +227,11 @@ void CatalogScene::_render_text(const FlowModel& flow)
 
     if(_model.selected_caught(flow))
     {
-        append_text(_text_sprites, entry->name, 12, 136, 27);
-        append_text(_text_sprites, entry->description, 12, 148, 27);
+        append_text(_text_sprites, entry->name, 126, 8, 11);
     }
     else
     {
-        append_text(_text_sprites, "????????", 12, 136, 8);
+        append_text(_text_sprites, "???", 126, 8, 3);
     }
 }
 

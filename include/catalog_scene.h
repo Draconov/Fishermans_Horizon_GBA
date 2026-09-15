@@ -5,9 +5,10 @@
 #include "bn_sprite_ptr.h"
 #include "bn_vector.h"
 
-#include "catalog_model.h"
-
 #include "audio_cue.h"
+#include "catalog_model.h"
+#include "dialog_model.h"
+#include "dialog_renderer.h"
 
 namespace fh
 {
@@ -28,10 +29,12 @@ private:
     void _update_cursor();
 
     CatalogModel _model;
+    DialogModel _dialog;
+    DialogRenderer _dialog_renderer;
     bn::regular_bg_ptr _background;
     bn::sprite_ptr _cursor;
     bn::vector<bn::sprite_ptr, 44> _fish_sprites;
-    bn::vector<bn::sprite_ptr, 64> _text_sprites;
+    bn::vector<bn::sprite_ptr, 12> _text_sprites;
     int _sea_ticks = 0;
     int _map_index = 0;
     bool _grid_built = false;

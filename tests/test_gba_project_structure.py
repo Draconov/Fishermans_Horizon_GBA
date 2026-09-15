@@ -266,7 +266,8 @@ def test_m4_progression_scenes_are_real_model_backed_routes():
 def test_m4_generated_progression_assets_are_declared_for_butano():
     for stem in (
         "m4_shop", "m4_catalog_anim", "m4_options_anim", "m4_event_anim", "m4_font",
-        "m4_shop_keeper", "m4_shop_cursor", "m4_catalog_cursor", "m4_shop_sold_out", "m4_event_cecil",
+        "m4_shop_keeper", "m4_shop_cursor", "m4_catalog_cursor", "m4_shop_sold_out",
+        "m4_shop_buy_enabled", "m4_shop_locked", "m4_event_cecil",
     ):
         assert Path(f"graphics/{stem}.bmp").is_file()
         assert Path(f"graphics/{stem}.json").is_file()
@@ -569,3 +570,47 @@ def test_direct_sound_audio_is_not_reprocessed_by_dmg_pipeline():
     assert "AUDIO := audio" in text
     assert "DMGAUDIO := audio" not in text
     assert "DMGAUDIO :=\n" in text
+
+
+def test_parity_pass_restores_dialog_driven_shop_catalog_and_title_only_start():
+    shop_h = Path("include/shop_scene.h").read_text(encoding="utf-8")
+    shop = Path("src/shop_scene.cpp").read_text(encoding="utf-8")
+    catalog_h = Path("include/catalog_scene.h").read_text(encoding="utf-8")
+    catalog = Path("src/catalog_scene.cpp").read_text(encoding="utf-8")
+    event = Path("src/event_scene.cpp").read_text(encoding="utf-8")
+    intro = Path("src/intro_scene.cpp").read_text(encoding="utf-8")
+    fishing = Path("src/fishing_scene.cpp").read_text(encoding="utf-8")
+
+    assert "DialogModel _dialog" in shop_h
+    assert "DialogRenderer _dialog_renderer" in shop_h
+    assert "bn_sprite_items_m4_shop_locked.h" in shop
+    assert "bn_sprite_items_m4_shop_buy_enabled.h" in shop
+    assert "shop_item_locked" in shop
+    assert "shop_item_purchasable" in shop
+    assert "_keeper(bn::sprite_items::m4_shop_keeper.create_sprite(-64, 16, 0))" in shop
+    assert "_dialog.talking()" in shop
+
+    assert "DialogModel _dialog" in catalog_h
+    assert "DialogRenderer _dialog_renderer" in catalog_h
+    assert "_model.move_left()" in catalog
+    assert "_model.move_right()" in catalog
+    assert "_model.move_up()" in catalog
+    assert "_model.move_down()" in catalog
+    assert "bn::keypad::a_pressed()" in catalog
+    assert "entry->description" in catalog
+
+    assert "_cecil(bn::sprite_items::m4_event_cecil.create_sprite(-84, 24, 0))" in event
+    assert "_dialog.talking()" in event
+    assert "bn::keypad::select_pressed()" in intro
+    assert "input.cancel_cast" in fishing
+
+    # User explicitly wants START -> Options only where the original port already had it: Title.
+    assert "bn::keypad::start_pressed()" in Path("src/title_scene.cpp").read_text(encoding="utf-8")
+    for stem in ("intro", "map", "fishing", "shop", "catalog", "event", "options"):
+        assert "bn::keypad::start_pressed()" not in Path(f"src/{stem}_scene.cpp").read_text(encoding="utf-8")
+
+
+def test_parity_pass_shop_assets_exist():
+    for stem in ("m4_shop_locked", "m4_shop_buy_enabled"):
+        assert Path(f"graphics/{stem}.bmp").is_file()
+        assert Path(f"graphics/{stem}.json").is_file()

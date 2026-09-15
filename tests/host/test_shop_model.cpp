@@ -91,6 +91,10 @@ int main()
         progress.prologue_complete = true;
         progress.money = 999;
         fh::FlowModel flow(progress);
+        if(slot == 7)
+        {
+            assert(flow.purchase_shop_item(6) == fh::ShopPurchaseResult::Purchased);
+        }
         fh::ShopModel shop;
         shop.select(slot);
 
@@ -195,6 +199,28 @@ int main()
         assert(flow.cycle_owned_character() == 1);
         assert(flow.cycle_owned_character() == 2);
         assert(flow.cycle_owned_character() == 0);
+    }
+
+    {
+        // The original Shop hides Nova Rod until Pro Rod has been bought.
+        fh::ProgressState progress;
+        progress.money = 999;
+        fh::FlowModel flow(progress);
+        fh::ShopModel shop;
+        shop.select(7);
+        assert(flow.shop_item_locked(7));
+        assert(! flow.shop_item_purchasable(7));
+        assert(shop.purchase(flow) == fh::ShopPurchaseResult::Locked);
+        assert(! flow.rod_owned(2));
+
+        shop.select(6);
+        assert(flow.shop_item_purchasable(6));
+        assert(shop.purchase(flow) == fh::ShopPurchaseResult::Purchased);
+        assert(! flow.shop_item_locked(7));
+        assert(flow.shop_item_purchasable(7));
+        shop.select(7);
+        assert(shop.purchase(flow) == fh::ShopPurchaseResult::Purchased);
+        assert(flow.rod_owned(2));
     }
 
     return 0;

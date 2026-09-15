@@ -19,7 +19,7 @@ constexpr int EVENT_DIALOG_OPEN_TICK = 100;
 EventScene::EventScene(int event_id) :
     _model(event_id),
     _background(bn::regular_bg_items::m4_event_anim.create_bg(0, 0, 0)),
-    _cecil(bn::sprite_items::m4_event_cecil.create_sprite(-82, 28, 0))
+    _cecil(bn::sprite_items::m4_event_cecil.create_sprite(-84, 24, 0))
 {
 }
 
@@ -48,12 +48,36 @@ void EventScene::update(FlowModel& flow)
         }
     }
 
-    ++_cecil_ticks;
-    if(_cecil_ticks >= 18)
+    if(_dialog.talking())
     {
-        _cecil_ticks = 0;
-        _cecil_frame = 1 - _cecil_frame;
-        _cecil.set_tiles(bn::sprite_items::m4_event_cecil.tiles_item(), _cecil_frame);
+        ++_cecil_ticks;
+        if(_cecil_ticks % 8 == 0)
+        {
+            if(_cecil_frame != 0)
+            {
+                _cecil_frame = 0;
+                _cecil.set_tiles(bn::sprite_items::m4_event_cecil.tiles_item(), 0);
+            }
+            _cecil_ticks = 0;
+        }
+        else if(_cecil_ticks % 4 == 0 && _cecil_frame != 1)
+        {
+            _cecil_frame = 1;
+            _cecil.set_tiles(bn::sprite_items::m4_event_cecil.tiles_item(), 1);
+        }
+    }
+    else if(_cecil_ticks > 0)
+    {
+        ++_cecil_ticks;
+        if(_cecil_ticks % 12 == 0)
+        {
+            if(_cecil_frame != 0)
+            {
+                _cecil_frame = 0;
+                _cecil.set_tiles(bn::sprite_items::m4_event_cecil.tiles_item(), 0);
+            }
+            _cecil_ticks = 0;
+        }
     }
     _advance_background();
 }

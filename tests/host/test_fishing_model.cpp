@@ -6,11 +6,12 @@
 namespace
 {
 
-void step(fh::FishingModel& model, bool held = false, int roll = 0, bool confirm = false)
+void step(fh::FishingModel& model, bool held = false, int roll = 0, bool confirm = false, bool cancel = false)
 {
     fh::FishingInput input;
     input.rod_held = held;
     input.confirm_dialog = confirm;
+    input.cancel_cast = cancel;
     model.update(input, roll);
 }
 
@@ -479,6 +480,23 @@ int main()
             heard_coin |= model.take_sound_event() == fh::FishingSoundEvent::Coin;
         }
         assert(heard_coin);
+    }
+
+    {
+        // SELECT cancels an unhooked cast through Recoil so A can cast again.
+        fh::FishingModel model(1, 0, 0);
+        cast_with_charge_frames(model, 20);
+        advance_to_bait(model, 0);
+        assert(model.state() == fh::FishingState::BaitInWater);
+        step(model, false, 0, false, true);
+        assert(model.state() == fh::FishingState::Recoil);
+        int guard = 120;
+        while(model.state() != fh::FishingState::Stand && --guard)
+        {
+            step(model);
+        }
+        assert(guard > 0);
+        assert(model.state() == fh::FishingState::Stand);
     }
 
     return 0;

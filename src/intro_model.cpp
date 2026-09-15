@@ -41,6 +41,12 @@ int IntroModel::ticks() const noexcept
     return _ticks;
 }
 
+void IntroModel::skip(FlowModel& flow) noexcept
+{
+    _done = true;
+    flow.complete_intro();
+}
+
 void IntroModel::complete(FlowModel& flow) const noexcept
 {
     if(_done)

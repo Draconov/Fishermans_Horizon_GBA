@@ -20,6 +20,7 @@ public:
     explicit DialogModel(const char* text) noexcept;
 
     void start(const char* text) noexcept;
+    void clear() noexcept;
     [[nodiscard]] DialogEvent update(bool advance_pressed) noexcept;
 
     [[nodiscard]] const char* text() const noexcept;
@@ -33,6 +34,7 @@ public:
     [[nodiscard]] bool waiting_for_advance() const noexcept;
     [[nodiscard]] bool dismissing() const noexcept;
     [[nodiscard]] bool done() const noexcept;
+    [[nodiscard]] bool talking() const noexcept;
 
 private:
     void _set_new_page() noexcept;

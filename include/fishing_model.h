@@ -47,6 +47,7 @@ struct FishingInput
     bool rod_held = false;
     bool confirm_dialog = false;
     bool back = false;
+    bool cancel_cast = false;
 };
 
 struct FishingReward

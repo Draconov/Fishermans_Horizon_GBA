@@ -21,6 +21,7 @@ public:
     [[nodiscard]] bool done() const noexcept;
     [[nodiscard]] int ticks() const noexcept;
     void complete(FlowModel& flow) const noexcept;
+    void skip(FlowModel& flow) noexcept;
 
 private:
     int _ticks = 0;

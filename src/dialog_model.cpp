@@ -32,6 +32,22 @@ void DialogModel::start(const char* text) noexcept
     _set_new_page();
 }
 
+void DialogModel::clear() noexcept
+{
+    _text = "";
+    _text_length = 0;
+    _box_y = 160;
+    _cursor_x = 8;
+    _cursor_y = 4;
+    _source_index = 0;
+    _page_start = 0;
+    _page_index = 0;
+    _active = false;
+    _waiting = false;
+    _dismiss = false;
+    _done = false;
+}
+
 DialogEvent DialogModel::update(bool advance_pressed) noexcept
 {
     if(! _active || _done)
@@ -153,6 +169,11 @@ bool DialogModel::dismissing() const noexcept
 bool DialogModel::done() const noexcept
 {
     return _done;
+}
+
+bool DialogModel::talking() const noexcept
+{
+    return _active && ! _waiting && ! _dismiss && _box_y == 136 && _source_index < _text_length;
 }
 
 void DialogModel::_set_new_page() noexcept

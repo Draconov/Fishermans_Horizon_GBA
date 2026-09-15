@@ -37,5 +37,15 @@ int main()
     intro.complete(flow);
     assert(flow.state() == fh::GameState::Title);
 
+    {
+        fh::ProgressState fresh;
+        fh::FlowModel skipped_flow(fresh);
+        fh::IntroModel skipped_intro;
+        assert(skipped_flow.state() == fh::GameState::Intro);
+        skipped_intro.skip(skipped_flow);
+        assert(skipped_intro.done());
+        assert(skipped_flow.state() == fh::GameState::Title);
+    }
+
     return 0;
 }

@@ -491,6 +491,8 @@ def test_stage_m4_progression_backgrounds_and_sprites_are_exact(tmp_path: Path, 
         "graphics/m4_shop_cursor.bmp",
         "graphics/m4_catalog_cursor.bmp",
         "graphics/m4_shop_sold_out.bmp",
+        "graphics/m4_shop_buy_enabled.bmp",
+        "graphics/m4_shop_locked.bmp",
         "graphics/m4_event_cecil.bmp",
             *{f"graphics/map_character_{index}.bmp" for index in range(6)},
             "graphics/map_catalog_parts.bmp",
@@ -653,6 +655,11 @@ def test_stage_shop_and_fishing_bake_original_drawtext_backing_fields(tmp_path: 
     for x, y in ((126, 8), (24, 144), (193, 144)):
         assert palette[index_at(x + 8, y + 48)] == fill
 
+    width, height, palette, index_at = _read_bmp(out / "m4_catalog_anim.bmp")
+    assert (width, height) == (256, 256 * 3)
+    for frame in range(3):
+        assert palette[index_at(126 + 8, frame * 256 + 8 + 48)] == fill
+
     for stem in (
         "fishing_area_crystal", "fishing_area_pier", "fishing_area_river",
         "fishing_area_ocean", "fishing_area_cave",
@@ -691,3 +698,27 @@ def test_stage_title_animation_exports_three_safe_single_map_frames(tmp_path: Pa
     assert pal[idx(8 + 6, 48 + 128)] == (80, 156, 204)
     w, h, pal, idx = _read_bmp(out / "title_frame_114.bmp")
     assert pal[idx(8 + 4, 48 + 129)] == (58, 77, 186)
+
+
+def test_stage_m4_restores_shop_lock_and_buy_indicator(tmp_path: Path, reference_apk: Path):
+    from scripts.stage_reference_assets import stage_m4_assets
+
+    out = tmp_path / "graphics"
+    stage_m4_assets(reference_apk, out)
+    for stem in ("m4_shop_locked", "m4_shop_buy_enabled"):
+        assert (out / f"{stem}.bmp").is_file()
+        assert (out / f"{stem}.json").is_file()
+
+    tiles = decode_rgba_png(read_apk_member(reference_apk, "assets/graphic/tile/tiles.png"))
+
+    # Tile 169 is the exact 24x24 mystery overlay padded to 32x32.
+    w, h, pal, idx = _read_bmp(out / "m4_shop_locked.bmp")
+    assert (w, h) == (32, 32)
+    dx, dy, rgb = _first_opaque_pixel(tiles, 96, 176, 24, 24)
+    assert pal[idx(dx, dy)] == rgb
+
+    # Tile 99 is the original 16x16 enabled-buy indicator drawn at (4,144).
+    w, h, pal, idx = _read_bmp(out / "m4_shop_buy_enabled.bmp")
+    assert (w, h) == (16, 16)
+    dx, dy, rgb = _first_opaque_pixel(tiles, 48, 48, 16, 16)
+    assert pal[idx(dx, dy)] == rgb

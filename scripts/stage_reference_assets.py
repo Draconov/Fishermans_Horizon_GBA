@@ -332,6 +332,7 @@ def _tile_rect(index: int) -> tuple[int, int, int, int]:
         96: (0, 48, 16, 16),
         97: (16, 48, 16, 16),
         98: (32, 48, 16, 16),
+        99: (48, 48, 16, 16),
         104: (0, 64, 16, 8),
         105: (16, 64, 16, 8),
         106: (32, 64, 16, 8),
@@ -718,9 +719,11 @@ def _stage_m4_animated_background(
     stem: str,
     sea_bytes: bytes,
     sea: RgbaImage,
+    drawtext_fields: tuple[tuple[int, int, int, int], ...] = (),
 ) -> dict[str, object]:
     return _stage_fishing_area_background(
-        apk_path, graphics_dir, member=member, stem=stem, sea_bytes=sea_bytes, sea=sea, drawtext_fields=()
+        apk_path, graphics_dir, member=member, stem=stem, sea_bytes=sea_bytes, sea=sea,
+        drawtext_fields=drawtext_fields
     )
 
 
@@ -743,7 +746,8 @@ def stage_m4_assets(apk_path: Path, graphics_dir: Path) -> list[dict[str, object
         (EVENT_MEMBER, "m4_event_anim"),
     ):
         records.append(_stage_m4_animated_background(
-            apk_path, graphics_dir, member=member, stem=stem, sea_bytes=sea_bytes, sea=sea
+            apk_path, graphics_dir, member=member, stem=stem, sea_bytes=sea_bytes, sea=sea,
+            drawtext_fields=((126, 8, 92, 8),) if stem == "m4_catalog_anim" else ()
         ))
 
     tiles_bytes = read_apk_member(apk_path, TILES_MEMBER)
@@ -768,6 +772,8 @@ def stage_m4_assets(apk_path: Path, graphics_dir: Path) -> list[dict[str, object
         ("m4_shop_cursor", (165,), 32, 32),
         ("m4_catalog_cursor", (164,), 16, 32),
         ("m4_shop_sold_out", (156,), 16, 16),
+        ("m4_shop_buy_enabled", (99,), 16, 16),
+        ("m4_shop_locked", (169,), 32, 32),
         ("m4_event_cecil", (177, 178), 32, 64),
     )
     for stem, indices, width, height in sprite_specs:

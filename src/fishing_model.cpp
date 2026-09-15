@@ -438,6 +438,15 @@ void FishingModel::_state_throw() noexcept
 
 void FishingModel::_state_bait_in_water(const FishingInput& input, int random_roll) noexcept
 {
+    if(input.cancel_cast && ! _fish_online)
+    {
+        _ticks = 0;
+        _odd_ticks = 0;
+        _random_ticks = 0;
+        _state = FishingState::Recoil;
+        return;
+    }
+
     ++_random_ticks;
     if(_random_ticks == 1)
     {

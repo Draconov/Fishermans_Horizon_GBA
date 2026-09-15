@@ -16,4 +16,4 @@ def test_scene_oam_budgets_stay_below_hardware_limit():
     assert budgets["fishing"] == 125
     assert budgets["catalog"] <= 128
     assert max(budgets.values()) <= 128
-    assert budgets["catalog"] == 109
+    assert budgets["catalog"] == 127

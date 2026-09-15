@@ -18,6 +18,7 @@ int main()
             assert(dialog.update(false) == fh::DialogEvent::None);
         }
         assert(dialog.box_y() == 136);
+        assert(dialog.talking());
 
         // One source character is consumed per visible update. Two visible
         // lines fill the first page at the second '#'.
@@ -27,6 +28,7 @@ int main()
         }
         assert(dialog.page_index() == 0);
         assert(dialog.visible_end() > dialog.page_start());
+        assert(! dialog.talking());
 
         assert(dialog.update(true) == fh::DialogEvent::NextPage);
         assert(dialog.page_index() == 1);
@@ -76,6 +78,15 @@ int main()
         assert(dialog.cursor_x() == 8);
         dialog.update(false);
         assert(dialog.cursor_x() == 15);
+    }
+
+    {
+        fh::DialogModel dialog("temporary");
+        assert(dialog.active());
+        dialog.clear();
+        assert(! dialog.active());
+        assert(! dialog.talking());
+        assert(! dialog.done());
     }
 
     return 0;

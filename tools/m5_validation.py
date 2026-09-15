@@ -101,8 +101,8 @@ def scene_oam_budgets() -> dict[str, int]:
         "title": 0,
         "map": 6,
         "fishing": 125,  # 13 fixed + 32 line dots + 6 dialog chrome + 64 dialog glyphs + up to 10 bait-name glyphs.
-        "shop": 82,      # keeper + cursor + 16 sold-out + 64 text.
-        "catalog": 109,  # cursor + 44 fish + 64 text.
+        "shop": 110,     # keeper + cursor + lock + buy + 16 sold-out + 20 HUD text + 6 dialog chrome + 64 dialog glyphs.
+        "catalog": 127,  # cursor + 44 fish + 12 name glyphs + 6 dialog chrome + 64 dialog glyphs.
         "options": 33,   # cursor + 32 text.
         "event": 71,     # Cecil + 6 dialog chrome + up to 64 dialog glyphs.
     }
@@ -175,6 +175,8 @@ def validate_visual_parity(apk_path: Path, graphics_dir: Path) -> list[str]:
                 background = _fill_runtime_text_fields(
                     background, ((126, 8, 92, 8), (193, 144, 22, 8))
                 )
+            elif stem == "m4_catalog_anim":
+                background = _fill_runtime_text_fields(background, ((126, 8, 92, 8),))
             _compare(stem, [composite_rgba(background, frame, 0, 128) for frame in sea_frames], graphics_dir, errors)
 
         shop = _read_apk_rgba(archive, "assets/graphic/background/shop.png")

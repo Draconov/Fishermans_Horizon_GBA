@@ -1,5 +1,6 @@
 #include "intro_scene.h"
 
+#include "bn_keypad.h"
 #include "bn_regular_bg_items_m7_intro_credit.h"
 
 #include "flow_model.h"
@@ -14,6 +15,12 @@ IntroScene::IntroScene() :
 
 void IntroScene::update(FlowModel& flow)
 {
+    if(bn::keypad::select_pressed())
+    {
+        _model.skip(flow);
+        return;
+    }
+
     const IntroEvent event = _model.update();
     if(event == IntroEvent::FadeInAndSound)
     {

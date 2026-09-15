@@ -67,5 +67,30 @@ int main()
     }
     assert(catalog.complete(flow));
 
+    {
+        fh::CatalogModel spatial;
+        spatial.move_left();
+        spatial.move_up();
+        assert(spatial.selected_cursor() == 0);
+        spatial.move_right();
+        assert(spatial.selected_cursor() == 1);
+        spatial.move_down();
+        assert(spatial.selected_cursor() == 12);
+        spatial.move_down();
+        assert(spatial.selected_cursor() == 23);
+        spatial.move_down();
+        assert(spatial.selected_cursor() == 34);
+        spatial.move_down();
+        assert(spatial.selected_cursor() == 34);
+        spatial.move_left();
+        assert(spatial.selected_cursor() == 33);
+        spatial.move_up();
+        assert(spatial.selected_cursor() == 22);
+        spatial.select(43);
+        spatial.move_right();
+        spatial.move_down();
+        assert(spatial.selected_cursor() == 43);
+    }
+
     return 0;
 }

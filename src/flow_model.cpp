@@ -359,6 +359,18 @@ bool FlowModel::shop_item_owned(int slot) const noexcept
     return false;
 }
 
+bool FlowModel::shop_item_locked(int slot) const noexcept
+{
+    // GameShop keeps Nova Rod (slot 7) hidden until Pro Rod (slot 6 / rod 1) is owned.
+    return slot == 7 && ! rod_owned(1);
+}
+
+bool FlowModel::shop_item_purchasable(int slot) const noexcept
+{
+    const ShopItemSpec* item = shop_item_spec(slot);
+    return item && ! shop_item_locked(slot) && ! shop_item_owned(slot) && _progress.money >= item->price;
+}
+
 ShopPurchaseResult FlowModel::purchase_shop_item(int slot) noexcept
 {
     const ShopItemSpec* item = shop_item_spec(slot);
@@ -369,6 +381,10 @@ ShopPurchaseResult FlowModel::purchase_shop_item(int slot) noexcept
     if(shop_item_owned(slot))
     {
         return ShopPurchaseResult::SoldOut;
+    }
+    if(shop_item_locked(slot))
+    {
+        return ShopPurchaseResult::Locked;
     }
     if(_progress.money < item->price)
     {

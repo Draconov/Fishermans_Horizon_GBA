@@ -20,7 +20,7 @@ M1 does **not** implement fishing mechanics yet. Crystal Lake is a visual entry 
 
 M2 replaces that placeholder with the first complete **Crystal Lake fishing loop**. The state machine is a platform-neutral C++ model backed by exact DEX method fingerprints and recovered data: charge/cast timing, bait movement and lure checks, fish selection, hook/recoil, tension and stamina, catch or line break, reward timing, the 999-money cap, and catalog mutation. Crystal Lake preserves the original random table where roll `0` catches nothing and rolls `1..9` select its nine recovered fish.
 
-The GBA input adaptation is intentionally small: **A = hold/release rod**, **Select = cycle owned bait**, **B = Back** only when the fishing state allows it, and A dismisses result dialogs. Presentation uses the original 240x160 Crystal Lake pixels with its recovered three-frame sea strip composited into one GBA-safe 8bpp background. Fishing sprites are split into independent 4bpp banks so they do not fight over the GBA OBJ palette.
+The GBA input adaptation uses one consistent vocabulary: **A = accept/use/cast/reel/advance dialogue**, **B = cancel/back**, and **START opens Options only from Title**. In the original M2 fishing wording, **A = hold/release rod** and **Select = cycle owned bait**; those same actions now cover casting/reeling and bait selection throughout the complete game. **SELECT skips the startup Intro; in Fishing it cycles owned bait while standing and cancels an unhooked cast so A can cast again.** Shop keeps its 4x4 spatial D-pad grid; Catalog uses an 11x4 D-pad grid and A opens the selected caught fish description. Presentation uses the original 240x160 artwork with the recovered sea animation and GBA-safe palette/OAM packing.
 
 M2 does not claim the original dialog typography or audio yet. Result-dialog ownership/timing is implemented, but the full original text rendering and MP3/SFX conversion remain later presentation milestones.
 
@@ -168,7 +168,7 @@ Run the complete local M6 gate with:
 python scripts/verify_m6.py --apk /path/to/fishermans-horizon-1-1.apk
 ```
 
-The local M6 gate can still be used when doing reverse-engineering work with a privately supplied reference APK. That is separate from release CI. GitHub Release CI uses only the self-contained project-test allowlist, then requires the pinned build container to complete the real ROM build and deterministic package/checksum validation before a release can run.
+The local M6 gate can still be used when doing reverse-engineering work with a privately supplied reference APK. Its result is the local **release eligibility** signal for that recovery gate. That is separate from release CI. **CI is strict**: GitHub Release CI uses only the self-contained project-test allowlist, then requires the pinned build container to complete the real ROM build and deterministic package/checksum validation before a release can run.
 
 ## M7 final parity
 
