@@ -645,3 +645,18 @@ def test_shop_modal_descriptions_locked_cursor_and_konami_contract():
     assert "flow.grant_money(30)" in shop
     assert "AudioCue::Coin" in shop
     assert "300" in Path("src/shop_model.cpp").read_text(encoding="utf-8")
+
+
+def test_dialog_glyph_bearings_and_shop_buy_indicator_position():
+    dialog_renderer = Path("src/dialog_renderer.cpp").read_text(encoding="utf-8")
+    shop = Path("src/shop_scene.cpp").read_text(encoding="utf-8")
+
+    # The proportional font has glyphs touching the left edge of their 8x8
+    # tile. The renderer must compensate those bearings so adjacent opaque
+    # pixels still have one clear column between them.
+    assert "dialog_character_draw_x_adjust(character)" in dialog_renderer
+
+    # Canonical APK GameShop.draw(): tile 99 is drawn at screen (4, 140).
+    # A 16x16 Butano OBJ at that top-left has center screen (12, 148), i.e.
+    # world coordinates (-108, 68). The old y=72 placed it 4 px too low.
+    assert "m4_shop_buy_enabled.create_sprite(-108, 68, 0)" in shop

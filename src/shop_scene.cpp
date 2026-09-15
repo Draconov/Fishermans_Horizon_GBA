@@ -81,7 +81,7 @@ ShopScene::ShopScene() :
     _keeper(bn::sprite_items::m4_shop_keeper.create_sprite(-64, 16, 0)),
     _cursor(bn::sprite_items::m4_shop_cursor.create_sprite(16, -40, 0)),
     _locked_overlay(bn::sprite_items::m4_shop_locked.create_sprite(88, -16, 0)),
-    _buy_enabled(bn::sprite_items::m4_shop_buy_enabled.create_sprite(-108, 72, 0))
+    _buy_enabled(bn::sprite_items::m4_shop_buy_enabled.create_sprite(-108, 68, 0))
 {
     // Lower z-order is drawn later/on top in Butano. The locked Nova overlay
     // is opaque, so keep it behind the selection cursor.

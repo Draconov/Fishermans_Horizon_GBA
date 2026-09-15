@@ -111,7 +111,8 @@ void DialogRenderer::_rebuild_text(const DialogModel& dialog)
                 if(glyph >= 0)
                 {
                     _text_sprites.push_back(bn::sprite_items::m4_font.create_sprite(
-                        x + 4 - 120, box_y + y + 4 - 80, glyph));
+                        x + dialog_character_draw_x_adjust(character) + 4 - 120,
+                        box_y + y + 4 - 80, glyph));
                 }
             }
         }

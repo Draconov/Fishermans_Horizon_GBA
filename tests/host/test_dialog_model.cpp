@@ -2,6 +2,7 @@
 #include <cstring>
 
 #include "dialog_model.h"
+#include "dialog_layout.h"
 #include "progression_content.h"
 
 int main()
@@ -109,6 +110,27 @@ int main()
             assert(dialog.done());
             assert(guard < 1000);
         }
+    }
+
+
+    {
+        // Dialog glyph placement keeps exactly one blank pixel between opaque
+        // glyph bounds, including wide/edge-touching glyphs from m4_font.bmp.
+        assert(fh::dialog_character_advance('A') == 7);
+        assert(fh::dialog_character_advance('i') == 3);
+        assert(fh::dialog_character_advance('m') == 9);
+        assert(fh::dialog_character_advance('p') == 8);
+        assert(fh::dialog_character_advance('q') == 8);
+        assert(fh::dialog_character_advance('Q') == 8);
+        assert(fh::dialog_character_advance(':') == 3);
+
+        assert(fh::dialog_character_draw_x_adjust('A') == 0);
+        assert(fh::dialog_character_draw_x_adjust('m') == 1);
+        assert(fh::dialog_character_draw_x_adjust('w') == 1);
+        assert(fh::dialog_character_draw_x_adjust('M') == 1);
+        assert(fh::dialog_character_draw_x_adjust('W') == 1);
+        assert(fh::dialog_character_draw_x_adjust('p') == 1);
+        assert(fh::dialog_character_draw_x_adjust('q') == 0);
     }
 
     return 0;

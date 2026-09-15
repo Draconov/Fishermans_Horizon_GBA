@@ -717,7 +717,7 @@ def test_stage_m4_restores_shop_lock_and_buy_indicator(tmp_path: Path, reference
     dx, dy, rgb = _first_opaque_pixel(tiles, 96, 176, 24, 24)
     assert pal[idx(dx, dy)] == rgb
 
-    # Tile 99 is the original 16x16 enabled-buy indicator drawn at (4,144).
+    # Tile 99 is the original 16x16 enabled-buy indicator drawn at (4,140).
     w, h, pal, idx = _read_bmp(out / "m4_shop_buy_enabled.bmp")
     assert (w, h) == (16, 16)
     dx, dy, rgb = _first_opaque_pixel(tiles, 48, 48, 16, 16)
