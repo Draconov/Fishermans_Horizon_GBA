@@ -72,6 +72,10 @@ MapScene::MapScene() :
     _ocean_spot(bn::sprite_items::map_spots.create_sprite(-8, 52, 0)),
     // Reference top-left (20,92), 8x16 -> Butano center (-96,20).
     _cave_spot(bn::sprite_items::map_spots.create_sprite(-96, 20, 0)),
+    // New user-marked fishing spots reuse the normal animated marker art.
+    _lagoon_spot(bn::sprite_items::map_spots.create_sprite(-33, -42, 0)),
+    _beach_spot(bn::sprite_items::map_spots.create_sprite(46, 24, 0)),
+    _waterfall_spot(bn::sprite_items::map_spots.create_sprite(18, 59, 0)),
     // Reference GameMap.draw top-left (183,91), 24x40 padded to 32x64.
     _character(bn::sprite_items::map_character_0.create_sprite(79, 43, 0)),
     // Default selection is Crystal Lake. Tile 165 is a 24x24 corner frame
@@ -146,6 +150,9 @@ void MapScene::update(FlowModel& flow)
         case MapTarget::Shop:
             flow.handle_map_command(MapCommand::Confirm);
             break;
+        case MapTarget::Lagoon:
+        case MapTarget::Beach:
+        case MapTarget::Waterfall:
         case MapTarget::Catalog:
             break;
         }
@@ -176,6 +183,9 @@ void MapScene::_update_marker_graphics(const FlowModel& flow)
         _river_spot.set_tiles(bn::sprite_items::map_spots.tiles_item(), next_a_index);
         _ocean_spot.set_tiles(bn::sprite_items::map_spots.tiles_item(), next_a_index);
         _cave_spot.set_tiles(bn::sprite_items::map_spots.tiles_item(), next_a_index);
+        _lagoon_spot.set_tiles(bn::sprite_items::map_spots.tiles_item(), next_a_index);
+        _beach_spot.set_tiles(bn::sprite_items::map_spots.tiles_item(), next_a_index);
+        _waterfall_spot.set_tiles(bn::sprite_items::map_spots.tiles_item(), next_a_index);
     }
 
     const int next_b_index = flow.map_spot_b_tile() - 100;
@@ -194,6 +204,9 @@ void MapScene::_update_marker_visibility(const FlowModel& flow)
     _river_spot.set_visible(flow.map_target_enabled(MapTarget::River));
     _ocean_spot.set_visible(flow.map_target_enabled(MapTarget::Ocean));
     _cave_spot.set_visible(flow.map_target_enabled(MapTarget::Cave));
+    _lagoon_spot.set_visible(flow.map_target_enabled(MapTarget::Lagoon));
+    _beach_spot.set_visible(flow.map_target_enabled(MapTarget::Beach));
+    _waterfall_spot.set_visible(flow.map_target_enabled(MapTarget::Waterfall));
 }
 
 void MapScene::_update_character(const FlowModel& flow)
@@ -263,6 +276,15 @@ void MapScene::_update_selection(const FlowModel& flow)
         break;
     case MapTarget::Cave:
         _selection_cursor.set_position(-92, 24);
+        break;
+    case MapTarget::Lagoon:
+        _selection_cursor.set_position(-29, -38);
+        break;
+    case MapTarget::Beach:
+        _selection_cursor.set_position(50, 28);
+        break;
+    case MapTarget::Waterfall:
+        _selection_cursor.set_position(22, 63);
         break;
     case MapTarget::Catalog:
         _selection_cursor.set_position(-104, 72);

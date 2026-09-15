@@ -268,6 +268,9 @@ bool FlowModel::map_target_enabled(MapTarget target) const noexcept
     case MapTarget::CrystalLake:
     case MapTarget::Pier:
     case MapTarget::Shop:
+    case MapTarget::Lagoon:
+    case MapTarget::Beach:
+    case MapTarget::Waterfall:
         return true;
     case MapTarget::River:
         return _progress.club_card;
@@ -437,13 +440,14 @@ ShopPurchaseResult FlowModel::purchase_shop_item(int slot) noexcept
     return ShopPurchaseResult::Purchased;
 }
 
-int FlowModel::cycle_owned_bait() noexcept
+int FlowModel::cycle_owned_bait(int direction) noexcept
 {
     const int previous = _progress.equipped_bait;
     const int bait_count = int(_progress.bait_owned.size());
+    const int step_direction = direction < 0 ? -1 : 1;
     for(int step = 1; step <= bait_count; ++step)
     {
-        const int candidate = (_progress.equipped_bait + step) % bait_count;
+        const int candidate = (_progress.equipped_bait + step_direction * step + bait_count) % bait_count;
         if(_progress.bait_owned[candidate])
         {
             _progress.equipped_bait = candidate;
@@ -531,7 +535,7 @@ void FlowModel::_select_spatial_map_target(MapCommand command) noexcept
     {
     case MapTarget::Shop:
         if(command == MapCommand::Right) candidate = MapTarget::CrystalLake;
-        else if(command == MapCommand::Down) candidate = MapTarget::Pier;
+        else if(command == MapCommand::Down) candidate = MapTarget::Lagoon;
         else if(command == MapCommand::Left) candidate = MapTarget::Cave;
         break;
     case MapTarget::CrystalLake:
@@ -541,22 +545,39 @@ void FlowModel::_select_spatial_map_target(MapCommand command) noexcept
         break;
     case MapTarget::River:
         if(command == MapCommand::Left) candidate = MapTarget::CrystalLake;
-        else if(command == MapCommand::Down) candidate = MapTarget::Pier;
+        else if(command == MapCommand::Down) candidate = MapTarget::Beach;
         break;
     case MapTarget::Cave:
-        if(command == MapCommand::Up) candidate = MapTarget::Shop;
+        if(command == MapCommand::Up) candidate = MapTarget::Lagoon;
         else if(command == MapCommand::Right) candidate = MapTarget::Pier;
         else if(command == MapCommand::Down) candidate = MapTarget::Ocean;
         break;
     case MapTarget::Pier:
         if(command == MapCommand::Up) candidate = MapTarget::CrystalLake;
         else if(command == MapCommand::Left) candidate = MapTarget::Cave;
-        else if(command == MapCommand::Right) candidate = MapTarget::River;
-        else if(command == MapCommand::Down) candidate = MapTarget::Ocean;
+        else if(command == MapCommand::Right) candidate = MapTarget::Beach;
+        else if(command == MapCommand::Down) candidate = MapTarget::Waterfall;
         break;
     case MapTarget::Ocean:
         if(command == MapCommand::Up) candidate = MapTarget::Pier;
         else if(command == MapCommand::Left) candidate = MapTarget::Cave;
+        else if(command == MapCommand::Right) candidate = MapTarget::Waterfall;
+        break;
+    case MapTarget::Lagoon:
+        if(command == MapCommand::Up) candidate = MapTarget::Shop;
+        else if(command == MapCommand::Right) candidate = MapTarget::CrystalLake;
+        else if(command == MapCommand::Left) candidate = MapTarget::Cave;
+        else if(command == MapCommand::Down) candidate = MapTarget::Pier;
+        break;
+    case MapTarget::Beach:
+        if(command == MapCommand::Up) candidate = MapTarget::River;
+        else if(command == MapCommand::Left) candidate = MapTarget::Pier;
+        else if(command == MapCommand::Down) candidate = MapTarget::Waterfall;
+        break;
+    case MapTarget::Waterfall:
+        if(command == MapCommand::Up) candidate = MapTarget::Pier;
+        else if(command == MapCommand::Left) candidate = MapTarget::Ocean;
+        else if(command == MapCommand::Right) candidate = MapTarget::Beach;
         break;
     case MapTarget::Catalog:
         candidate = MapTarget::CrystalLake;
@@ -600,6 +621,10 @@ void FlowModel::_activate_selected_map_target() noexcept
         break;
     case MapTarget::Shop:
         _state = GameState::Shop;
+        break;
+    case MapTarget::Lagoon:
+    case MapTarget::Beach:
+    case MapTarget::Waterfall:
         break;
     case MapTarget::Catalog:
         _state = GameState::Catalog;

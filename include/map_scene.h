@@ -36,6 +36,9 @@ private:
     bn::sprite_ptr _river_spot;
     bn::sprite_ptr _ocean_spot;
     bn::sprite_ptr _cave_spot;
+    bn::sprite_ptr _lagoon_spot;
+    bn::sprite_ptr _beach_spot;
+    bn::sprite_ptr _waterfall_spot;
     bn::sprite_ptr _character;
     bn::sprite_ptr _selection_cursor;
     bn::vector<bn::sprite_ptr, 3> _catalog_parts;

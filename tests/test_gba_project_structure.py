@@ -89,6 +89,42 @@ def test_m3_map_scene_exposes_all_recovered_fishing_markers_and_routes():
     assert "M1 only dispatches Crystal Lake" not in source
     assert "flow.handle_map_command(MapCommand::Confirm)" in source
 
+def test_phase1_map_adds_lagoon_beach_waterfall_with_existing_marker_art():
+    header = Path("include/map_scene.h").read_text(encoding="utf-8")
+    source = Path("src/map_scene.cpp").read_text(encoding="utf-8")
+    flow_header = Path("include/flow_model.h").read_text(encoding="utf-8")
+
+    for target in ("Lagoon", "Beach", "Waterfall"):
+        assert target in flow_header
+        assert f"MapTarget::{target}" in source
+
+    for member in ("_lagoon_spot", "_beach_spot", "_waterfall_spot"):
+        assert member in header
+
+    # User-marked map centers converted to Butano centered coordinates.
+    assert "create_sprite(-33, -42, 0)" in source  # Lagoon
+    assert "create_sprite(46, 24, 0)" in source   # Beach
+    assert "create_sprite(18, 59, 0)" in source   # Waterfall
+
+    # All three reuse the normal animated fishing marker bank.
+    assert "_lagoon_spot.set_tiles" in source
+    assert "_beach_spot.set_tiles" in source
+    assert "_waterfall_spot.set_tiles" in source
+
+
+def test_phase1_fishing_bait_cycles_with_l_and_r_and_select_only_cancels_cast():
+    source = Path("src/fishing_scene.cpp").read_text(encoding="utf-8")
+    flow_header = Path("include/flow_model.h").read_text(encoding="utf-8")
+
+    assert "cycle_owned_bait(int direction = 1)" in flow_header
+    assert "bn::keypad::l_pressed()" in source
+    assert "bn::keypad::r_pressed()" in source
+    assert "flow.cycle_owned_bait(-1)" in source
+    assert "flow.cycle_owned_bait(1)" in source
+    assert "select_pressed && _model.state() == FishingState::Stand" not in source
+    assert "select_pressed && _model.state() == FishingState::BaitInWater" in source
+
+
 def test_m2_fishing_scene_is_thin_adapter_over_fishing_model():
     header = Path("include/fishing_scene.h").read_text(encoding="utf-8")
     source = Path("src/fishing_scene.cpp").read_text(encoding="utf-8")
@@ -125,7 +161,8 @@ def test_m2_fishing_scene_is_thin_adapter_over_fishing_model():
     assert "bn::keypad::select_pressed()" in source
     assert "bn::keypad::b_pressed()" in source
     assert "_model.needs_random_roll() ? _random.get_int(10) : 0" in source
-    assert "flow.cycle_owned_bait()" in source
+    assert "flow.cycle_owned_bait(-1)" in source
+    assert "flow.cycle_owned_bait(1)" in source
     assert "_model.set_equipped_bait" in source
     assert "flow.apply_fishing_reward" in source
     assert "flow.handle_fishing_back" in source

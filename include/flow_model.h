@@ -38,6 +38,9 @@ enum class MapTarget
     River,
     Ocean,
     Cave,
+    Lagoon,
+    Beach,
+    Waterfall,
     Catalog,
 };
 
@@ -105,7 +108,7 @@ public:
     [[nodiscard]] bool shop_item_locked(int slot) const noexcept;
     [[nodiscard]] bool shop_item_purchasable(int slot) const noexcept;
     [[nodiscard]] ShopPurchaseResult purchase_shop_item(int slot) noexcept;
-    [[nodiscard]] int cycle_owned_bait() noexcept;
+    [[nodiscard]] int cycle_owned_bait(int direction = 1) noexcept;
     [[nodiscard]] bool catalog_has_fish(int fish_number) const noexcept;
     void apply_fishing_reward(int fish_number, int reward) noexcept;
     void grant_money(int amount) noexcept;
