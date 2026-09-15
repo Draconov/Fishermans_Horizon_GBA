@@ -28,6 +28,7 @@
 #include "audio_policy.h"
 #include "flow_model.h"
 #include "m4_font.h"
+#include "m4_text_layout.h"
 
 namespace fh
 {
@@ -272,8 +273,9 @@ const char* bait_name_for_index(int equipped_bait)
 void append_text(bn::vector<bn::sprite_ptr, 16>& sprites, const char* text, int screen_x, int screen_y,
                  int max_chars)
 {
-    int column = 0;
-    while(*text && column < max_chars && sprites.size() < sprites.max_size())
+    int pen_x = 0;
+    int count = 0;
+    while(*text && count < max_chars && sprites.size() < sprites.max_size())
     {
         const char character = *text++;
         if(character == '#')
@@ -284,9 +286,11 @@ void append_text(bn::vector<bn::sprite_ptr, 16>& sprites, const char* text, int 
         if(glyph >= 0)
         {
             sprites.push_back(bn::sprite_items::m4_font.create_sprite(
-                screen_x + column * 8 + 4 - 120, screen_y + 4 - 80, glyph));
+                screen_x + pen_x + m4_character_draw_x_adjust(character) + 4 - 120,
+                screen_y + 4 - 80, glyph));
         }
-        ++column;
+        pen_x += m4_character_advance(character);
+        ++count;
     }
 }
 

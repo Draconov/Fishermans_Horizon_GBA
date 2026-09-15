@@ -22,6 +22,10 @@ enum class MapCommand
     None,
     PreviousTarget,
     NextTarget,
+    Left,
+    Right,
+    Up,
+    Down,
     Confirm,
     Back,
 };
@@ -75,6 +79,7 @@ public:
     [[nodiscard]] int title_ticks() const noexcept;
 
     void handle_map_command(MapCommand command) noexcept;
+    void open_catalog_from_map() noexcept;
     void update_map_markers() noexcept;
     void handle_fishing_back() noexcept;
     void handle_shop_back() noexcept;
@@ -95,7 +100,7 @@ public:
     [[nodiscard]] bool bait_owned(int bait) const noexcept;
     [[nodiscard]] bool rod_owned(int rod) const noexcept;
     [[nodiscard]] bool character_owned(int character) const noexcept;
-    [[nodiscard]] int cycle_owned_character() noexcept;
+    [[nodiscard]] int cycle_owned_character(int direction = 1) noexcept;
     [[nodiscard]] bool shop_item_owned(int slot) const noexcept;
     [[nodiscard]] bool shop_item_locked(int slot) const noexcept;
     [[nodiscard]] bool shop_item_purchasable(int slot) const noexcept;
@@ -107,6 +112,7 @@ public:
 
 private:
     void _select_relative_map_target(int direction) noexcept;
+    void _select_spatial_map_target(MapCommand command) noexcept;
     void _activate_selected_map_target() noexcept;
 
     ProgressState _progress;

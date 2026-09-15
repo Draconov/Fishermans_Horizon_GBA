@@ -15,6 +15,7 @@
 
 #include "flow_model.h"
 #include "m4_font.h"
+#include "m4_text_layout.h"
 
 namespace fh
 {
@@ -22,19 +23,20 @@ namespace
 {
 
 constexpr const char* CHARACTER_NAMES[] = {
-    "   Cid",
-    "  Fran",
-    "  Leon",
-    "  Sazh",
-    "  Rosa",
+    "Cid",
+    "Fran",
+    "Leon",
+    "Sazh",
+    "Rosa",
     "Shadow",
 };
 
 void append_text(bn::vector<bn::sprite_ptr, 24>& sprites, const char* text, int screen_x, int screen_y,
                  int max_chars)
 {
-    int column = 0;
-    while(*text && column < max_chars && sprites.size() < sprites.max_size())
+    int pen_x = 0;
+    int count = 0;
+    while(*text && count < max_chars && sprites.size() < sprites.max_size())
     {
         const char character = *text++;
         if(character == '#')
@@ -45,9 +47,11 @@ void append_text(bn::vector<bn::sprite_ptr, 24>& sprites, const char* text, int 
         if(glyph >= 0)
         {
             sprites.push_back(bn::sprite_items::m4_font.create_sprite(
-                screen_x + column * 8 + 4 - 120, screen_y + 4 - 80, glyph));
+                screen_x + pen_x + m4_character_draw_x_adjust(character) + 4 - 120,
+                screen_y + 4 - 80, glyph));
         }
-        ++column;
+        pen_x += m4_character_advance(character);
+        ++count;
     }
 }
 
@@ -91,20 +95,43 @@ void MapScene::update(FlowModel& flow)
         _audio_event = AudioCue::NextPage;
         flow.handle_map_command(MapCommand::Back);
     }
-    else if(bn::keypad::left_pressed() || bn::keypad::up_pressed())
+    else if(bn::keypad::start_pressed())
     {
-        _audio_event = AudioCue::NextPage;
-        flow.handle_map_command(MapCommand::PreviousTarget);
+        if(flow.map_target_enabled(MapTarget::Catalog))
+        {
+            _audio_event = AudioCue::NextPage;
+            flow.open_catalog_from_map();
+        }
     }
-    else if(bn::keypad::right_pressed() || bn::keypad::down_pressed())
+    else if(bn::keypad::left_pressed())
     {
         _audio_event = AudioCue::NextPage;
-        flow.handle_map_command(MapCommand::NextTarget);
+        flow.handle_map_command(MapCommand::Left);
     }
-    else if(bn::keypad::l_pressed() || bn::keypad::r_pressed())
+    else if(bn::keypad::right_pressed())
     {
         _audio_event = AudioCue::NextPage;
-        (void) flow.cycle_owned_character();
+        flow.handle_map_command(MapCommand::Right);
+    }
+    else if(bn::keypad::up_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        flow.handle_map_command(MapCommand::Up);
+    }
+    else if(bn::keypad::down_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        flow.handle_map_command(MapCommand::Down);
+    }
+    else if(bn::keypad::l_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        (void) flow.cycle_owned_character(-1);
+    }
+    else if(bn::keypad::r_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        (void) flow.cycle_owned_character(1);
     }
     else if(bn::keypad::a_pressed())
     {
@@ -117,8 +144,9 @@ void MapScene::update(FlowModel& flow)
         case MapTarget::Ocean:
         case MapTarget::Cave:
         case MapTarget::Shop:
-        case MapTarget::Catalog:
             flow.handle_map_command(MapCommand::Confirm);
+            break;
+        case MapTarget::Catalog:
             break;
         }
     }
@@ -266,7 +294,10 @@ void MapScene::_update_text(const FlowModel& flow)
         character = 0;
     }
     const char* character_name = CHARACTER_NAMES[character];
-    append_text(_text_sprites, character_name, 168, 144, 6);
+    constexpr int field_x = 168;
+    constexpr int field_width = 48;
+    const int text_width = m4_text_width(character_name, 6);
+    append_text(_text_sprites, character_name, field_x + (field_width - text_width) / 2, 144, 6);
 
 }
 

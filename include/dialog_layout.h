@@ -1,54 +1,24 @@
 #ifndef FH_DIALOG_LAYOUT_H
 #define FH_DIALOG_LAYOUT_H
 
+#include "m4_text_layout.h"
+
 namespace fh
 {
 
 [[nodiscard]] constexpr int dialog_character_x_adjust(char character) noexcept
 {
-    switch(character)
-    {
-    case '1': return -2;
-    case 'i': return -4;
-    case 'I': return -2;
-    case 'l': return -4;
-    case 'p':
-    case 'q':
-    case 'Q': return 1;
-    case 'm':
-    case 'M':
-    case 'w':
-    case 'W': return 2;
-    case '.': return -4;
-    case ',': return -3;
-    case '!': return -4;
-    case ':': return -4;
-    case '<': return -3;
-    case '-': return -2;
-    case '$': return 2;
-    default: return 0;
-    }
+    return m4_character_x_adjust(character);
 }
 
 [[nodiscard]] constexpr int dialog_character_advance(char character) noexcept
 {
-    return 7 + dialog_character_x_adjust(character);
+    return m4_character_advance(character);
 }
 
 [[nodiscard]] constexpr int dialog_character_draw_x_adjust(char character) noexcept
 {
-    // These glyphs touch the left edge of their 8x8 source tile. Shifting
-    // them one pixel right preserves the same one-empty-column visual gap
-    // used by the rest of the proportional font.
-    switch(character)
-    {
-    case 'm':
-    case 'M':
-    case 'w':
-    case 'W':
-    case 'p': return 1;
-    default: return 0;
-    }
+    return m4_character_draw_x_adjust(character);
 }
 
 [[nodiscard]] constexpr bool dialog_character_visible(char character) noexcept

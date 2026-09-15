@@ -253,7 +253,8 @@ def test_m4_progression_scenes_are_real_model_backed_routes():
         assert f'#include "bn_sprite_items_fishing_char_m4_{character}.h"' in fishing
     assert "create_character_sprite" in fishing
     assert "_flow.current_character()" in app_cpp
-    assert "cycle_owned_character()" in map_source
+    assert "cycle_owned_character(-1)" in map_source
+    assert "cycle_owned_character(1)" in map_source
 
     event = Path("src/event_scene.cpp").read_text(encoding="utf-8")
     assert '#include "event_model.h"' in event
@@ -419,8 +420,9 @@ def test_map_scene_restores_original_character_panel_and_gba_selection_feedback(
     assert "bn::sprite_items::map_character_0.create_sprite(79, 43, 0)" in source
     for character in range(1, 6):
         assert f"_character.set_item(bn::sprite_items::map_character_{character})" in source
-    assert "append_text(_text_sprites, character_name, 168, 144, 6)" in source
-    for name in ('"   Cid"', '"  Fran"', '"  Leon"', '"  Sazh"', '"  Rosa"', '"Shadow"'):
+    assert "m4_text_width(character_name, 6)" in source
+    assert "field_x + (field_width - text_width) / 2" in source
+    for name in ('"Cid"', '"Fran"', '"Leon"', '"Sazh"', '"Rosa"', '"Shadow"'):
         assert name in source
 
     # The original Catalog badge (tile 170) is restored when Catalog is owned.
@@ -472,6 +474,34 @@ def _bmp_rgb_at(path: Path, x: int, y: int) -> tuple[int, int, int]:
     palette_index = data[pixel_offset + row_from_bottom * row_stride + x]
     blue, green, red, _ = struct.unpack_from("<BBBB", data, palette_offset + palette_index * 4)
     return red, green, blue
+
+
+def test_shop_entry_requires_welcome_dialog_before_item_selection():
+    header = Path("include/shop_scene.h").read_text(encoding="utf-8")
+    source = Path("src/shop_scene.cpp").read_text(encoding="utf-8")
+
+    # The touch APK starts the Shop with no item selected; the GBA adaptation
+    # preserves that entrance beat with a modal welcome dialog before D-pad
+    # selection becomes visible or actionable.
+    assert "bool _welcome_active = true;" in header
+    assert 'constexpr const char* SHOP_WELCOME_TEXT = "Welcome to Mari-Mari Shop";' in source
+    assert "_dialog.start(SHOP_WELCOME_TEXT);" in source
+    assert "_cursor.set_visible(false);" in source
+
+    # While the welcome is active, only A is fed to DialogModel. In particular
+    # B must not use the normal description-dialog cancel path, and no shop
+    # movement/purchase input can run until the welcome fully closes.
+    welcome_pos = source.index("if(_welcome_active)")
+    normal_dialog_pos = source.index("else if(_dialog.active())", welcome_pos)
+    welcome_block = source[welcome_pos:normal_dialog_pos]
+    assert "_dialog.update(bn::keypad::a_pressed())" in welcome_block
+    assert "bn::keypad::b_pressed()" not in welcome_block
+    assert "_model.move_left()" not in welcome_block
+    assert "_model.purchase(flow)" not in welcome_block
+    assert "_welcome_active = false;" in welcome_block
+
+    # Slot 0 becomes the visible D-pad selection only after the welcome closes.
+    assert "_cursor.set_visible(! _welcome_active);" in source
 
 
 def test_shop_scene_uses_spatial_four_way_dpad_navigation():
@@ -529,7 +559,8 @@ def test_fishing_scene_restores_original_hud_text_and_positions():
 def test_map_scene_does_not_add_gba_only_location_names():
     source = Path("src/map_scene.cpp").read_text(encoding="utf-8")
     # Keep the original APK character-name field, but no extra target-name UI.
-    assert "append_text(_text_sprites, character_name, 168, 144, 6)" in source
+    assert "m4_text_width(character_name, 6)" in source
+    assert "field_x + (field_width - text_width) / 2" in source
     assert "TargetLabel" not in source
     assert "target_label(" not in source
     assert "append_centered_text" not in source
@@ -604,9 +635,14 @@ def test_parity_pass_restores_dialog_driven_shop_catalog_and_title_only_start():
     assert "bn::keypad::select_pressed()" in intro
     assert "input.cancel_cast" in fishing
 
-    # User explicitly wants START -> Options only where the original port already had it: Title.
-    assert "bn::keypad::start_pressed()" in Path("src/title_scene.cpp").read_text(encoding="utf-8")
-    for stem in ("intro", "map", "fishing", "shop", "catalog", "event", "options"):
+    # Current GBA mapping: START plays on Title and opens Catalog on Map only.
+    title_source = Path("src/title_scene.cpp").read_text(encoding="utf-8")
+    map_source = Path("src/map_scene.cpp").read_text(encoding="utf-8")
+    assert "bn::keypad::start_pressed()" in title_source
+    assert "bn::keypad::select_pressed()" in title_source
+    assert "bn::keypad::start_pressed()" in map_source
+    assert "open_catalog_from_map" in map_source
+    for stem in ("intro", "fishing", "shop", "catalog", "event", "options"):
         assert "bn::keypad::start_pressed()" not in Path(f"src/{stem}_scene.cpp").read_text(encoding="utf-8")
 
 
@@ -660,3 +696,52 @@ def test_dialog_glyph_bearings_and_shop_buy_indicator_position():
     # A 16x16 Butano OBJ at that top-left has center screen (12, 148), i.e.
     # world coordinates (-108, 68). The old y=72 placed it 4 px too low.
     assert "m4_shop_buy_enabled.create_sprite(-108, 68, 0)" in shop
+
+
+
+def test_map_uses_spatial_dpad_directional_character_cycle_and_start_catalog():
+    source = Path("src/map_scene.cpp").read_text(encoding="utf-8")
+    assert "bn::keypad::left_pressed()" in source
+    assert "bn::keypad::right_pressed()" in source
+    assert "bn::keypad::up_pressed()" in source
+    assert "bn::keypad::down_pressed()" in source
+    assert "MapCommand::Left" in source
+    assert "MapCommand::Right" in source
+    assert "MapCommand::Up" in source
+    assert "MapCommand::Down" in source
+    assert "cycle_owned_character(-1)" in source
+    assert "cycle_owned_character(1)" in source
+    assert "bn::keypad::start_pressed()" in source
+    assert "open_catalog_from_map" in source
+
+
+def test_title_start_plays_select_opens_options_and_a_still_accepts_play():
+    source = Path("src/title_scene.cpp").read_text(encoding="utf-8")
+    assert "bn::keypad::a_pressed()" in source
+    assert "bn::keypad::start_pressed()" in source
+    assert "bn::keypad::select_pressed()" in source
+    assert "bn::keypad::a_pressed() || bn::keypad::start_pressed()" in source
+    assert "flow.handle_title_command(TitleCommand::Play);" in source
+    select_pos = source.index("bn::keypad::select_pressed()")
+    options_pos = source.index("TitleCommand::Options")
+    assert options_pos > select_pos
+
+
+def test_all_scene_m4_text_rendering_uses_shared_proportional_metrics():
+    layout = Path("include/m4_text_layout.h")
+    assert layout.is_file()
+    layout_text = layout.read_text(encoding="utf-8")
+    assert "m4_character_advance" in layout_text
+    assert "m4_character_draw_x_adjust" in layout_text
+    assert "m4_text_width" in layout_text
+
+    for stem in ("map_scene.cpp", "shop_scene.cpp", "catalog_scene.cpp", "fishing_scene.cpp", "options_scene.cpp"):
+        text = Path("src", stem).read_text(encoding="utf-8")
+        assert '#include "m4_text_layout.h"' in text
+        assert "column * 8" not in text
+        assert "m4_character_advance" in text
+        assert "m4_character_draw_x_adjust" in text
+
+    map_text = Path("src/map_scene.cpp").read_text(encoding="utf-8")
+    assert "m4_text_width" in map_text
+    assert "CHARACTER_NAMES" in map_text

@@ -330,6 +330,64 @@ int main()
         assert(model.progress_state().prologue_complete);
     }
 
+
+    {
+        fh::ProgressState progress;
+        progress.prologue_complete = true;
+        progress.club_card = true;
+        progress.old_boat = true;
+        progress.ancient_map = true;
+        progress.catalog = true;
+        progress.character_owned = {true, true, true, false, false, false};
+        progress.current_character = 0;
+        fh::FlowModel model(progress);
+        model.complete_intro();
+        model.handle_title_command(fh::TitleCommand::Play);
+
+        // Character cycling is directional and skips locked characters.
+        assert(model.cycle_owned_character(1) == 1);
+        assert(model.cycle_owned_character(-1) == 0);
+        assert(model.cycle_owned_character(-1) == 2);
+        assert(model.cycle_owned_character(1) == 0);
+
+        // Spatial map navigation follows the visible map graph, not a flat list.
+        assert(model.selected_map_target() == fh::MapTarget::CrystalLake);
+        model.handle_map_command(fh::MapCommand::Left);
+        assert(model.selected_map_target() == fh::MapTarget::Shop);
+        model.handle_map_command(fh::MapCommand::Down);
+        assert(model.selected_map_target() == fh::MapTarget::Pier);
+        model.handle_map_command(fh::MapCommand::Left);
+        assert(model.selected_map_target() == fh::MapTarget::Cave);
+        model.handle_map_command(fh::MapCommand::Down);
+        assert(model.selected_map_target() == fh::MapTarget::Ocean);
+        model.handle_map_command(fh::MapCommand::Up);
+        assert(model.selected_map_target() == fh::MapTarget::Pier);
+        model.handle_map_command(fh::MapCommand::Right);
+        assert(model.selected_map_target() == fh::MapTarget::River);
+        model.handle_map_command(fh::MapCommand::Left);
+        assert(model.selected_map_target() == fh::MapTarget::CrystalLake);
+
+        // Catalog is a START shortcut, not a map selection target.
+        model.open_catalog_from_map();
+        assert(model.state() == fh::GameState::Catalog);
+    }
+
+    {
+        fh::ProgressState progress;
+        progress.prologue_complete = true;
+        progress.catalog = false;
+        fh::FlowModel model(progress);
+        model.complete_intro();
+        model.handle_title_command(fh::TitleCommand::Play);
+        model.open_catalog_from_map();
+        assert(model.state() == fh::GameState::Map);
+
+        // Locked spatial neighbors don't become selectable.
+        assert(model.selected_map_target() == fh::MapTarget::CrystalLake);
+        model.handle_map_command(fh::MapCommand::Right); // River is locked.
+        assert(model.selected_map_target() == fh::MapTarget::CrystalLake);
+    }
+
     return 0;
 }
 

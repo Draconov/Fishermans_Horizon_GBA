@@ -145,6 +145,12 @@ void FlowModel::handle_map_command(MapCommand command) noexcept
     case MapCommand::NextTarget:
         _select_relative_map_target(1);
         break;
+    case MapCommand::Left:
+    case MapCommand::Right:
+    case MapCommand::Up:
+    case MapCommand::Down:
+        _select_spatial_map_target(command);
+        break;
     case MapCommand::Confirm:
         _activate_selected_map_target();
         break;
@@ -153,6 +159,15 @@ void FlowModel::handle_map_command(MapCommand command) noexcept
         break;
     case MapCommand::None:
         break;
+    }
+}
+
+
+void FlowModel::open_catalog_from_map() noexcept
+{
+    if(_state == GameState::Map && map_target_enabled(MapTarget::Catalog))
+    {
+        _state = GameState::Catalog;
     }
 }
 
@@ -311,13 +326,14 @@ bool FlowModel::character_owned(int character) const noexcept
     return character >= 0 && character < int(_progress.character_owned.size()) && _progress.character_owned[character];
 }
 
-int FlowModel::cycle_owned_character() noexcept
+int FlowModel::cycle_owned_character(int direction) noexcept
 {
     const int previous = _progress.current_character;
     const int character_count = int(_progress.character_owned.size());
+    const int normalized_direction = direction < 0 ? -1 : 1;
     for(int step = 1; step <= character_count; ++step)
     {
-        const int candidate = (_progress.current_character + step) % character_count;
+        const int candidate = (_progress.current_character + normalized_direction * step + character_count * 2) % character_count;
         if(_progress.character_owned[candidate])
         {
             _progress.current_character = candidate;
@@ -504,6 +520,52 @@ void FlowModel::_select_relative_map_target(int direction) noexcept
             _selected_map_target = candidate;
             return;
         }
+    }
+}
+
+
+void FlowModel::_select_spatial_map_target(MapCommand command) noexcept
+{
+    MapTarget candidate = _selected_map_target;
+    switch(_selected_map_target)
+    {
+    case MapTarget::Shop:
+        if(command == MapCommand::Right) candidate = MapTarget::CrystalLake;
+        else if(command == MapCommand::Down) candidate = MapTarget::Pier;
+        else if(command == MapCommand::Left) candidate = MapTarget::Cave;
+        break;
+    case MapTarget::CrystalLake:
+        if(command == MapCommand::Left) candidate = MapTarget::Shop;
+        else if(command == MapCommand::Right) candidate = MapTarget::River;
+        else if(command == MapCommand::Down) candidate = MapTarget::Pier;
+        break;
+    case MapTarget::River:
+        if(command == MapCommand::Left) candidate = MapTarget::CrystalLake;
+        else if(command == MapCommand::Down) candidate = MapTarget::Pier;
+        break;
+    case MapTarget::Cave:
+        if(command == MapCommand::Up) candidate = MapTarget::Shop;
+        else if(command == MapCommand::Right) candidate = MapTarget::Pier;
+        else if(command == MapCommand::Down) candidate = MapTarget::Ocean;
+        break;
+    case MapTarget::Pier:
+        if(command == MapCommand::Up) candidate = MapTarget::CrystalLake;
+        else if(command == MapCommand::Left) candidate = MapTarget::Cave;
+        else if(command == MapCommand::Right) candidate = MapTarget::River;
+        else if(command == MapCommand::Down) candidate = MapTarget::Ocean;
+        break;
+    case MapTarget::Ocean:
+        if(command == MapCommand::Up) candidate = MapTarget::Pier;
+        else if(command == MapCommand::Left) candidate = MapTarget::Cave;
+        break;
+    case MapTarget::Catalog:
+        candidate = MapTarget::CrystalLake;
+        break;
+    }
+
+    if(candidate != _selected_map_target && map_target_enabled(candidate))
+    {
+        _selected_map_target = candidate;
     }
 }
 

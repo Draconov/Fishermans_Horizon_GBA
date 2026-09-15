@@ -17,12 +17,12 @@ TitleScene::TitleScene() :
 
 void TitleScene::update(FlowModel& flow)
 {
-    if(bn::keypad::a_pressed())
+    if(bn::keypad::a_pressed() || bn::keypad::start_pressed())
     {
         _audio_event = AudioCue::NextPage;
         flow.handle_title_command(TitleCommand::Play);
     }
-    else if(bn::keypad::start_pressed())
+    else if(bn::keypad::select_pressed())
     {
         _audio_event = AudioCue::NextPage;
         flow.handle_title_command(TitleCommand::Options);

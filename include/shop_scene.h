@@ -41,6 +41,7 @@ private:
     ShopPurchaseResult _last_result = ShopPurchaseResult::InvalidItem;
     int _keeper_ticks = 0;
     int _keeper_frame = 0;
+    bool _welcome_active = true;
     bool _dirty = true;
     int _shop_ticks = 0;
     AudioCue _audio_event = AudioCue::None;

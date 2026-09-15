@@ -11,6 +11,7 @@
 
 #include "flow_model.h"
 #include "m4_font.h"
+#include "m4_text_layout.h"
 #include "shop_model.h"
 
 namespace fh
@@ -18,12 +19,15 @@ namespace fh
 namespace
 {
 
+constexpr const char* SHOP_WELCOME_TEXT = "Welcome to Mari-Mari Shop";
+
 template<int MaxSprites>
 void append_text(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, const char* text, int screen_x, int screen_y,
                  int max_chars)
 {
-    int column = 0;
-    while(*text && column < max_chars && sprites.size() < sprites.max_size())
+    int pen_x = 0;
+    int count = 0;
+    while(*text && count < max_chars && sprites.size() < sprites.max_size())
     {
         const char character = *text++;
         if(character == '#')
@@ -34,9 +38,11 @@ void append_text(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, const char* te
         if(glyph >= 0)
         {
             sprites.push_back(bn::sprite_items::m4_font.create_sprite(
-                screen_x + column * 8 + 4 - 120, screen_y + 4 - 80, glyph));
+                screen_x + pen_x + m4_character_draw_x_adjust(character) + 4 - 120,
+                screen_y + 4 - 80, glyph));
         }
-        ++column;
+        pen_x += m4_character_advance(character);
+        ++count;
     }
 }
 
@@ -89,6 +95,8 @@ ShopScene::ShopScene() :
     _cursor.set_z_order(0);
     _locked_overlay.set_visible(false);
     _buy_enabled.set_visible(false);
+    _cursor.set_visible(false);
+    _dialog.start(SHOP_WELCOME_TEXT);
 
     for(int slot = 0; slot < 16; ++slot)
     {
@@ -105,7 +113,20 @@ void ShopScene::update(FlowModel& flow)
 {
     ++_shop_ticks;
 
-    if(_dialog.active())
+    if(_welcome_active)
+    {
+        const DialogEvent event = _dialog.update(bn::keypad::a_pressed());
+        if(event == DialogEvent::NextPage)
+        {
+            _audio_event = AudioCue::NextPage;
+        }
+        if(event == DialogEvent::Closed)
+        {
+            _welcome_active = false;
+            _dirty = true;
+        }
+    }
+    else if(_dialog.active())
     {
         if(bn::keypad::b_pressed())
         {
@@ -206,6 +227,7 @@ void ShopScene::update(FlowModel& flow)
 
     const int slot = _model.selected_item();
     _cursor.set_position(16 + (slot % 4) * 24, -40 + (slot / 4) * 24);
+    _cursor.set_visible(! _welcome_active);
     _render(flow);
 
     if(_dialog.active())
