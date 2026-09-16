@@ -1,17 +1,17 @@
 #include "catalog_scene.h"
 
 #include "bn_keypad.h"
-#include "bn_regular_bg_items_m4_catalog_anim.h"
-#include "bn_sprite_items_fishing_fish_m3_0.h"
-#include "bn_sprite_items_fishing_fish_m3_1.h"
-#include "bn_sprite_items_m4_catalog_cursor.h"
-#include "bn_sprite_items_m4_font.h"
+#include "bn_regular_bg_items_catalog_bg.h"
+#include "bn_sprite_items_fishing_fish_bank_0.h"
+#include "bn_sprite_items_fishing_fish_bank_1.h"
+#include "bn_sprite_items_catalog_cursor.h"
+#include "bn_sprite_items_ui_font.h"
 
 #include "catalog_model.h"
 #include "fishing_content.h"
 #include "flow_model.h"
-#include "m4_font.h"
-#include "m4_text_layout.h"
+#include "ui_font.h"
+#include "ui_text_layout.h"
 
 namespace fh
 {
@@ -34,7 +34,7 @@ int fish_source_sprite(int fish_number)
     return -1;
 }
 
-int m3_fish_bank(int source_sprite)
+int fish_bank(int source_sprite)
 {
     switch(source_sprite)
     {
@@ -51,7 +51,7 @@ int m3_fish_bank(int source_sprite)
     }
 }
 
-int m3_fish_frame(int source_sprite)
+int fish_frame(int source_sprite)
 {
     switch(source_sprite)
     {
@@ -72,12 +72,12 @@ int m3_fish_frame(int source_sprite)
 
 bn::sprite_ptr create_fish_sprite(int source_sprite, int x, int y)
 {
-    const int frame = m3_fish_frame(source_sprite);
-    if(m3_fish_bank(source_sprite) == 1)
+    const int frame = fish_frame(source_sprite);
+    if(fish_bank(source_sprite) == 1)
     {
-        return bn::sprite_items::fishing_fish_m3_1.create_sprite(x, y, frame);
+        return bn::sprite_items::fishing_fish_bank_1.create_sprite(x, y, frame);
     }
-    return bn::sprite_items::fishing_fish_m3_0.create_sprite(x, y, frame);
+    return bn::sprite_items::fishing_fish_bank_0.create_sprite(x, y, frame);
 }
 
 template<int MaxSprites>
@@ -93,14 +93,14 @@ void append_text(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, const char* te
         {
             break;
         }
-        const int glyph = m4_font_glyph(character);
+        const int glyph = ui_font_glyph(character);
         if(glyph >= 0)
         {
-            sprites.push_back(bn::sprite_items::m4_font.create_sprite(
-                screen_x + pen_x + m4_character_draw_x_adjust(character) + 4 - 120,
+            sprites.push_back(bn::sprite_items::ui_font.create_sprite(
+                screen_x + pen_x + ui_character_draw_x_adjust(character) + 4 - 120,
                 screen_y + 4 - 80, glyph));
         }
-        pen_x += m4_character_advance(character);
+        pen_x += ui_character_advance(character);
         ++count;
     }
 }
@@ -108,8 +108,8 @@ void append_text(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, const char* te
 }
 
 CatalogScene::CatalogScene() :
-    _background(bn::regular_bg_items::m4_catalog_anim.create_bg(0, 0, 0)),
-    _cursor(bn::sprite_items::m4_catalog_cursor.create_sprite(-91, -46, 0))
+    _background(bn::regular_bg_items::catalog_bg.create_bg(0, 0, 0)),
+    _cursor(bn::sprite_items::catalog_cursor.create_sprite(-91, -46, 0))
 {
 }
 
@@ -197,7 +197,7 @@ void CatalogScene::_advance_background()
     if(next_map != _map_index)
     {
         _map_index = next_map;
-        _background.set_map(bn::regular_bg_items::m4_catalog_anim.map_item(), _map_index);
+        _background.set_map(bn::regular_bg_items::catalog_bg.map_item(), _map_index);
     }
 }
 

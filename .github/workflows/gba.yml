@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Optional release tag (for example v0.8.0). Leave blank to build a downloadable artifact only.
+        description: Optional release tag (for example v1.0.0). Leave blank to build a downloadable artifact only.
         required: false
         default: ''
         type: string
@@ -24,43 +24,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install CI dependencies
+      - name: Install test dependencies
         shell: bash
         run: |
           set -euo pipefail
           apt-get update
-          apt-get install -y --no-install-recommends \
-            ca-certificates \
-            git \
-            python3-pytest \
-            python3-yaml
+          apt-get install -y --no-install-recommends ca-certificates git python3-pytest g++
           rm -rf /var/lib/apt/lists/*
 
-      - name: Run self-contained GBA project tests
+      - name: Run project tests
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m pytest -q \
-            tests/test_audio_manager.py \
-            tests/test_bootstrap_m8_toolchain.py \
-            tests/test_catalog_model.py \
-            tests/test_dialog_model.py \
-            tests/test_event_model.py \
-            tests/test_fishing_content.py \
-            tests/test_fishing_model.py \
-            tests/test_flow_model.py \
-            tests/test_gba_project_structure.py \
-            tests/test_github_workflow.py \
-            tests/test_intro_model.py \
-            tests/test_m4_font.py \
-            tests/test_m5_resource_limits.py \
-            tests/test_m7_presentation.py \
-            tests/test_m8_native_compile.py \
-            tests/test_options_model.py \
-            tests/test_package_rom.py \
-            tests/test_save_codec.py \
-            tests/test_save_storage.py \
-            tests/test_shop_model.py
+          python3 -m pytest -q tests/test_project.py
 
       - name: Fetch pinned Butano 21.7.1
         shell: bash
@@ -69,16 +45,6 @@ jobs:
           git clone --depth 1 --branch 21.7.1 \
             https://github.com/GValiente/butano.git \
             "$GITHUB_WORKSPACE/../butano"
-
-      - name: Verify pinned toolchain
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 scripts/bootstrap_m8_toolchain.py \
-            --devkitpro /opt/devkitpro \
-            --butano "$GITHUB_WORKSPACE/../butano/butano" \
-            --json /tmp/m8_toolchain_report.json
-          cat /tmp/m8_toolchain_report.json
 
       - name: Build ROM
         shell: bash
@@ -140,7 +106,6 @@ jobs:
           REF_TYPE: ${{ github.ref_type }}
         run: |
           set -euo pipefail
-
           if [[ "$REF_TYPE" == "tag" ]]; then
             TAG="$PUSH_TAG"
           else

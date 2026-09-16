@@ -1,9 +1,9 @@
 #include "title_scene.h"
 
 #include "bn_keypad.h"
-#include "bn_regular_bg_items_title_frame_112.h"
-#include "bn_regular_bg_items_title_frame_113.h"
-#include "bn_regular_bg_items_title_frame_114.h"
+#include "bn_regular_bg_items_title_bg_0.h"
+#include "bn_regular_bg_items_title_bg_1.h"
+#include "bn_regular_bg_items_title_bg_2.h"
 
 #include "flow_model.h"
 
@@ -11,7 +11,7 @@ namespace fh
 {
 
 TitleScene::TitleScene() :
-    _background(bn::regular_bg_items::title_frame_112.create_bg(0, 0))
+    _background(bn::regular_bg_items::title_bg_0.create_bg(0, 0))
 {
 }
 
@@ -41,14 +41,14 @@ void TitleScene::update(FlowModel& flow)
         switch(sea_tile)
         {
         case 113:
-            _background.set_item(bn::regular_bg_items::title_frame_113);
+            _background.set_item(bn::regular_bg_items::title_bg_1);
             break;
         case 114:
-            _background.set_item(bn::regular_bg_items::title_frame_114);
+            _background.set_item(bn::regular_bg_items::title_bg_2);
             break;
         case 112:
         default:
-            _background.set_item(bn::regular_bg_items::title_frame_112);
+            _background.set_item(bn::regular_bg_items::title_bg_0);
             break;
         }
     }

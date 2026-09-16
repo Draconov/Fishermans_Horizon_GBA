@@ -1,23 +1,23 @@
 #include "dialog_renderer.h"
 
-#include "bn_sprite_items_m4_font.h"
-#include "bn_sprite_items_m7_dialog_dollar.h"
-#include "bn_sprite_items_m7_dialog_markers.h"
-#include "bn_sprite_items_m7_dialog_panel.h"
+#include "bn_sprite_items_ui_font.h"
+#include "bn_sprite_items_dialog_dollar.h"
+#include "bn_sprite_items_dialog_markers.h"
+#include "bn_sprite_items_dialog_panel.h"
 
 #include "dialog_layout.h"
-#include "m4_font.h"
+#include "ui_font.h"
 
 namespace fh
 {
 
 DialogRenderer::DialogRenderer() :
-    _panel0(bn::sprite_items::m7_dialog_panel.create_sprite(-88, 96, 0)),
-    _panel1(bn::sprite_items::m7_dialog_panel.create_sprite(-24, 96, 0)),
-    _panel2(bn::sprite_items::m7_dialog_panel.create_sprite(40, 96, 0)),
-    _panel3(bn::sprite_items::m7_dialog_panel.create_sprite(104, 96, 1)),
-    _marker_base(bn::sprite_items::m7_dialog_markers.create_sprite(108, 92, 0)),
-    _marker_advance(bn::sprite_items::m7_dialog_markers.create_sprite(108, 92, 1))
+    _panel0(bn::sprite_items::dialog_panel.create_sprite(-88, 96, 0)),
+    _panel1(bn::sprite_items::dialog_panel.create_sprite(-24, 96, 0)),
+    _panel2(bn::sprite_items::dialog_panel.create_sprite(40, 96, 0)),
+    _panel3(bn::sprite_items::dialog_panel.create_sprite(104, 96, 1)),
+    _marker_base(bn::sprite_items::dialog_markers.create_sprite(108, 92, 0)),
+    _marker_advance(bn::sprite_items::dialog_markers.create_sprite(108, 92, 1))
 {
     hide();
 }
@@ -102,15 +102,15 @@ void DialogRenderer::_rebuild_text(const DialogModel& dialog)
         {
             if(character == '$')
             {
-                _text_sprites.push_back(bn::sprite_items::m7_dialog_dollar.create_sprite(
+                _text_sprites.push_back(bn::sprite_items::dialog_dollar.create_sprite(
                     x + 1 + 4 - 120, box_y + y + 4 - 80, 0));
             }
             else
             {
-                const int glyph = m4_font_glyph(character);
+                const int glyph = ui_font_glyph(character);
                 if(glyph >= 0)
                 {
-                    _text_sprites.push_back(bn::sprite_items::m4_font.create_sprite(
+                    _text_sprites.push_back(bn::sprite_items::ui_font.create_sprite(
                         x + dialog_character_draw_x_adjust(character) + 4 - 120,
                         box_y + y + 4 - 80, glyph));
                 }
@@ -124,8 +124,8 @@ void DialogRenderer::_rebuild_text(const DialogModel& dialog)
             const char next = text[index + 1];
             if(next && next != ' ' && next != '#' && next != '@')
             {
-                const int hyphen = m4_font_glyph('-');
-                _text_sprites.push_back(bn::sprite_items::m4_font.create_sprite(
+                const int hyphen = ui_font_glyph('-');
+                _text_sprites.push_back(bn::sprite_items::ui_font.create_sprite(
                     x + 4 - 120, box_y + y + 4 - 80, hyphen));
             }
             dialog_apply_line_cutoff(x, y);

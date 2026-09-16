@@ -81,7 +81,7 @@ constexpr std::array<FishingAreaSpec, 6> AREAS = {{
     },
     {
         6,
-        "graphics/fishing_area_lagoon.bmp",
+        "graphics/fishing_bg_lagoon.bmp",
         {{
             {"CAN", 4, 0, 7, 2, 40, 120, 1},
             {"SIRIRIDINE", 1, 1, 0, 1, 80, 110, 5},

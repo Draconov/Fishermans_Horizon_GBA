@@ -1,8 +1,8 @@
 #include "event_scene.h"
 
 #include "bn_keypad.h"
-#include "bn_regular_bg_items_m4_event_anim.h"
-#include "bn_sprite_items_m4_event_cecil.h"
+#include "bn_regular_bg_items_event_bg.h"
+#include "bn_sprite_items_event_cecil.h"
 
 #include "event_model.h"
 #include "flow_model.h"
@@ -18,8 +18,8 @@ constexpr int EVENT_DIALOG_OPEN_TICK = 100;
 
 EventScene::EventScene(int event_id) :
     _model(event_id),
-    _background(bn::regular_bg_items::m4_event_anim.create_bg(0, 0, 0)),
-    _cecil(bn::sprite_items::m4_event_cecil.create_sprite(-84, 24, 0))
+    _background(bn::regular_bg_items::event_bg.create_bg(0, 0, 0)),
+    _cecil(bn::sprite_items::event_cecil.create_sprite(-84, 24, 0))
 {
 }
 
@@ -56,14 +56,14 @@ void EventScene::update(FlowModel& flow)
             if(_cecil_frame != 0)
             {
                 _cecil_frame = 0;
-                _cecil.set_tiles(bn::sprite_items::m4_event_cecil.tiles_item(), 0);
+                _cecil.set_tiles(bn::sprite_items::event_cecil.tiles_item(), 0);
             }
             _cecil_ticks = 0;
         }
         else if(_cecil_ticks % 4 == 0 && _cecil_frame != 1)
         {
             _cecil_frame = 1;
-            _cecil.set_tiles(bn::sprite_items::m4_event_cecil.tiles_item(), 1);
+            _cecil.set_tiles(bn::sprite_items::event_cecil.tiles_item(), 1);
         }
     }
     else if(_cecil_ticks > 0)
@@ -74,7 +74,7 @@ void EventScene::update(FlowModel& flow)
             if(_cecil_frame != 0)
             {
                 _cecil_frame = 0;
-                _cecil.set_tiles(bn::sprite_items::m4_event_cecil.tiles_item(), 0);
+                _cecil.set_tiles(bn::sprite_items::event_cecil.tiles_item(), 0);
             }
             _cecil_ticks = 0;
         }
@@ -94,7 +94,7 @@ void EventScene::_advance_background()
     if(next_map != _map_index)
     {
         _map_index = next_map;
-        _background.set_map(bn::regular_bg_items::m4_event_anim.map_item(), _map_index);
+        _background.set_map(bn::regular_bg_items::event_bg.map_item(), _map_index);
     }
 }
 

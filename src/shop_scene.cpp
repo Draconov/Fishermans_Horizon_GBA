@@ -1,17 +1,17 @@
 #include "shop_scene.h"
 
 #include "bn_keypad.h"
-#include "bn_regular_bg_items_m4_shop.h"
-#include "bn_sprite_items_m4_font.h"
-#include "bn_sprite_items_m4_shop_buy_enabled.h"
-#include "bn_sprite_items_m4_shop_cursor.h"
-#include "bn_sprite_items_m4_shop_keeper.h"
-#include "bn_sprite_items_m4_shop_locked.h"
-#include "bn_sprite_items_m4_shop_sold_out.h"
+#include "bn_regular_bg_items_shop_bg.h"
+#include "bn_sprite_items_ui_font.h"
+#include "bn_sprite_items_shop_buy_enabled.h"
+#include "bn_sprite_items_shop_cursor.h"
+#include "bn_sprite_items_shop_keeper.h"
+#include "bn_sprite_items_shop_locked.h"
+#include "bn_sprite_items_shop_sold_out.h"
 
 #include "flow_model.h"
-#include "m4_font.h"
-#include "m4_text_layout.h"
+#include "ui_font.h"
+#include "ui_text_layout.h"
 #include "shop_model.h"
 
 namespace fh
@@ -34,14 +34,14 @@ void append_text(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, const char* te
         {
             break;
         }
-        const int glyph = m4_font_glyph(character);
+        const int glyph = ui_font_glyph(character);
         if(glyph >= 0)
         {
-            sprites.push_back(bn::sprite_items::m4_font.create_sprite(
-                screen_x + pen_x + m4_character_draw_x_adjust(character) + 4 - 120,
+            sprites.push_back(bn::sprite_items::ui_font.create_sprite(
+                screen_x + pen_x + ui_character_draw_x_adjust(character) + 4 - 120,
                 screen_y + 4 - 80, glyph));
         }
-        pen_x += m4_character_advance(character);
+        pen_x += ui_character_advance(character);
         ++count;
     }
 }
@@ -83,11 +83,11 @@ void append_money(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, int value, in
 }
 
 ShopScene::ShopScene() :
-    _background(bn::regular_bg_items::m4_shop.create_bg(0, 0)),
-    _keeper(bn::sprite_items::m4_shop_keeper.create_sprite(-64, 16, 0)),
-    _cursor(bn::sprite_items::m4_shop_cursor.create_sprite(16, -40, 0)),
-    _locked_overlay(bn::sprite_items::m4_shop_locked.create_sprite(88, -16, 0)),
-    _buy_enabled(bn::sprite_items::m4_shop_buy_enabled.create_sprite(-108, 68, 0))
+    _background(bn::regular_bg_items::shop_bg.create_bg(0, 0)),
+    _keeper(bn::sprite_items::shop_keeper.create_sprite(-64, 16, 0)),
+    _cursor(bn::sprite_items::shop_cursor.create_sprite(16, -40, 0)),
+    _locked_overlay(bn::sprite_items::shop_locked.create_sprite(88, -16, 0)),
+    _buy_enabled(bn::sprite_items::shop_buy_enabled.create_sprite(-108, 68, 0))
 {
     // Lower z-order is drawn later/on top in Butano. The locked Nova overlay
     // is opaque, so keep it behind the selection cursor.
@@ -102,7 +102,7 @@ ShopScene::ShopScene() :
     {
         const int column = slot % 4;
         const int row = slot / 4;
-        bn::sprite_ptr sold_out = bn::sprite_items::m4_shop_sold_out.create_sprite(
+        bn::sprite_ptr sold_out = bn::sprite_items::shop_sold_out.create_sprite(
             12 + column * 24, -44 + row * 24, 0);
         sold_out.set_visible(false);
         _sold_out_sprites.push_back(bn::move(sold_out));
@@ -221,7 +221,7 @@ void ShopScene::update(FlowModel& flow)
         {
             _model.reset_cheat();
             _model.previous_page();
-            _background.set_map(bn::regular_bg_items::m4_shop.map_item(), _model.page());
+            _background.set_map(bn::regular_bg_items::shop_bg.map_item(), _model.page());
             _last_result = ShopPurchaseResult::InvalidItem;
             _audio_event = AudioCue::NextPage;
             _dirty = true;
@@ -230,7 +230,7 @@ void ShopScene::update(FlowModel& flow)
         {
             _model.reset_cheat();
             _model.next_page();
-            _background.set_map(bn::regular_bg_items::m4_shop.map_item(), _model.page());
+            _background.set_map(bn::regular_bg_items::shop_bg.map_item(), _model.page());
             _last_result = ShopPurchaseResult::InvalidItem;
             _audio_event = AudioCue::NextPage;
             _dirty = true;
@@ -299,7 +299,7 @@ void ShopScene::_set_keeper_frame(int frame)
     if(frame != _keeper_frame)
     {
         _keeper_frame = frame;
-        _keeper.set_tiles(bn::sprite_items::m4_shop_keeper.tiles_item(), frame);
+        _keeper.set_tiles(bn::sprite_items::shop_keeper.tiles_item(), frame);
     }
 }
 

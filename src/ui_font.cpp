@@ -1,9 +1,9 @@
-#include "m4_font.h"
+#include "ui_font.h"
 
 namespace fh
 {
 
-int m4_font_glyph(char character) noexcept
+int ui_font_glyph(char character) noexcept
 {
     if(character >= '0' && character <= '9')
     {

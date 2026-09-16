@@ -1,35 +1,34 @@
 #include "fishing_scene.h"
 
 #include "bn_keypad.h"
-#include "bn_regular_bg_items_fishing_area_cave.h"
-#include "bn_regular_bg_items_fishing_area_crystal.h"
-#include "bn_regular_bg_items_fishing_area_lagoon.h"
-#include "bn_regular_bg_items_fishing_area_ocean.h"
-#include "bn_regular_bg_items_fishing_area_pier.h"
-#include "bn_regular_bg_items_fishing_area_river.h"
+#include "bn_regular_bg_items_fishing_bg_cave.h"
+#include "bn_regular_bg_items_fishing_bg_crystal_lake.h"
+#include "bn_regular_bg_items_fishing_bg_lagoon.h"
+#include "bn_regular_bg_items_fishing_bg_ocean.h"
+#include "bn_regular_bg_items_fishing_bg_pier.h"
+#include "bn_regular_bg_items_fishing_bg_river.h"
 #include "bn_sprite_items_fishing_bait.h"
-#include "bn_sprite_items_fishing_char.h"
-#include "bn_sprite_items_fishing_char_m4_0.h"
-#include "bn_sprite_items_fishing_char_m4_1.h"
-#include "bn_sprite_items_fishing_char_m4_2.h"
-#include "bn_sprite_items_fishing_char_m4_3.h"
-#include "bn_sprite_items_fishing_char_m4_4.h"
-#include "bn_sprite_items_fishing_char_m4_5.h"
+#include "bn_sprite_items_fishing_character_0.h"
+#include "bn_sprite_items_fishing_character_1.h"
+#include "bn_sprite_items_fishing_character_2.h"
+#include "bn_sprite_items_fishing_character_3.h"
+#include "bn_sprite_items_fishing_character_4.h"
+#include "bn_sprite_items_fishing_character_5.h"
 #include "bn_sprite_items_fishing_coin.h"
-#include "bn_sprite_items_fishing_fish_m3_0.h"
-#include "bn_sprite_items_fishing_fish_m3_1.h"
-#include "bn_sprite_items_fishing_hud.h"
+#include "bn_sprite_items_fishing_fish_bank_0.h"
+#include "bn_sprite_items_fishing_fish_bank_1.h"
+#include "bn_sprite_items_fishing_hud_icons.h"
 #include "bn_sprite_items_fishing_line_dot.h"
 #include "bn_sprite_items_fishing_meter.h"
-#include "bn_sprite_items_m4_font.h"
+#include "bn_sprite_items_ui_font.h"
 #include "bn_sprite_items_fishing_rods_left.h"
 #include "bn_sprite_items_fishing_rods_right.h"
 #include "bn_sprite_items_fishing_splash.h"
 
 #include "audio_policy.h"
 #include "flow_model.h"
-#include "m4_font.h"
-#include "m4_text_layout.h"
+#include "ui_font.h"
+#include "ui_text_layout.h"
 
 namespace fh
 {
@@ -40,12 +39,12 @@ bn::regular_bg_ptr create_fishing_background(int pool)
 {
     switch(pool)
     {
-    case 2: return bn::regular_bg_items::fishing_area_pier.create_bg(0, 0, 0);
-    case 3: return bn::regular_bg_items::fishing_area_river.create_bg(0, 0, 0);
-    case 4: return bn::regular_bg_items::fishing_area_ocean.create_bg(0, 0, 0);
-    case 5: return bn::regular_bg_items::fishing_area_cave.create_bg(0, 0, 0);
-    case 6: return bn::regular_bg_items::fishing_area_lagoon.create_bg(0, 0, 0);
-    default: return bn::regular_bg_items::fishing_area_crystal.create_bg(0, 0, 0);
+    case 2: return bn::regular_bg_items::fishing_bg_pier.create_bg(0, 0, 0);
+    case 3: return bn::regular_bg_items::fishing_bg_river.create_bg(0, 0, 0);
+    case 4: return bn::regular_bg_items::fishing_bg_ocean.create_bg(0, 0, 0);
+    case 5: return bn::regular_bg_items::fishing_bg_cave.create_bg(0, 0, 0);
+    case 6: return bn::regular_bg_items::fishing_bg_lagoon.create_bg(0, 0, 0);
+    default: return bn::regular_bg_items::fishing_bg_crystal_lake.create_bg(0, 0, 0);
     }
 }
 
@@ -54,27 +53,27 @@ void set_fishing_background_map(bn::regular_bg_ptr& background, int pool, int ma
     switch(pool)
     {
     case 2:
-        background.set_map(bn::regular_bg_items::fishing_area_pier.map_item(), map_index);
+        background.set_map(bn::regular_bg_items::fishing_bg_pier.map_item(), map_index);
         break;
     case 3:
-        background.set_map(bn::regular_bg_items::fishing_area_river.map_item(), map_index);
+        background.set_map(bn::regular_bg_items::fishing_bg_river.map_item(), map_index);
         break;
     case 4:
-        background.set_map(bn::regular_bg_items::fishing_area_ocean.map_item(), map_index);
+        background.set_map(bn::regular_bg_items::fishing_bg_ocean.map_item(), map_index);
         break;
     case 5:
-        background.set_map(bn::regular_bg_items::fishing_area_cave.map_item(), map_index);
+        background.set_map(bn::regular_bg_items::fishing_bg_cave.map_item(), map_index);
         break;
     case 6:
-        background.set_map(bn::regular_bg_items::fishing_area_lagoon.map_item(), map_index);
+        background.set_map(bn::regular_bg_items::fishing_bg_lagoon.map_item(), map_index);
         break;
     default:
-        background.set_map(bn::regular_bg_items::fishing_area_crystal.map_item(), map_index);
+        background.set_map(bn::regular_bg_items::fishing_bg_crystal_lake.map_item(), map_index);
         break;
     }
 }
 
-int m3_fish_bank(int source_sprite)
+int fish_bank(int source_sprite)
 {
     switch(source_sprite)
     {
@@ -126,7 +125,7 @@ int m3_fish_bank(int source_sprite)
     }
 }
 
-int m3_fish_frame(int source_sprite)
+int fish_frame(int source_sprite)
 {
     switch(source_sprite)
     {
@@ -205,12 +204,12 @@ bn::sprite_ptr create_character_sprite(int character_index)
 {
     switch(character_index)
     {
-    case 1: return bn::sprite_items::fishing_char_m4_1.create_sprite(-88, 24, 0);
-    case 2: return bn::sprite_items::fishing_char_m4_2.create_sprite(-88, 24, 0);
-    case 3: return bn::sprite_items::fishing_char_m4_3.create_sprite(-88, 24, 0);
-    case 4: return bn::sprite_items::fishing_char_m4_4.create_sprite(-88, 24, 0);
-    case 5: return bn::sprite_items::fishing_char_m4_5.create_sprite(-88, 24, 0);
-    default: return bn::sprite_items::fishing_char_m4_0.create_sprite(-88, 24, 0);
+    case 1: return bn::sprite_items::fishing_character_1.create_sprite(-88, 24, 0);
+    case 2: return bn::sprite_items::fishing_character_2.create_sprite(-88, 24, 0);
+    case 3: return bn::sprite_items::fishing_character_3.create_sprite(-88, 24, 0);
+    case 4: return bn::sprite_items::fishing_character_4.create_sprite(-88, 24, 0);
+    case 5: return bn::sprite_items::fishing_character_5.create_sprite(-88, 24, 0);
+    default: return bn::sprite_items::fishing_character_0.create_sprite(-88, 24, 0);
     }
 }
 
@@ -218,12 +217,12 @@ void set_character_frame(bn::sprite_ptr& sprite, int character_index, int frame)
 {
     switch(character_index)
     {
-    case 1: sprite.set_tiles(bn::sprite_items::fishing_char_m4_1.tiles_item(), frame); break;
-    case 2: sprite.set_tiles(bn::sprite_items::fishing_char_m4_2.tiles_item(), frame); break;
-    case 3: sprite.set_tiles(bn::sprite_items::fishing_char_m4_3.tiles_item(), frame); break;
-    case 4: sprite.set_tiles(bn::sprite_items::fishing_char_m4_4.tiles_item(), frame); break;
-    case 5: sprite.set_tiles(bn::sprite_items::fishing_char_m4_5.tiles_item(), frame); break;
-    default: sprite.set_tiles(bn::sprite_items::fishing_char_m4_0.tiles_item(), frame); break;
+    case 1: sprite.set_tiles(bn::sprite_items::fishing_character_1.tiles_item(), frame); break;
+    case 2: sprite.set_tiles(bn::sprite_items::fishing_character_2.tiles_item(), frame); break;
+    case 3: sprite.set_tiles(bn::sprite_items::fishing_character_3.tiles_item(), frame); break;
+    case 4: sprite.set_tiles(bn::sprite_items::fishing_character_4.tiles_item(), frame); break;
+    case 5: sprite.set_tiles(bn::sprite_items::fishing_character_5.tiles_item(), frame); break;
+    default: sprite.set_tiles(bn::sprite_items::fishing_character_0.tiles_item(), frame); break;
     }
 }
 
@@ -287,14 +286,14 @@ void append_text(bn::vector<bn::sprite_ptr, 16>& sprites, const char* text, int 
         {
             break;
         }
-        const int glyph = m4_font_glyph(character);
+        const int glyph = ui_font_glyph(character);
         if(glyph >= 0)
         {
-            sprites.push_back(bn::sprite_items::m4_font.create_sprite(
-                screen_x + pen_x + m4_character_draw_x_adjust(character) + 4 - 120,
+            sprites.push_back(bn::sprite_items::ui_font.create_sprite(
+                screen_x + pen_x + ui_character_draw_x_adjust(character) + 4 - 120,
                 screen_y + 4 - 80, glyph));
         }
-        pen_x += m4_character_advance(character);
+        pen_x += ui_character_advance(character);
         ++count;
     }
 }
@@ -327,12 +326,12 @@ FishingScene::FishingScene(int pool, int rod_index, int equipped_bait, int chara
     _rod_right_top(bn::sprite_items::fishing_rods_right.create_sprite(-48, -16, rod_index * 24)),
     _rod_right_bottom(bn::sprite_items::fishing_rods_right.create_sprite(-48, 16, rod_index * 24 + 1)),
     _bait(bn::sprite_items::fishing_bait.create_sprite(-64, 8, 0)),
-    _fish_bank0(bn::sprite_items::fishing_fish_m3_0.create_sprite(-64, 8, 0)),
-    _fish_bank1(bn::sprite_items::fishing_fish_m3_1.create_sprite(-64, 8, 0)),
+    _fish_bank0(bn::sprite_items::fishing_fish_bank_0.create_sprite(-64, 8, 0)),
+    _fish_bank1(bn::sprite_items::fishing_fish_bank_1.create_sprite(-64, 8, 0)),
     _splash(bn::sprite_items::fishing_splash.create_sprite(-64, 44, 0)),
     _coin(bn::sprite_items::fishing_coin.create_sprite(-68, 0, 0)),
-    _back_icon(bn::sprite_items::fishing_hud.create_sprite(-108, -68, 0)),
-    _bait_icon(bn::sprite_items::fishing_hud.create_sprite(108, -68, 1)),
+    _back_icon(bn::sprite_items::fishing_hud_icons.create_sprite(-108, -68, 0)),
+    _bait_icon(bn::sprite_items::fishing_hud_icons.create_sprite(108, -68, 1)),
     _meter(bn::sprite_items::fishing_meter.create_sprite(-79, 69, 0))
 {
     _fish_bank0.set_visible(false);
@@ -537,17 +536,17 @@ void FishingScene::_render_bait_or_fish()
         return;
     }
 
-    const int bank = m3_fish_bank(source_sprite);
-    const int frame = m3_fish_frame(source_sprite);
+    const int bank = fish_bank(source_sprite);
+    const int frame = fish_frame(source_sprite);
     if(bank == 0 && frame >= 0)
     {
-        _fish_bank0.set_tiles(bn::sprite_items::fishing_fish_m3_0.tiles_item(), frame);
+        _fish_bank0.set_tiles(bn::sprite_items::fishing_fish_bank_0.tiles_item(), frame);
         _fish_bank0.set_position(x, y);
         _fish_bank0.set_visible(true);
     }
     else if(bank == 1 && frame >= 0)
     {
-        _fish_bank1.set_tiles(bn::sprite_items::fishing_fish_m3_1.tiles_item(), frame);
+        _fish_bank1.set_tiles(bn::sprite_items::fishing_fish_bank_1.tiles_item(), frame);
         _fish_bank1.set_position(x, y);
         _fish_bank1.set_visible(true);
     }

@@ -1,13 +1,13 @@
 #include "options_scene.h"
 
 #include "bn_keypad.h"
-#include "bn_regular_bg_items_m7_options_anim.h"
-#include "bn_sprite_items_m4_font.h"
+#include "bn_regular_bg_items_options_bg.h"
+#include "bn_sprite_items_ui_font.h"
 
 #include "options_model.h"
 #include "flow_model.h"
-#include "m4_font.h"
-#include "m4_text_layout.h"
+#include "ui_font.h"
+#include "ui_text_layout.h"
 
 namespace fh
 {
@@ -22,14 +22,14 @@ void append_text(bn::vector<bn::sprite_ptr, 32>& sprites, const char* text, int 
     while(*text && count < max_chars && sprites.size() < sprites.max_size())
     {
         const char character = *text++;
-        const int glyph = m4_font_glyph(character);
+        const int glyph = ui_font_glyph(character);
         if(glyph >= 0)
         {
-            sprites.push_back(bn::sprite_items::m4_font.create_sprite(
-                screen_x + pen_x + m4_character_draw_x_adjust(character) + 4 - 120,
+            sprites.push_back(bn::sprite_items::ui_font.create_sprite(
+                screen_x + pen_x + ui_character_draw_x_adjust(character) + 4 - 120,
                 screen_y + 4 - 80, glyph));
         }
-        pen_x += m4_character_advance(character);
+        pen_x += ui_character_advance(character);
         ++count;
     }
 }
@@ -37,8 +37,8 @@ void append_text(bn::vector<bn::sprite_ptr, 32>& sprites, const char* text, int 
 }
 
 OptionsScene::OptionsScene() :
-    _background(bn::regular_bg_items::m7_options_anim.create_bg(0, 0, 0)),
-    _cursor(bn::sprite_items::m4_font.create_sprite(-60, -68, m4_font_glyph('!')))
+    _background(bn::regular_bg_items::options_bg.create_bg(0, 0, 0)),
+    _cursor(bn::sprite_items::ui_font.create_sprite(-60, -68, ui_font_glyph('!')))
 {
 }
 
@@ -73,7 +73,7 @@ void OptionsScene::_advance_background()
     if(next_map != _map_index)
     {
         _map_index = next_map;
-        _background.set_map(bn::regular_bg_items::m7_options_anim.map_item(), _map_index);
+        _background.set_map(bn::regular_bg_items::options_bg.map_item(), _map_index);
     }
 }
 

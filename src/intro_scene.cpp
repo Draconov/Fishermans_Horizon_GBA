@@ -1,7 +1,7 @@
 #include "intro_scene.h"
 
 #include "bn_keypad.h"
-#include "bn_regular_bg_items_m7_intro_credit.h"
+#include "bn_regular_bg_items_intro_credit_bg.h"
 
 #include "flow_model.h"
 
@@ -9,7 +9,7 @@ namespace fh
 {
 
 IntroScene::IntroScene() :
-    _background(bn::regular_bg_items::m7_intro_credit.create_bg(0, 0))
+    _background(bn::regular_bg_items::intro_credit_bg.create_bg(0, 0))
 {
 }
 

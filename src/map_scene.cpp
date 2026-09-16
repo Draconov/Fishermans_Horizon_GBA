@@ -1,9 +1,9 @@
 #include "map_scene.h"
 
 #include "bn_keypad.h"
-#include "bn_regular_bg_items_map.h"
-#include "bn_sprite_items_m4_font.h"
-#include "bn_sprite_items_m4_shop_cursor.h"
+#include "bn_regular_bg_items_map_bg.h"
+#include "bn_sprite_items_ui_font.h"
+#include "bn_sprite_items_shop_cursor.h"
 #include "bn_sprite_items_map_catalog_parts.h"
 #include "bn_sprite_items_map_character_0.h"
 #include "bn_sprite_items_map_character_1.h"
@@ -14,8 +14,8 @@
 #include "bn_sprite_items_map_spots.h"
 
 #include "flow_model.h"
-#include "m4_font.h"
-#include "m4_text_layout.h"
+#include "ui_font.h"
+#include "ui_text_layout.h"
 
 namespace fh
 {
@@ -43,14 +43,14 @@ void append_text(bn::vector<bn::sprite_ptr, 24>& sprites, const char* text, int 
         {
             break;
         }
-        const int glyph = m4_font_glyph(character);
+        const int glyph = ui_font_glyph(character);
         if(glyph >= 0)
         {
-            sprites.push_back(bn::sprite_items::m4_font.create_sprite(
-                screen_x + pen_x + m4_character_draw_x_adjust(character) + 4 - 120,
+            sprites.push_back(bn::sprite_items::ui_font.create_sprite(
+                screen_x + pen_x + ui_character_draw_x_adjust(character) + 4 - 120,
                 screen_y + 4 - 80, glyph));
         }
-        pen_x += m4_character_advance(character);
+        pen_x += ui_character_advance(character);
         ++count;
     }
 }
@@ -59,7 +59,7 @@ void append_text(bn::vector<bn::sprite_ptr, 24>& sprites, const char* text, int 
 }
 
 MapScene::MapScene() :
-    _background(bn::regular_bg_items::map.create_bg(0, 0)),
+    _background(bn::regular_bg_items::map_bg.create_bg(0, 0)),
     // Reference top-left (100,12), 8x16 -> Butano center (-16,-60).
     _shop_spot(bn::sprite_items::map_spots.create_sprite(-16, -60, 2)),
     // Reference top-left (148,20), 8x16 -> Butano center (32,-52).
@@ -82,7 +82,7 @@ MapScene::MapScene() :
     _character(bn::sprite_items::map_character_0.create_sprite(79, 43, 0)),
     // Default selection is Crystal Lake. Tile 165 is a 24x24 corner frame
     // padded to 32x32; this centers it around the 8x16 marker.
-    _selection_cursor(bn::sprite_items::m4_shop_cursor.create_sprite(36, -48, 0))
+    _selection_cursor(bn::sprite_items::shop_cursor.create_sprite(36, -48, 0))
 {
     // Original tile 170 is an 80x24 Catalog badge at screen (0,136). It is
     // split into three 32x32 GBA sprites without scaling.
@@ -320,7 +320,7 @@ void MapScene::_update_text(const FlowModel& flow)
     const char* character_name = CHARACTER_NAMES[character];
     constexpr int field_x = 168;
     constexpr int field_width = 48;
-    const int text_width = m4_text_width(character_name, 6);
+    const int text_width = ui_text_width(character_name, 6);
     append_text(_text_sprites, character_name, field_x + (field_width - text_width) / 2, 144, 6);
 
 }

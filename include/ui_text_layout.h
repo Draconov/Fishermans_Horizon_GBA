@@ -1,10 +1,10 @@
-#ifndef FH_M4_TEXT_LAYOUT_H
-#define FH_M4_TEXT_LAYOUT_H
+#ifndef FH_UI_TEXT_LAYOUT_H
+#define FH_UI_TEXT_LAYOUT_H
 
 namespace fh
 {
 
-[[nodiscard]] constexpr int m4_character_x_adjust(char character) noexcept
+[[nodiscard]] constexpr int ui_character_x_adjust(char character) noexcept
 {
     switch(character)
     {
@@ -30,12 +30,12 @@ namespace fh
     }
 }
 
-[[nodiscard]] constexpr int m4_character_advance(char character) noexcept
+[[nodiscard]] constexpr int ui_character_advance(char character) noexcept
 {
-    return 7 + m4_character_x_adjust(character);
+    return 7 + ui_character_x_adjust(character);
 }
 
-[[nodiscard]] constexpr int m4_character_draw_x_adjust(char character) noexcept
+[[nodiscard]] constexpr int ui_character_draw_x_adjust(char character) noexcept
 {
     switch(character)
     {
@@ -48,7 +48,7 @@ namespace fh
     }
 }
 
-[[nodiscard]] inline int m4_text_width(const char* text, int max_chars) noexcept
+[[nodiscard]] inline int ui_text_width(const char* text, int max_chars) noexcept
 {
     int width = 0;
     int count = 0;
@@ -59,7 +59,7 @@ namespace fh
         {
             break;
         }
-        width += m4_character_advance(character);
+        width += ui_character_advance(character);
         ++count;
     }
     return width;

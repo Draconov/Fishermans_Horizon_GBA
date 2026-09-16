@@ -1,24 +1,24 @@
 #ifndef FH_DIALOG_LAYOUT_H
 #define FH_DIALOG_LAYOUT_H
 
-#include "m4_text_layout.h"
+#include "ui_text_layout.h"
 
 namespace fh
 {
 
 [[nodiscard]] constexpr int dialog_character_x_adjust(char character) noexcept
 {
-    return m4_character_x_adjust(character);
+    return ui_character_x_adjust(character);
 }
 
 [[nodiscard]] constexpr int dialog_character_advance(char character) noexcept
 {
-    return m4_character_advance(character);
+    return ui_character_advance(character);
 }
 
 [[nodiscard]] constexpr int dialog_character_draw_x_adjust(char character) noexcept
 {
-    return m4_character_draw_x_adjust(character);
+    return ui_character_draw_x_adjust(character);
 }
 
 [[nodiscard]] constexpr bool dialog_character_visible(char character) noexcept
