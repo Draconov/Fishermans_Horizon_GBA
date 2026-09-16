@@ -51,6 +51,15 @@ void test_catalog_model_contract()
 {
     assert(fh::catalog_entry_count() == 44);
 
+    // Catalog fish/cursor anchors must match the 11 hooks on each background rack.
+    assert(fh::catalog_slot_screen_x(0) == 39);
+    assert(fh::catalog_slot_screen_x(10) == 199);
+    assert(fh::catalog_slot_screen_x(11) == 39);
+    assert(fh::catalog_slot_screen_y(0) == 39);
+    assert(fh::catalog_slot_screen_y(10) == 39);
+    assert(fh::catalog_slot_screen_y(11) == 63);
+    assert(fh::catalog_slot_screen_y(33) == 111);
+
     constexpr std::array<int, 5> FIRST_NUMBERS = {3, 4, 5, 1, 2};
     constexpr std::array<const char*, 5> FIRST_NAMES = {"BOOT", "CAN", "PLASTIC BAG", "SIRIRIDINE", "DRAGFISH"};
     std::array<bool, 45> seen = {};

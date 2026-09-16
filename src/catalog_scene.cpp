@@ -109,7 +109,8 @@ void append_text(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, const char* te
 
 CatalogScene::CatalogScene() :
     _background(bn::regular_bg_items::catalog_bg.create_bg(0, 0, 0)),
-    _cursor(bn::sprite_items::catalog_cursor.create_sprite(-91, -46, 0))
+    _cursor(bn::sprite_items::catalog_cursor.create_sprite(
+        catalog_slot_screen_x(0) - 120, catalog_slot_screen_y(0) - 80, 0))
 {
 }
 
@@ -211,10 +212,8 @@ void CatalogScene::_build_fish_grid(const FlowModel& flow)
             continue;
         }
         const int source_sprite = fish_source_sprite(entry->fish_number);
-        const int column = cursor % 11;
-        const int row = cursor / 11;
         bn::sprite_ptr fish = create_fish_sprite(
-            source_sprite, 29 + column * 18 - 120, 39 + row * 22 - 80);
+            source_sprite, catalog_slot_screen_x(cursor) - 120, catalog_slot_screen_y(cursor) - 80);
         fish.set_visible(flow.catalog_has_fish(entry->fish_number));
         _fish_sprites.push_back(bn::move(fish));
     }
@@ -242,9 +241,7 @@ void CatalogScene::_render_text(const FlowModel& flow)
 void CatalogScene::_update_cursor()
 {
     const int cursor = _model.selected_cursor();
-    const int column = cursor % 11;
-    const int row = cursor / 11;
-    _cursor.set_position(29 + column * 18 - 120, 39 + row * 22 - 80);
+    _cursor.set_position(catalog_slot_screen_x(cursor) - 120, catalog_slot_screen_y(cursor) - 80);
 }
 
 
