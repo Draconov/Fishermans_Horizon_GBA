@@ -14,6 +14,8 @@ void assert_progress_equal(const fh::ProgressState& a, const fh::ProgressState& 
     assert(a.old_boat == b.old_boat);
     assert(a.ancient_map == b.ancient_map);
     assert(a.catalog == b.catalog);
+    assert(a.captains_hat == b.captains_hat);
+    assert(a.beach_ball == b.beach_ball);
     assert(a.money == b.money);
     assert(a.current_character == b.current_character);
     assert(a.current_rod == b.current_rod);
@@ -56,6 +58,8 @@ int main()
     const fh::SaveDecodeResult fresh_decoded = fh::decode_save(fresh);
     assert(fresh_decoded.valid);
     assert_progress_equal(defaults, fresh_decoded.progress);
+    assert(! fresh_decoded.progress.captains_hat);
+    assert(! fresh_decoded.progress.beach_ball);
 
     fh::ProgressState full = defaults;
     full.prologue_complete = true;
@@ -64,6 +68,8 @@ int main()
     full.old_boat = true;
     full.ancient_map = true;
     full.catalog = true;
+    full.captains_hat = true;
+    full.beach_ball = true;
     full.money = 987;
     full.current_character = 5;
     full.current_rod = 2;
@@ -79,6 +85,7 @@ int main()
     const fh::SaveImage full_image_a = fh::encode_save(full);
     const fh::SaveImage full_image_b = fh::encode_save(full);
     assert(full_image_a.bytes == full_image_b.bytes);
+    assert((full_image_a.bytes[22] & 0x30u) == 0x30u);
     const fh::SaveDecodeResult full_decoded = fh::decode_save(full_image_a);
     assert(full_decoded.valid);
     assert_progress_equal(full, full_decoded.progress);

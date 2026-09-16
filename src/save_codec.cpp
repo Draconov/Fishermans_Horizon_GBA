@@ -140,7 +140,9 @@ SaveImage encode_save(const ProgressState& source) noexcept
     bytes[p + 10] = std::uint8_t((progress.club_card ? 1u : 0u) |
                                  (progress.old_boat ? 2u : 0u) |
                                  (progress.ancient_map ? 4u : 0u) |
-                                 (progress.catalog ? 8u : 0u));
+                                 (progress.catalog ? 8u : 0u) |
+                                 (progress.captains_hat ? 16u : 0u) |
+                                 (progress.beach_ball ? 32u : 0u));
 
     for(int fish = 0; fish < 44; ++fish)
     {
@@ -194,6 +196,8 @@ SaveDecodeResult decode_save(const SaveImage& image) noexcept
     progress.old_boat = (unlock_mask & 2u) != 0;
     progress.ancient_map = (unlock_mask & 4u) != 0;
     progress.catalog = (unlock_mask & 8u) != 0;
+    progress.captains_hat = (unlock_mask & 16u) != 0;
+    progress.beach_ball = (unlock_mask & 32u) != 0;
     progress.fish_catalog.fill(false);
     for(int fish = 0; fish < 44; ++fish)
     {

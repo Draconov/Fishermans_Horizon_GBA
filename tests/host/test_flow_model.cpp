@@ -339,6 +339,8 @@ int main()
         progress.old_boat = true;
         progress.ancient_map = true;
         progress.catalog = true;
+        progress.captains_hat = true;
+        progress.beach_ball = true;
         progress.character_owned = {true, true, true, false, false, false};
         progress.current_character = 0;
         fh::FlowModel model(progress);
@@ -403,36 +405,47 @@ int main()
         model.complete_intro();
         model.handle_title_command(fh::TitleCommand::Play);
 
-        // Phase-1 custom fishing spots are always visible/selectable on the map.
-        assert(model.map_target_enabled(fh::MapTarget::Lagoon));
-        assert(model.map_target_enabled(fh::MapTarget::Beach));
+        // Custom spots are purchase-gated: Captain's Hat -> Lagoon,
+        // Beach Ball -> Beach, and Old Boat -> Ocean + Waterfall.
+        assert(! model.map_target_enabled(fh::MapTarget::Lagoon));
+        assert(! model.map_target_enabled(fh::MapTarget::Beach));
         assert(model.map_target_enabled(fh::MapTarget::Waterfall));
 
+        fh::ProgressState custom_progress = progress;
+        custom_progress.captains_hat = true;
+        custom_progress.beach_ball = true;
+        fh::FlowModel custom_model(custom_progress);
+        custom_model.complete_intro();
+        custom_model.handle_title_command(fh::TitleCommand::Play);
+        assert(custom_model.map_target_enabled(fh::MapTarget::Lagoon));
+        assert(custom_model.map_target_enabled(fh::MapTarget::Beach));
+        assert(custom_model.map_target_enabled(fh::MapTarget::Waterfall));
+
         // Lagoon sits between Shop / Crystal Lake / Cave / Pier.
-        model.handle_map_command(fh::MapCommand::Left);
-        assert(model.selected_map_target() == fh::MapTarget::Shop);
-        model.handle_map_command(fh::MapCommand::Down);
-        assert(model.selected_map_target() == fh::MapTarget::Lagoon);
-        model.handle_map_command(fh::MapCommand::Right);
-        assert(model.selected_map_target() == fh::MapTarget::CrystalLake);
-        model.handle_map_command(fh::MapCommand::Left);
-        model.handle_map_command(fh::MapCommand::Down);
-        model.handle_map_command(fh::MapCommand::Down);
-        assert(model.selected_map_target() == fh::MapTarget::Pier);
+        custom_model.handle_map_command(fh::MapCommand::Left);
+        assert(custom_model.selected_map_target() == fh::MapTarget::Shop);
+        custom_model.handle_map_command(fh::MapCommand::Down);
+        assert(custom_model.selected_map_target() == fh::MapTarget::Lagoon);
+        custom_model.handle_map_command(fh::MapCommand::Right);
+        assert(custom_model.selected_map_target() == fh::MapTarget::CrystalLake);
+        custom_model.handle_map_command(fh::MapCommand::Left);
+        custom_model.handle_map_command(fh::MapCommand::Down);
+        custom_model.handle_map_command(fh::MapCommand::Down);
+        assert(custom_model.selected_map_target() == fh::MapTarget::Pier);
 
         // Beach and Waterfall extend the southeast branch of the map graph.
-        model.handle_map_command(fh::MapCommand::Right);
-        assert(model.selected_map_target() == fh::MapTarget::Beach);
-        model.handle_map_command(fh::MapCommand::Down);
-        assert(model.selected_map_target() == fh::MapTarget::Waterfall);
-        model.handle_map_command(fh::MapCommand::Left);
-        assert(model.selected_map_target() == fh::MapTarget::Ocean);
-        model.handle_map_command(fh::MapCommand::Right);
-        assert(model.selected_map_target() == fh::MapTarget::Waterfall);
-        model.handle_map_command(fh::MapCommand::Right);
-        assert(model.selected_map_target() == fh::MapTarget::Beach);
-        model.handle_map_command(fh::MapCommand::Up);
-        assert(model.selected_map_target() == fh::MapTarget::River);
+        custom_model.handle_map_command(fh::MapCommand::Right);
+        assert(custom_model.selected_map_target() == fh::MapTarget::Beach);
+        custom_model.handle_map_command(fh::MapCommand::Down);
+        assert(custom_model.selected_map_target() == fh::MapTarget::Waterfall);
+        custom_model.handle_map_command(fh::MapCommand::Left);
+        assert(custom_model.selected_map_target() == fh::MapTarget::Ocean);
+        custom_model.handle_map_command(fh::MapCommand::Right);
+        assert(custom_model.selected_map_target() == fh::MapTarget::Waterfall);
+        custom_model.handle_map_command(fh::MapCommand::Right);
+        assert(custom_model.selected_map_target() == fh::MapTarget::Beach);
+        custom_model.handle_map_command(fh::MapCommand::Up);
+        assert(custom_model.selected_map_target() == fh::MapTarget::River);
     }
 
     {
@@ -441,6 +454,8 @@ int main()
         progress.club_card = true;
         progress.old_boat = true;
         progress.ancient_map = true;
+        progress.captains_hat = true;
+        progress.beach_ball = true;
         fh::FlowModel model(progress);
         model.complete_intro();
         model.handle_title_command(fh::TitleCommand::Play);

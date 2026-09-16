@@ -29,6 +29,7 @@ class ShopModel
 {
 public:
     [[nodiscard]] int selected_item() const noexcept;
+    [[nodiscard]] int page() const noexcept;
     [[nodiscard]] int price() const noexcept;
     [[nodiscard]] bool sold_out(const FlowModel& flow) const noexcept;
 
@@ -38,6 +39,8 @@ public:
     void move_right() noexcept;
     void move_up() noexcept;
     void move_down() noexcept;
+    void next_page() noexcept;
+    void previous_page() noexcept;
     void select(int slot) noexcept;
     [[nodiscard]] ShopPurchaseResult purchase(FlowModel& flow) const noexcept;
     [[nodiscard]] ShopCheatResult push_cheat_key(ShopCheatKey key, int frame) noexcept;

@@ -7,7 +7,7 @@ namespace fh
 namespace
 {
 
-constexpr std::array<ShopItemSpec, 16> SHOP_ITEMS = {{
+constexpr std::array<ShopItemSpec, 18> SHOP_ITEMS = {{
     {0, "Bread", "A waterproof bread.", 15, ShopEffect::Bait, 1},
     {1, "Candy", "A candy suited to the taste of the sea creatures.", 15, ShopEffect::Bait, 2},
     {2, "Bitter Gum", "Did you know that some sea creatures like to chew a gum?", 30, ShopEffect::Bait, 3},
@@ -28,6 +28,8 @@ constexpr std::array<ShopItemSpec, 16> SHOP_ITEMS = {{
      ShopEffect::Character, 3},
     {14, "Rosa", "This is Rosa, my granddaughter. She<ll be glad to fish with you!", 50, ShopEffect::Character, 4},
     {15, "Shadow", "This is Shadow, I don<t know him very well...", 100, ShopEffect::Character, 5},
+    {16, "Captain<s Hat", "A captain<s hat that reveals the way to the lagoon.", 60, ShopEffect::CaptainsHat, 0},
+    {17, "Beach Ball", "A colorful beach ball that reveals a sunny fishing beach.", 30, ShopEffect::BeachBall, 0},
 }};
 
 }

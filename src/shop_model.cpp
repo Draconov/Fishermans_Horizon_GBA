@@ -23,6 +23,11 @@ int ShopModel::selected_item() const noexcept
     return _selected_item;
 }
 
+int ShopModel::page() const noexcept
+{
+    return _selected_item >= 16 ? 1 : 0;
+}
+
 int ShopModel::price() const noexcept
 {
     const ShopItemSpec* item = shop_item_spec(_selected_item);
@@ -46,6 +51,15 @@ void ShopModel::previous() noexcept
 
 void ShopModel::move_left() noexcept
 {
+    if(page() == 1)
+    {
+        if(_selected_item == 17)
+        {
+            _selected_item = 16;
+        }
+        return;
+    }
+
     if(_selected_item % 4 > 0)
     {
         --_selected_item;
@@ -54,6 +68,15 @@ void ShopModel::move_left() noexcept
 
 void ShopModel::move_right() noexcept
 {
+    if(page() == 1)
+    {
+        if(_selected_item == 16)
+        {
+            _selected_item = 17;
+        }
+        return;
+    }
+
     if(_selected_item % 4 < 3)
     {
         ++_selected_item;
@@ -62,6 +85,11 @@ void ShopModel::move_right() noexcept
 
 void ShopModel::move_up() noexcept
 {
+    if(page() == 1)
+    {
+        return;
+    }
+
     if(_selected_item >= 4)
     {
         _selected_item -= 4;
@@ -70,10 +98,25 @@ void ShopModel::move_up() noexcept
 
 void ShopModel::move_down() noexcept
 {
-    if(_selected_item + 4 < shop_item_count())
+    if(page() == 1)
+    {
+        return;
+    }
+
+    if(_selected_item + 4 < 16)
     {
         _selected_item += 4;
     }
+}
+
+void ShopModel::next_page() noexcept
+{
+    _selected_item = page() == 0 ? 16 : 0;
+}
+
+void ShopModel::previous_page() noexcept
+{
+    _selected_item = page() == 0 ? 16 : 0;
 }
 
 void ShopModel::select(int slot) noexcept

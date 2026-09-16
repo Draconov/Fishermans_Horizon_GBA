@@ -8,8 +8,8 @@
 namespace
 {
 
-constexpr std::array<int, 16> EXPECTED_PRICES = {
-    15, 15, 30, 45, 100, 100, 45, 120, 30, 60, 120, 20, 30, 30, 50, 100,
+constexpr std::array<int, 18> EXPECTED_PRICES = {
+    15, 15, 30, 45, 100, 100, 45, 120, 30, 60, 120, 20, 30, 30, 50, 100, 60, 30,
 };
 
 void verify_effect(int slot, const fh::FlowModel& flow)
@@ -32,6 +32,7 @@ void verify_effect(int slot, const fh::FlowModel& flow)
         break;
     case 8:
         assert(flow.map_target_enabled(fh::MapTarget::Ocean));
+        assert(flow.map_target_enabled(fh::MapTarget::Waterfall));
         break;
     case 9:
         assert(flow.map_target_enabled(fh::MapTarget::River));
@@ -54,6 +55,12 @@ void verify_effect(int slot, const fh::FlowModel& flow)
     case 15:
         assert(flow.character_owned(5));
         break;
+    case 16:
+        assert(flow.map_target_enabled(fh::MapTarget::Lagoon));
+        break;
+    case 17:
+        assert(flow.map_target_enabled(fh::MapTarget::Beach));
+        break;
     default:
         assert(false);
     }
@@ -63,8 +70,8 @@ void verify_effect(int slot, const fh::FlowModel& flow)
 
 int main()
 {
-    assert(fh::shop_item_count() == 16);
-    for(int slot = 0; slot < 16; ++slot)
+    assert(fh::shop_item_count() == 18);
+    for(int slot = 0; slot < 18; ++slot)
     {
         const fh::ShopItemSpec* item = fh::shop_item_spec(slot);
         assert(item);
@@ -74,7 +81,7 @@ int main()
         assert(item->description && item->description[0] != '\0');
     }
     assert(fh::shop_item_spec(-1) == nullptr);
-    assert(fh::shop_item_spec(16) == nullptr);
+    assert(fh::shop_item_spec(18) == nullptr);
 
     {
         fh::ProgressState progress;
@@ -85,7 +92,7 @@ int main()
         assert((progress.character_owned == std::array<bool, 6>{true, true, false, false, false, false}));
     }
 
-    for(int slot = 0; slot < 16; ++slot)
+    for(int slot = 0; slot < 18; ++slot)
     {
         fh::ProgressState progress;
         progress.prologue_complete = true;
@@ -126,16 +133,37 @@ int main()
     {
         fh::ShopModel shop;
         assert(shop.selected_item() == 0);
+        assert(shop.page() == 0);
         shop.previous();
-        assert(shop.selected_item() == 15);
+        assert(shop.selected_item() == 17);
+        assert(shop.page() == 1);
         shop.next();
         assert(shop.selected_item() == 0);
-        shop.select(15);
+        shop.select(17);
         shop.next();
         assert(shop.selected_item() == 0);
         shop.select(-1);
         assert(shop.selected_item() == 0);
-        shop.select(16);
+        shop.select(18);
+        assert(shop.selected_item() == 0);
+
+        // Shoulder-page navigation keeps the original 4x4 page intact and
+        // exposes only the two active cells on custom page 2.
+        shop.next_page();
+        assert(shop.page() == 1);
+        assert(shop.selected_item() == 16);
+        shop.move_right();
+        assert(shop.selected_item() == 17);
+        shop.move_right();
+        assert(shop.selected_item() == 17);
+        shop.move_down();
+        assert(shop.selected_item() == 17);
+        shop.move_up();
+        assert(shop.selected_item() == 17);
+        shop.move_left();
+        assert(shop.selected_item() == 16);
+        shop.previous_page();
+        assert(shop.page() == 0);
         assert(shop.selected_item() == 0);
     }
 

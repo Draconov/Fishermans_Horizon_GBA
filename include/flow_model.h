@@ -52,6 +52,8 @@ struct ProgressState
     bool old_boat = false;
     bool ancient_map = false;
     bool catalog = false;
+    bool captains_hat = false;
+    bool beach_ball = false;
     int money = 10;
     int current_character = 0;
     int current_rod = 0;

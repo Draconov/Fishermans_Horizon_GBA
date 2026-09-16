@@ -576,6 +576,50 @@ def test_shop_scene_uses_spatial_four_way_dpad_navigation():
     assert "right_pressed() || bn::keypad::down_pressed()" not in scene
 
 
+def test_shop_page_two_uses_shoulder_paging_and_stacked_background():
+    header = Path("include/shop_model.h").read_text(encoding="utf-8")
+    model = Path("src/shop_model.cpp").read_text(encoding="utf-8")
+    scene = Path("src/shop_scene.cpp").read_text(encoding="utf-8")
+    metadata = json.loads(Path("graphics/m4_shop.json").read_text(encoding="utf-8"))
+    data = Path("graphics/m4_shop.bmp").read_bytes()
+    width = int.from_bytes(data[18:22], "little", signed=True)
+    height = int.from_bytes(data[22:26], "little", signed=True)
+
+    assert "int page() const noexcept" in header
+    assert "void next_page() noexcept" in header
+    assert "void previous_page() noexcept" in header
+    assert "ShopModel::next_page() noexcept" in model
+    assert "ShopModel::previous_page() noexcept" in model
+    assert "bn::keypad::l_pressed()" in scene
+    assert "bn::keypad::r_pressed()" in scene
+    assert "_background.set_map(bn::regular_bg_items::m4_shop.map_item(), _model.page())" in scene
+    assert (width, height) == (256, 512)
+    assert metadata.get("height") == 256
+
+    # Page 2 must not leak large original-page item art outside the old 22x22
+    # cell clears. This point used to retain a red/brown fragment from slot 8.
+    assert _bmp_rgb_at(Path("graphics/m4_shop.bmp"), 130, 256 + 128) == (163, 201, 159)
+    # Both custom first-row icons remain visible after clearing the full panel.
+    assert _bmp_rgb_at(Path("graphics/m4_shop.bmp"), 144, 256 + 88) != (163, 201, 159)
+    assert _bmp_rgb_at(Path("graphics/m4_shop.bmp"), 168, 256 + 88) != (163, 201, 159)
+
+
+def test_new_shop_unlock_items_are_declared():
+    progression = Path("src/progression_content.cpp").read_text(encoding="utf-8")
+    flow = Path("src/flow_model.cpp").read_text(encoding="utf-8")
+    save = Path("src/save_codec.cpp").read_text(encoding="utf-8")
+    assert '"Captain<s Hat"' in progression
+    assert '"Beach Ball"' in progression
+    assert '60, ShopEffect::CaptainsHat' in progression
+    assert '30, ShopEffect::BeachBall' in progression
+    shop_scene = Path("src/shop_scene.cpp").read_text(encoding="utf-8")
+    assert "append_text(_text_sprites, item->name, 126, 8, 14)" in shop_scene
+    assert "case MapTarget::Lagoon:" in flow and "_progress.captains_hat" in flow
+    assert "case MapTarget::Beach:" in flow and "_progress.beach_ball" in flow
+    assert "case MapTarget::Waterfall:" in flow and "_progress.old_boat" in flow
+    assert "16u" in save and "32u" in save
+
+
 def test_shop_and_fishing_backgrounds_bake_original_drawtext_field_fill():
     # Android DrawText owns opaque 25,5,36 RGB backing bitmaps. The GBA port
     # bakes those static rectangles into the BG so dynamic glyph sprites do not

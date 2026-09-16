@@ -268,16 +268,18 @@ bool FlowModel::map_target_enabled(MapTarget target) const noexcept
     case MapTarget::CrystalLake:
     case MapTarget::Pier:
     case MapTarget::Shop:
-    case MapTarget::Lagoon:
-    case MapTarget::Beach:
-    case MapTarget::Waterfall:
         return true;
     case MapTarget::River:
         return _progress.club_card;
     case MapTarget::Ocean:
+    case MapTarget::Waterfall:
         return _progress.old_boat;
     case MapTarget::Cave:
         return _progress.ancient_map;
+    case MapTarget::Lagoon:
+        return _progress.captains_hat;
+    case MapTarget::Beach:
+        return _progress.beach_ball;
     case MapTarget::Catalog:
         return _progress.catalog;
     }
@@ -374,6 +376,10 @@ bool FlowModel::shop_item_owned(int slot) const noexcept
         return _progress.catalog;
     case ShopEffect::Character:
         return character_owned(item->effect_value);
+    case ShopEffect::CaptainsHat:
+        return _progress.captains_hat;
+    case ShopEffect::BeachBall:
+        return _progress.beach_ball;
     }
     return false;
 }
@@ -434,6 +440,12 @@ ShopPurchaseResult FlowModel::purchase_shop_item(int slot) noexcept
         break;
     case ShopEffect::Character:
         _progress.character_owned[item->effect_value] = true;
+        break;
+    case ShopEffect::CaptainsHat:
+        _progress.captains_hat = true;
+        break;
+    case ShopEffect::BeachBall:
+        _progress.beach_ball = true;
         break;
     }
     ++_progress_revision;

@@ -217,15 +217,29 @@ void ShopScene::update(FlowModel& flow)
                 _dirty = true;
             }
         }
-        else if(bn::keypad::l_pressed() || bn::keypad::r_pressed())
+        else if(bn::keypad::l_pressed())
         {
             _model.reset_cheat();
+            _model.previous_page();
+            _background.set_map(bn::regular_bg_items::m4_shop.map_item(), _model.page());
+            _last_result = ShopPurchaseResult::InvalidItem;
+            _audio_event = AudioCue::NextPage;
+            _dirty = true;
+        }
+        else if(bn::keypad::r_pressed())
+        {
+            _model.reset_cheat();
+            _model.next_page();
+            _background.set_map(bn::regular_bg_items::m4_shop.map_item(), _model.page());
+            _last_result = ShopPurchaseResult::InvalidItem;
+            _audio_event = AudioCue::NextPage;
+            _dirty = true;
         }
     }
 
     _update_keeper_animation();
 
-    const int slot = _model.selected_item();
+    const int slot = _model.selected_item() % 16;
     _cursor.set_position(16 + (slot % 4) * 24, -40 + (slot / 4) * 24);
     _cursor.set_visible(! _welcome_active);
     _render(flow);
@@ -291,12 +305,15 @@ void ShopScene::_set_keeper_frame(int frame)
 
 void ShopScene::_render(FlowModel& flow)
 {
-    for(int slot = 0; slot < int(_sold_out_sprites.size()); ++slot)
+    const int page_start = _model.page() * 16;
+    for(int local_slot = 0; local_slot < int(_sold_out_sprites.size()); ++local_slot)
     {
-        _sold_out_sprites[slot].set_visible(flow.shop_item_owned(slot));
+        const int item_slot = page_start + local_slot;
+        _sold_out_sprites[local_slot].set_visible(
+            item_slot < shop_item_count() && flow.shop_item_owned(item_slot));
     }
 
-    _locked_overlay.set_visible(flow.shop_item_locked(7));
+    _locked_overlay.set_visible(_model.page() == 0 && flow.shop_item_locked(7));
     _buy_enabled.set_visible(! _dialog.active() && flow.shop_item_purchasable(_model.selected_item()));
 
     if(_dialog.active())
@@ -324,7 +341,14 @@ void ShopScene::_render(FlowModel& flow)
         }
         else
         {
-            append_text(_text_sprites, item->name, 126, 8, 11);
+            if(slot >= 16)
+            {
+                append_text(_text_sprites, item->name, 126, 8, 14);
+            }
+            else
+            {
+                append_text(_text_sprites, item->name, 126, 8, 11);
+            }
             if(flow.shop_item_owned(slot))
             {
                 append_text(_text_sprites, "-", 24, 144, 3);

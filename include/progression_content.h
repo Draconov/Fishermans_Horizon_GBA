@@ -13,6 +13,8 @@ enum class ShopEffect
     AncientMap,
     Catalog,
     Character,
+    CaptainsHat,
+    BeachBall,
 };
 
 enum class ShopPurchaseResult
