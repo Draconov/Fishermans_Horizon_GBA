@@ -101,21 +101,34 @@ def test_phase1_map_adds_lagoon_beach_waterfall_with_existing_marker_art():
     for member in ("_lagoon_spot", "_beach_spot", "_waterfall_spot"):
         assert member in header
 
-    # Arrow-tip positions from the approved 5x mGBA screenshot, converted
+    # Arrow-tip positions from the latest 5x mGBA screenshot, converted
     # back to 240x160 screen coordinates and then to Butano centers.
-    assert "create_sprite(-32, -42, 0)" in source  # Lagoon: screen (88, 38)
-    assert "create_sprite(43, 18, 0)" in source    # Beach: screen (163, 98)
-    assert "create_sprite(18, 60, 0)" in source    # Waterfall: screen (138, 140)
+    assert "create_sprite(-32, -43, 0)" in source  # Lagoon: screen (88, 37)
+    assert "create_sprite(42, 17, 0)" in source    # Beach: screen (162, 97)
+    assert "create_sprite(20, 48, 0)" in source    # Waterfall: screen (140, 128)
 
     # The 32x32 selection frame remains +4,+4 from each 8x16 marker center.
-    assert "_selection_cursor.set_position(-28, -38)" in source
-    assert "_selection_cursor.set_position(47, 22)" in source
-    assert "_selection_cursor.set_position(22, 64)" in source
+    assert "_selection_cursor.set_position(-28, -39)" in source
+    assert "_selection_cursor.set_position(46, 21)" in source
+    assert "_selection_cursor.set_position(24, 52)" in source
 
     # All three reuse the normal animated fishing marker bank.
     assert "_lagoon_spot.set_tiles" in source
     assert "_beach_spot.set_tiles" in source
     assert "_waterfall_spot.set_tiles" in source
+
+
+
+def test_lagoon_confirm_reaches_flow_model_while_unfinished_custom_spots_stay_blocked():
+    source = Path("src/map_scene.cpp").read_text(encoding="utf-8")
+
+    # Lagoon is playable as pool 6, so MapScene must forward A/Confirm instead
+    # of swallowing it in the old phase-1 custom-location guard.
+    assert "case MapTarget::Lagoon:\n            flow.handle_map_command(MapCommand::Confirm);" in source
+
+    # Beach and Waterfall remain map-only until their pools are implemented.
+    blocked = source.split("case MapTarget::Beach:", 1)[1].split("case MapTarget::Catalog:", 1)[0]
+    assert "flow.handle_map_command(MapCommand::Confirm);" not in blocked
 
 
 def test_phase1_fishing_bait_cycles_with_l_and_r_and_select_only_cancels_cast():

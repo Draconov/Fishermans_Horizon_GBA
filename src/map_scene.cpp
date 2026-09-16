@@ -73,11 +73,11 @@ MapScene::MapScene() :
     // Reference top-left (20,92), 8x16 -> Butano center (-96,20).
     _cave_spot(bn::sprite_items::map_spots.create_sprite(-96, 20, 0)),
     // New user-marked fishing spots reuse the normal animated marker art.
-    // Centers are pinned to the arrow tips in the approved 5x mGBA map capture:
-    // Lagoon screen (88,38), Beach (163,98), Waterfall (138,140).
-    _lagoon_spot(bn::sprite_items::map_spots.create_sprite(-32, -42, 0)),
-    _beach_spot(bn::sprite_items::map_spots.create_sprite(43, 18, 0)),
-    _waterfall_spot(bn::sprite_items::map_spots.create_sprite(18, 60, 0)),
+    // Centers are pinned to the arrow tips in the latest 5x mGBA map capture:
+    // Lagoon screen (88,37), Beach (162,97), Waterfall (140,128).
+    _lagoon_spot(bn::sprite_items::map_spots.create_sprite(-32, -43, 0)),
+    _beach_spot(bn::sprite_items::map_spots.create_sprite(42, 17, 0)),
+    _waterfall_spot(bn::sprite_items::map_spots.create_sprite(20, 48, 0)),
     // Reference GameMap.draw top-left (183,91), 24x40 padded to 32x64.
     _character(bn::sprite_items::map_character_0.create_sprite(79, 43, 0)),
     // Default selection is Crystal Lake. Tile 165 is a 24x24 corner frame
@@ -150,9 +150,9 @@ void MapScene::update(FlowModel& flow)
         case MapTarget::Ocean:
         case MapTarget::Cave:
         case MapTarget::Shop:
+        case MapTarget::Lagoon:
             flow.handle_map_command(MapCommand::Confirm);
             break;
-        case MapTarget::Lagoon:
         case MapTarget::Beach:
         case MapTarget::Waterfall:
         case MapTarget::Catalog:
@@ -280,13 +280,13 @@ void MapScene::_update_selection(const FlowModel& flow)
         _selection_cursor.set_position(-92, 24);
         break;
     case MapTarget::Lagoon:
-        _selection_cursor.set_position(-28, -38);
+        _selection_cursor.set_position(-28, -39);
         break;
     case MapTarget::Beach:
-        _selection_cursor.set_position(47, 22);
+        _selection_cursor.set_position(46, 21);
         break;
     case MapTarget::Waterfall:
-        _selection_cursor.set_position(22, 64);
+        _selection_cursor.set_position(24, 52);
         break;
     case MapTarget::Catalog:
         _selection_cursor.set_position(-104, 72);

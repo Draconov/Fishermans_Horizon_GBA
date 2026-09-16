@@ -28,8 +28,8 @@ constexpr std::array<ShopItemSpec, 18> SHOP_ITEMS = {{
      ShopEffect::Character, 3},
     {14, "Rosa", "This is Rosa, my granddaughter. She<ll be glad to fish with you!", 50, ShopEffect::Character, 4},
     {15, "Shadow", "This is Shadow, I don<t know him very well...", 100, ShopEffect::Character, 5},
-    {16, "Captain<s Hat", "A captain<s hat that reveals the way to the lagoon.", 60, ShopEffect::CaptainsHat, 0},
-    {17, "Beach Ball", "A colorful beach ball that reveals a sunny fishing beach.", 30, ShopEffect::BeachBall, 0},
+    {16, "Captain<s Hat", "A captain<s hat can let you enter the lagoon.", 60, ShopEffect::CaptainsHat, 0},
+    {17, "Beach Ball", "There is nothing better than a colorful beach ball for a sunny day with friends.", 30, ShopEffect::BeachBall, 0},
 }};
 
 }
