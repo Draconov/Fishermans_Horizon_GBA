@@ -80,4 +80,14 @@ int catalog_slot_screen_y(int cursor) noexcept
     return 39 + (cursor / 11) * 24;
 }
 
+int catalog_fish_screen_x(int cursor) noexcept
+{
+    return catalog_slot_screen_x(cursor) + 1;
+}
+
+int catalog_fish_screen_y(int cursor) noexcept
+{
+    return catalog_slot_screen_y(cursor) + 5;
+}
+
 }

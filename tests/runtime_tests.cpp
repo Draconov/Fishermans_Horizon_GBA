@@ -47,6 +47,12 @@ void test_audio_policy_contract()
 #include "catalog_model.h"
 #include "flow_model.h"
 
+namespace fh
+{
+[[nodiscard]] int catalog_fish_screen_x(int cursor) noexcept;
+[[nodiscard]] int catalog_fish_screen_y(int cursor) noexcept;
+}
+
 void test_catalog_model_contract()
 {
     assert(fh::catalog_entry_count() == 44);
@@ -59,6 +65,12 @@ void test_catalog_model_contract()
     assert(fh::catalog_slot_screen_y(10) == 39);
     assert(fh::catalog_slot_screen_y(11) == 63);
     assert(fh::catalog_slot_screen_y(33) == 111);
+
+    // Fish art hangs slightly right/down from the hook/cursor anchor.
+    assert(fh::catalog_fish_screen_x(0) == 40);
+    assert(fh::catalog_fish_screen_y(0) == 44);
+    assert(fh::catalog_fish_screen_x(10) == 200);
+    assert(fh::catalog_fish_screen_y(33) == 116);
 
     constexpr std::array<int, 5> FIRST_NUMBERS = {3, 4, 5, 1, 2};
     constexpr std::array<const char*, 5> FIRST_NAMES = {"BOOT", "CAN", "PLASTIC BAG", "SIRIRIDINE", "DRAGFISH"};

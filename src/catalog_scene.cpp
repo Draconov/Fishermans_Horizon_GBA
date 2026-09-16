@@ -213,7 +213,7 @@ void CatalogScene::_build_fish_grid(const FlowModel& flow)
         }
         const int source_sprite = fish_source_sprite(entry->fish_number);
         bn::sprite_ptr fish = create_fish_sprite(
-            source_sprite, catalog_slot_screen_x(cursor) - 120, catalog_slot_screen_y(cursor) - 80);
+            source_sprite, catalog_fish_screen_x(cursor) - 120, catalog_fish_screen_y(cursor) - 80);
         fish.set_visible(flow.catalog_has_fish(entry->fish_number));
         _fish_sprites.push_back(bn::move(fish));
     }

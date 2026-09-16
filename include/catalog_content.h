@@ -16,6 +16,8 @@ struct CatalogEntrySpec
 [[nodiscard]] const CatalogEntrySpec* catalog_entry_spec(int cursor) noexcept;
 [[nodiscard]] int catalog_slot_screen_x(int cursor) noexcept;
 [[nodiscard]] int catalog_slot_screen_y(int cursor) noexcept;
+[[nodiscard]] int catalog_fish_screen_x(int cursor) noexcept;
+[[nodiscard]] int catalog_fish_screen_y(int cursor) noexcept;
 
 }
 
