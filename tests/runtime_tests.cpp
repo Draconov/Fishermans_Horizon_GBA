@@ -1931,17 +1931,28 @@ void test_shop_model_contract()
         shop.move_down();
         assert(shop.selected_item() == 17);
         shop.move_up();
+        assert(shop.selected_item() == 13);
+        assert(shop.page() == 0);
+        shop.move_down();
         assert(shop.selected_item() == 17);
+        assert(shop.page() == 1);
         shop.move_left();
         assert(shop.selected_item() == 16);
+        shop.move_up();
+        assert(shop.selected_item() == 12);
+        assert(shop.page() == 0);
+        shop.move_down();
+        assert(shop.selected_item() == 16);
+        assert(shop.page() == 1);
         shop.previous_page();
         assert(shop.page() == 0);
         assert(shop.selected_item() == 0);
     }
 
     {
-        // GBA spatial navigation keeps the 4x4 Shop layout instead of treating
-        // it as a single wrapping list. Edges clamp in their current row/column.
+        // D-pad navigation follows the 4x4 page grid and crosses naturally
+        // between pages at the top/bottom edge. A partial target row clamps to
+        // its nearest populated item.
         fh::ShopModel shop;
         assert(shop.selected_item() == 0);
         shop.move_left();
@@ -1958,20 +1969,28 @@ void test_shop_model_contract()
         shop.move_down();
         assert(shop.selected_item() == 13);
         shop.move_down();
+        assert(shop.selected_item() == 17);
+        assert(shop.page() == 1);
+        shop.move_up();
         assert(shop.selected_item() == 13);
+        assert(shop.page() == 0);
 
-        shop.move_left();
-        assert(shop.selected_item() == 12);
-        shop.move_left();
-        assert(shop.selected_item() == 12);
-        shop.move_up();
-        assert(shop.selected_item() == 8);
-        shop.move_up();
-        assert(shop.selected_item() == 4);
-        shop.move_up();
-        assert(shop.selected_item() == 0);
-        shop.move_up();
-        assert(shop.selected_item() == 0);
+        const int expected_page_two[4] = {16, 17, 17, 17};
+        const int expected_page_one[2] = {12, 13};
+        for(int column = 0; column < 4; ++column)
+        {
+            shop.select(12 + column);
+            shop.move_down();
+            assert(shop.selected_item() == expected_page_two[column]);
+            assert(shop.page() == 1);
+        }
+        for(int column = 0; column < 2; ++column)
+        {
+            shop.select(16 + column);
+            shop.move_up();
+            assert(shop.selected_item() == expected_page_one[column]);
+            assert(shop.page() == 0);
+        }
 
         shop.select(3);
         shop.move_right();

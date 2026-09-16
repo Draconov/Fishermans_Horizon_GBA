@@ -150,6 +150,7 @@ void ShopScene::update(FlowModel& flow)
     }
     else
     {
+        const int previous_page = _model.page();
         bool moved = false;
         if(bn::keypad::left_pressed())
         {
@@ -178,6 +179,10 @@ void ShopScene::update(FlowModel& flow)
 
         if(moved)
         {
+            if(_model.page() != previous_page)
+            {
+                _background.set_map(bn::regular_bg_items::shop_bg.map_item(), _model.page());
+            }
             _audio_event = AudioCue::NextPage;
             _last_result = ShopPurchaseResult::InvalidItem;
             _dirty = true;
