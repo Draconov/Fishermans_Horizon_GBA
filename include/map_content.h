@@ -103,6 +103,8 @@ struct MapRoute
 [[nodiscard]] int region_target_count(Region region) noexcept;
 [[nodiscard]] MapTarget region_target_at(Region region, int index) noexcept;
 [[nodiscard]] MapTarget region_first_target(Region region) noexcept;
+[[nodiscard]] int map_route_candidate_count(Region region, MapTarget from, MapDirection direction) noexcept;
+[[nodiscard]] MapTarget map_route_candidate_at(Region region, MapTarget from, MapDirection direction, int index) noexcept;
 [[nodiscard]] MapTarget map_route_target(Region region, MapTarget from, MapDirection direction) noexcept;
 [[nodiscard]] int map_marker_frame(MapTarget target, int animation_phase) noexcept;
 

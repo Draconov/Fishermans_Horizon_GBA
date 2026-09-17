@@ -68,52 +68,100 @@ constexpr std::array<MapTarget, 5> JARIM_PERLA_TARGETS = {{
     MapTarget::TravelJarimPerla,
 }};
 
-// The Mari-Mari route graph mirrors the approved red-line map sketch.
-// A route is declared once, but each endpoint chooses the D-pad direction
-// that feels most natural there. This allows dense nodes such as Pier to
-// expose more than four direct neighbors without ambiguous cycling.
-constexpr std::array<MapRoute, 14> MARI_MARI_ROUTES = {{
-    {Region::MariMari, MapTarget::Lagoon, MapTarget::ShopMariMari, MapDirection::UpRight, MapDirection::DownLeft},
-    {Region::MariMari, MapTarget::ShopMariMari, MapTarget::CrystalLake, MapDirection::Right, MapDirection::Left},
-    {Region::MariMari, MapTarget::CrystalLake, MapTarget::River, MapDirection::Right, MapDirection::Left},
-    {Region::MariMari, MapTarget::River, MapTarget::TravelMariMari, MapDirection::DownRight, MapDirection::UpLeft},
-    {Region::MariMari, MapTarget::TravelMariMari, MapTarget::Beach, MapDirection::DownLeft, MapDirection::UpRight},
-    {Region::MariMari, MapTarget::Beach, MapTarget::Waterfall, MapDirection::DownLeft, MapDirection::UpRight},
-    {Region::MariMari, MapTarget::Waterfall, MapTarget::Ocean, MapDirection::Left, MapDirection::Right},
-    {Region::MariMari, MapTarget::Ocean, MapTarget::Cave, MapDirection::UpLeft, MapDirection::DownRight},
-    {Region::MariMari, MapTarget::Cave, MapTarget::Lagoon, MapDirection::UpRight, MapDirection::DownLeft},
-    {Region::MariMari, MapTarget::Lagoon, MapTarget::Pier, MapDirection::Right, MapDirection::Left},
-    {Region::MariMari, MapTarget::ShopMariMari, MapTarget::Pier, MapDirection::DownRight, MapDirection::UpLeft},
-    {Region::MariMari, MapTarget::CrystalLake, MapTarget::Pier, MapDirection::Down, MapDirection::Up},
-    {Region::MariMari, MapTarget::Pier, MapTarget::Beach, MapDirection::Right, MapDirection::Left},
-    {Region::MariMari, MapTarget::Pier, MapTarget::Ocean, MapDirection::DownLeft, MapDirection::UpRight},
+// D-pad navigation is an ordered nearest-first fallback table. A direction may
+// name several candidates. FlowModel checks them in this order and selects the
+// first target that is currently unlocked/visible. This lets a locked nearby
+// spot fall through naturally to the next location without cycling.
+struct MapRouteChoice
+{
+    Region region;
+    MapTarget from;
+    MapDirection direction;
+    std::array<MapTarget, 3> candidates;
+    int count;
+};
+
+constexpr std::array<MapRouteChoice, 32> MARI_MARI_ROUTE_CHOICES = {{
+    {Region::MariMari, MapTarget::Lagoon, MapDirection::Up, {MapTarget::ShopMariMari, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Lagoon, MapDirection::Down, {MapTarget::Cave, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Lagoon, MapDirection::Right, {MapTarget::Pier, MapTarget::None, MapTarget::None}, 1},
+
+    {Region::MariMari, MapTarget::Cave, MapDirection::Up, {MapTarget::Lagoon, MapTarget::ShopMariMari, MapTarget::None}, 2},
+    {Region::MariMari, MapTarget::Cave, MapDirection::Right, {MapTarget::Ocean, MapTarget::Pier, MapTarget::None}, 2},
+
+    {Region::MariMari, MapTarget::Waterfall, MapDirection::Up, {MapTarget::Pier, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Waterfall, MapDirection::Right, {MapTarget::Beach, MapTarget::TravelMariMari, MapTarget::None}, 2},
+    {Region::MariMari, MapTarget::Waterfall, MapDirection::Left, {MapTarget::Ocean, MapTarget::None, MapTarget::None}, 1},
+
+    {Region::MariMari, MapTarget::Beach, MapDirection::Up, {MapTarget::CrystalLake, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Beach, MapDirection::Down, {MapTarget::Waterfall, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Beach, MapDirection::Right, {MapTarget::TravelMariMari, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Beach, MapDirection::Left, {MapTarget::Pier, MapTarget::None, MapTarget::None}, 1},
+
+    {Region::MariMari, MapTarget::ShopMariMari, MapDirection::Down, {MapTarget::Pier, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::ShopMariMari, MapDirection::Right, {MapTarget::CrystalLake, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::ShopMariMari, MapDirection::Left, {MapTarget::Lagoon, MapTarget::Cave, MapTarget::None}, 2},
+
+    {Region::MariMari, MapTarget::Ocean, MapDirection::Up, {MapTarget::Pier, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Ocean, MapDirection::Right, {MapTarget::Waterfall, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Ocean, MapDirection::Left, {MapTarget::Cave, MapTarget::None, MapTarget::None}, 1},
+
+    {Region::MariMari, MapTarget::Pier, MapDirection::Up, {MapTarget::CrystalLake, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Pier, MapDirection::Down, {MapTarget::Ocean, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Pier, MapDirection::Right, {MapTarget::Beach, MapTarget::TravelMariMari, MapTarget::None}, 2},
+    {Region::MariMari, MapTarget::Pier, MapDirection::Left, {MapTarget::ShopMariMari, MapTarget::Lagoon, MapTarget::None}, 2},
+    {Region::MariMari, MapTarget::Pier, MapDirection::UpLeft, {MapTarget::ShopMariMari, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Pier, MapDirection::UpRight, {MapTarget::TravelMariMari, MapTarget::None, MapTarget::None}, 1},
+
+    {Region::MariMari, MapTarget::CrystalLake, MapDirection::Down, {MapTarget::Pier, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::CrystalLake, MapDirection::Right, {MapTarget::River, MapTarget::TravelMariMari, MapTarget::None}, 2},
+    {Region::MariMari, MapTarget::CrystalLake, MapDirection::Left, {MapTarget::ShopMariMari, MapTarget::None, MapTarget::None}, 1},
+
+    {Region::MariMari, MapTarget::River, MapDirection::Down, {MapTarget::TravelMariMari, MapTarget::Beach, MapTarget::Pier}, 3},
+    {Region::MariMari, MapTarget::River, MapDirection::Left, {MapTarget::CrystalLake, MapTarget::None, MapTarget::None}, 1},
+
+    {Region::MariMari, MapTarget::TravelMariMari, MapDirection::Up, {MapTarget::River, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::TravelMariMari, MapDirection::Down, {MapTarget::Beach, MapTarget::Pier, MapTarget::None}, 2},
+    {Region::MariMari, MapTarget::TravelMariMari, MapDirection::Left, {MapTarget::CrystalLake, MapTarget::None, MapTarget::None}, 1},
 }};
 
-// Preserve the existing Jarim Perla navigation while using the same generic graph format.
-constexpr std::array<MapRoute, 6> JARIM_PERLA_ROUTES = {{
-    {Region::JarimPerla, MapTarget::CityBeach, MapTarget::Bridge, MapDirection::Right, MapDirection::Left},
-    {Region::JarimPerla, MapTarget::CityBeach, MapTarget::TravelJarimPerla, MapDirection::Down, MapDirection::Up},
-    {Region::JarimPerla, MapTarget::Bridge, MapTarget::ShopJarimPerla, MapDirection::Right, MapDirection::Left},
-    {Region::JarimPerla, MapTarget::Bridge, MapTarget::Breakwater, MapDirection::Down, MapDirection::Up},
-    {Region::JarimPerla, MapTarget::Breakwater, MapTarget::TravelJarimPerla, MapDirection::Left, MapDirection::Right},
-    {Region::JarimPerla, MapTarget::Breakwater, MapTarget::ShopJarimPerla, MapDirection::Right, MapDirection::Down},
+// Jarim Perla follows the user's red-line sketch. These connections are
+// bidirectional, with direction chosen from the relative marker geometry.
+constexpr std::array<MapRouteChoice, 8> JARIM_PERLA_ROUTE_CHOICES = {{
+    {Region::JarimPerla, MapTarget::TravelJarimPerla, MapDirection::Right, {MapTarget::Bridge, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::Bridge, MapDirection::Left, {MapTarget::TravelJarimPerla, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::Bridge, MapDirection::Right, {MapTarget::Breakwater, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::Breakwater, MapDirection::Left, {MapTarget::Bridge, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::Bridge, MapDirection::DownRight, {MapTarget::ShopJarimPerla, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::ShopJarimPerla, MapDirection::UpLeft, {MapTarget::Bridge, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::ShopJarimPerla, MapDirection::DownLeft, {MapTarget::CityBeach, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::CityBeach, MapDirection::UpRight, {MapTarget::ShopJarimPerla, MapTarget::None, MapTarget::None}, 1},
 }};
 
 template<std::size_t Size>
-MapTarget route_target(const std::array<MapRoute, Size>& routes, MapTarget from, MapDirection direction) noexcept
+const MapRouteChoice* find_route_choice(const std::array<MapRouteChoice, Size>& routes,
+                                        MapTarget from, MapDirection direction) noexcept
 {
-    for(const MapRoute& route : routes)
+    for(const MapRouteChoice& route : routes)
     {
-        if(route.first == from && route.first_direction == direction)
+        if(route.from == from && route.direction == direction)
         {
-            return route.second;
-        }
-        if(route.second == from && route.second_direction == direction)
-        {
-            return route.first;
+            return &route;
         }
     }
-    return MapTarget::None;
+    return nullptr;
+}
+
+const MapRouteChoice* route_choice(Region region, MapTarget from, MapDirection direction) noexcept
+{
+    switch(region)
+    {
+    case Region::MariMari:
+        return find_route_choice(MARI_MARI_ROUTE_CHOICES, from, direction);
+    case Region::JarimPerla:
+        return find_route_choice(JARIM_PERLA_ROUTE_CHOICES, from, direction);
+    }
+    return nullptr;
 }
 
 }
@@ -170,16 +218,25 @@ MapTarget region_first_target(Region region) noexcept
     return MapTarget::CrystalLake;
 }
 
+int map_route_candidate_count(Region region, MapTarget from, MapDirection direction) noexcept
+{
+    const MapRouteChoice* choice = route_choice(region, from, direction);
+    return choice ? choice->count : 0;
+}
+
+MapTarget map_route_candidate_at(Region region, MapTarget from, MapDirection direction, int index) noexcept
+{
+    const MapRouteChoice* choice = route_choice(region, from, direction);
+    if(! choice || index < 0 || index >= choice->count)
+    {
+        return MapTarget::None;
+    }
+    return choice->candidates[index];
+}
+
 MapTarget map_route_target(Region region, MapTarget from, MapDirection direction) noexcept
 {
-    switch(region)
-    {
-    case Region::MariMari:
-        return route_target(MARI_MARI_ROUTES, from, direction);
-    case Region::JarimPerla:
-        return route_target(JARIM_PERLA_ROUTES, from, direction);
-    }
-    return MapTarget::None;
+    return map_route_candidate_at(region, from, direction, 0);
 }
 
 int map_marker_frame(MapTarget target, int animation_phase) noexcept

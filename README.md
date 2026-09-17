@@ -61,7 +61,7 @@ Current unlock items:
 
 Beach is still map-only until its own fishing background/content is added.
 
-Mari-Mari map navigation uses an explicit bidirectional route graph matching the in-game road/path layout rather than nearest-neighbor selection. Dense nodes can expose more than four direct connections through diagonal D-pad input.
+Mari-Mari map navigation uses explicit per-direction route lists matching the in-game road/path layout. When a direction has multiple candidates, they are stored nearest-first: the first unlocked/visible location is selected, and locked locations automatically fall through to the next candidate. Diagonal D-pad input remains available for the few explicitly assigned diagonal routes.
 
 ### Region 2 — Jarim Perla
 
@@ -127,7 +127,7 @@ In the Catalog, **L/R switches region sections**. D-pad navigation can also cros
 
 ### Map
 
-- **D-pad** — move between connected locations; diagonal presses (Up+Left, Up+Right, Down+Left, Down+Right) are used on dense route nodes
+- **D-pad** — move between connected locations; if the nearest candidate in that direction is locked, navigation automatically falls back to the next candidate. Diagonal presses are supported for explicitly assigned diagonal routes.
 - **A** — enter/activate the selected location
 - **B** — return to title
 - **L / R** — cycle owned characters

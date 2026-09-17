@@ -456,11 +456,17 @@ void FlowModel::_select_spatial_map_target(MapCommand command) noexcept
     default: return;
     }
 
-    const MapTarget candidate = map_route_target(_progress.active_region, _selected_map_target, direction);
-    const MapTargetSpec* next = map_target_spec(candidate);
-    if(next && next->region == _progress.active_region && map_target_enabled(candidate))
+    const int candidate_count = map_route_candidate_count(_progress.active_region, _selected_map_target, direction);
+    for(int index = 0; index < candidate_count; ++index)
     {
-        _selected_map_target = candidate;
+        const MapTarget candidate = map_route_candidate_at(
+            _progress.active_region, _selected_map_target, direction, index);
+        const MapTargetSpec* next = map_target_spec(candidate);
+        if(next && next->region == _progress.active_region && map_target_enabled(candidate))
+        {
+            _selected_map_target = candidate;
+            return;
+        }
     }
 }
 
