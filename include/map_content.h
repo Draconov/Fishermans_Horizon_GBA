@@ -64,6 +64,18 @@ enum class MapAction
     Catalog,
 };
 
+enum class MapDirection
+{
+    Left,
+    Right,
+    Up,
+    Down,
+    UpLeft,
+    UpRight,
+    DownLeft,
+    DownRight,
+};
+
 struct MapTargetSpec
 {
     MapTarget id;
@@ -72,20 +84,26 @@ struct MapTargetSpec
     MapMarkerKind marker_kind;
     int screen_x;
     int screen_y;
-    MapTarget left;
-    MapTarget right;
-    MapTarget up;
-    MapTarget down;
     MapUnlock unlock;
     MapAction action;
     int action_value;
     int marker_frame_base = 0;
 };
 
+struct MapRoute
+{
+    Region region;
+    MapTarget first;
+    MapTarget second;
+    MapDirection first_direction;
+    MapDirection second_direction;
+};
+
 [[nodiscard]] const MapTargetSpec* map_target_spec(MapTarget target) noexcept;
 [[nodiscard]] int region_target_count(Region region) noexcept;
 [[nodiscard]] MapTarget region_target_at(Region region, int index) noexcept;
 [[nodiscard]] MapTarget region_first_target(Region region) noexcept;
+[[nodiscard]] MapTarget map_route_target(Region region, MapTarget from, MapDirection direction) noexcept;
 [[nodiscard]] int map_marker_frame(MapTarget target, int animation_phase) noexcept;
 
 }

@@ -101,6 +101,10 @@ void FlowModel::handle_map_command(MapCommand command) noexcept
     case MapCommand::Right:
     case MapCommand::Up:
     case MapCommand::Down:
+    case MapCommand::UpLeft:
+    case MapCommand::UpRight:
+    case MapCommand::DownLeft:
+    case MapCommand::DownRight:
         _select_spatial_map_target(command);
         break;
     case MapCommand::Confirm: _activate_selected_map_target(); break;
@@ -438,16 +442,21 @@ void FlowModel::_select_spatial_map_target(MapCommand command) noexcept
     const MapTargetSpec* current = map_target_spec(_selected_map_target);
     if(! current || current->region != _progress.active_region) return;
 
-    MapTarget candidate = MapTarget::None;
+    MapDirection direction = MapDirection::Left;
     switch(command)
     {
-    case MapCommand::Left: candidate = current->left; break;
-    case MapCommand::Right: candidate = current->right; break;
-    case MapCommand::Up: candidate = current->up; break;
-    case MapCommand::Down: candidate = current->down; break;
+    case MapCommand::Left: direction = MapDirection::Left; break;
+    case MapCommand::Right: direction = MapDirection::Right; break;
+    case MapCommand::Up: direction = MapDirection::Up; break;
+    case MapCommand::Down: direction = MapDirection::Down; break;
+    case MapCommand::UpLeft: direction = MapDirection::UpLeft; break;
+    case MapCommand::UpRight: direction = MapDirection::UpRight; break;
+    case MapCommand::DownLeft: direction = MapDirection::DownLeft; break;
+    case MapCommand::DownRight: direction = MapDirection::DownRight; break;
     default: return;
     }
 
+    const MapTarget candidate = map_route_target(_progress.active_region, _selected_map_target, direction);
     const MapTargetSpec* next = map_target_spec(candidate);
     if(next && next->region == _progress.active_region && map_target_enabled(candidate))
     {

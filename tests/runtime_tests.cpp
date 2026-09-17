@@ -1324,23 +1324,27 @@ void test_flow_model_contract()
         assert(model.cycle_owned_character(-1) == 2);
         assert(model.cycle_owned_character(1) == 0);
 
-        // Spatial map navigation follows the visible map graph, not a flat list.
+        // Spatial map navigation follows the approved route graph, including diagonals.
         assert(model.selected_map_target() == fh::MapTarget::CrystalLake);
         model.handle_map_command(fh::MapCommand::Left);
         assert(model.selected_map_target() == fh::MapTarget::Shop);
-        model.handle_map_command(fh::MapCommand::Down);
+        model.handle_map_command(fh::MapCommand::DownLeft);
         assert(model.selected_map_target() == fh::MapTarget::Lagoon);
-        model.handle_map_command(fh::MapCommand::Down);
+        model.handle_map_command(fh::MapCommand::Right);
         assert(model.selected_map_target() == fh::MapTarget::Pier);
-        model.handle_map_command(fh::MapCommand::Left);
-        assert(model.selected_map_target() == fh::MapTarget::Cave);
-        model.handle_map_command(fh::MapCommand::Down);
+        model.handle_map_command(fh::MapCommand::DownLeft);
         assert(model.selected_map_target() == fh::MapTarget::Ocean);
-        model.handle_map_command(fh::MapCommand::Up);
-        assert(model.selected_map_target() == fh::MapTarget::Pier);
+        model.handle_map_command(fh::MapCommand::UpLeft);
+        assert(model.selected_map_target() == fh::MapTarget::Cave);
+        model.handle_map_command(fh::MapCommand::UpRight);
+        assert(model.selected_map_target() == fh::MapTarget::Lagoon);
+        model.handle_map_command(fh::MapCommand::Right);
         model.handle_map_command(fh::MapCommand::Right);
         assert(model.selected_map_target() == fh::MapTarget::Beach);
+        model.handle_map_command(fh::MapCommand::Left);
         model.handle_map_command(fh::MapCommand::Up);
+        assert(model.selected_map_target() == fh::MapTarget::CrystalLake);
+        model.handle_map_command(fh::MapCommand::Right);
         assert(model.selected_map_target() == fh::MapTarget::River);
         model.handle_map_command(fh::MapCommand::Left);
         assert(model.selected_map_target() == fh::MapTarget::CrystalLake);
@@ -1392,30 +1396,32 @@ void test_flow_model_contract()
         assert(custom_model.map_target_enabled(fh::MapTarget::Beach));
         assert(custom_model.map_target_enabled(fh::MapTarget::Waterfall));
 
-        // Lagoon sits between Shop / Crystal Lake / Cave / Pier.
+        // Lagoon links to Shop, Cave and Pier in the explicit route graph.
         custom_model.handle_map_command(fh::MapCommand::Left);
         assert(custom_model.selected_map_target() == fh::MapTarget::Shop);
-        custom_model.handle_map_command(fh::MapCommand::Down);
+        custom_model.handle_map_command(fh::MapCommand::DownLeft);
         assert(custom_model.selected_map_target() == fh::MapTarget::Lagoon);
+        custom_model.handle_map_command(fh::MapCommand::DownLeft);
+        assert(custom_model.selected_map_target() == fh::MapTarget::Cave);
+        custom_model.handle_map_command(fh::MapCommand::UpRight);
         custom_model.handle_map_command(fh::MapCommand::Right);
-        assert(custom_model.selected_map_target() == fh::MapTarget::CrystalLake);
-        custom_model.handle_map_command(fh::MapCommand::Left);
-        custom_model.handle_map_command(fh::MapCommand::Down);
-        custom_model.handle_map_command(fh::MapCommand::Down);
         assert(custom_model.selected_map_target() == fh::MapTarget::Pier);
 
         // Beach and Waterfall extend the southeast branch of the map graph.
         custom_model.handle_map_command(fh::MapCommand::Right);
         assert(custom_model.selected_map_target() == fh::MapTarget::Beach);
-        custom_model.handle_map_command(fh::MapCommand::Down);
+        custom_model.handle_map_command(fh::MapCommand::DownLeft);
         assert(custom_model.selected_map_target() == fh::MapTarget::Waterfall);
         custom_model.handle_map_command(fh::MapCommand::Left);
         assert(custom_model.selected_map_target() == fh::MapTarget::Ocean);
         custom_model.handle_map_command(fh::MapCommand::Right);
         assert(custom_model.selected_map_target() == fh::MapTarget::Waterfall);
-        custom_model.handle_map_command(fh::MapCommand::Right);
+        custom_model.handle_map_command(fh::MapCommand::UpRight);
         assert(custom_model.selected_map_target() == fh::MapTarget::Beach);
+        custom_model.handle_map_command(fh::MapCommand::Left);
         custom_model.handle_map_command(fh::MapCommand::Up);
+        assert(custom_model.selected_map_target() == fh::MapTarget::CrystalLake);
+        custom_model.handle_map_command(fh::MapCommand::Right);
         assert(custom_model.selected_map_target() == fh::MapTarget::River);
     }
 
@@ -1433,7 +1439,7 @@ void test_flow_model_contract()
 
         // Lagoon is the first fully playable custom fishing spot.
         model.handle_map_command(fh::MapCommand::Left);
-        model.handle_map_command(fh::MapCommand::Down);
+        model.handle_map_command(fh::MapCommand::DownLeft);
         assert(model.selected_map_target() == fh::MapTarget::Lagoon);
         model.handle_map_command(fh::MapCommand::Confirm);
         assert(model.state() == fh::GameState::Fishing);
@@ -1443,8 +1449,6 @@ void test_flow_model_contract()
         fh::FlowModel beach_model(progress);
         beach_model.complete_intro();
         beach_model.handle_title_command(fh::TitleCommand::Play);
-        beach_model.handle_map_command(fh::MapCommand::Left);
-        beach_model.handle_map_command(fh::MapCommand::Down);
         beach_model.handle_map_command(fh::MapCommand::Down);
         beach_model.handle_map_command(fh::MapCommand::Right);
         assert(beach_model.selected_map_target() == fh::MapTarget::Beach);
@@ -1455,11 +1459,9 @@ void test_flow_model_contract()
         fh::FlowModel waterfall_model(progress);
         waterfall_model.complete_intro();
         waterfall_model.handle_title_command(fh::TitleCommand::Play);
-        waterfall_model.handle_map_command(fh::MapCommand::Left);
-        waterfall_model.handle_map_command(fh::MapCommand::Down);
         waterfall_model.handle_map_command(fh::MapCommand::Down);
         waterfall_model.handle_map_command(fh::MapCommand::Right);
-        waterfall_model.handle_map_command(fh::MapCommand::Down);
+        waterfall_model.handle_map_command(fh::MapCommand::DownLeft);
         assert(waterfall_model.selected_map_target() == fh::MapTarget::Waterfall);
         waterfall_model.handle_map_command(fh::MapCommand::Confirm);
         assert(waterfall_model.state() == fh::GameState::Fishing);
@@ -1501,6 +1503,7 @@ void test_map2_region_contract()
     fh::ProgressState progress;
     progress.prologue_complete = true;
     progress.money = 200;
+    progress.club_card = true;
     fh::FlowModel flow(progress);
     flow.complete_intro();
 
@@ -1516,9 +1519,9 @@ void test_map2_region_contract()
     flow.handle_title_command(fh::TitleCommand::Play);
     assert(flow.state() == fh::GameState::Map);
     assert(flow.selected_map_target() == fh::MapTarget::CrystalLake);
-    flow.handle_map_command(fh::MapCommand::Left);
-    assert(flow.selected_map_target() == fh::MapTarget::ShopMariMari);
-    flow.handle_map_command(fh::MapCommand::Up);
+    flow.handle_map_command(fh::MapCommand::Right);
+    assert(flow.selected_map_target() == fh::MapTarget::River);
+    flow.handle_map_command(fh::MapCommand::DownRight);
     assert(flow.selected_map_target() == fh::MapTarget::TravelMariMari);
     const auto travel_revision = flow.progress_revision();
     flow.handle_map_command(fh::MapCommand::Confirm);
@@ -1575,6 +1578,64 @@ void test_map2_region_contract()
     assert(flow.active_region() == fh::Region::MariMari);
     assert(flow.selected_map_target() == fh::MapTarget::CrystalLake);
     assert(flow.shop_item_owned(fh::ShopId::JarimPerla, 0));
+}
+
+
+void test_map_route_graph_contract()
+{
+    using D = fh::MapDirection;
+    using T = fh::MapTarget;
+
+    // Map 1 follows the approved red-line graph. Each physical connection is bidirectional.
+    assert(fh::map_route_target(fh::Region::MariMari, T::Lagoon, D::UpRight) == T::ShopMariMari);
+    assert(fh::map_route_target(fh::Region::MariMari, T::ShopMariMari, D::DownLeft) == T::Lagoon);
+    assert(fh::map_route_target(fh::Region::MariMari, T::ShopMariMari, D::Right) == T::CrystalLake);
+    assert(fh::map_route_target(fh::Region::MariMari, T::CrystalLake, D::Left) == T::ShopMariMari);
+    assert(fh::map_route_target(fh::Region::MariMari, T::CrystalLake, D::Right) == T::River);
+    assert(fh::map_route_target(fh::Region::MariMari, T::River, D::Left) == T::CrystalLake);
+    assert(fh::map_route_target(fh::Region::MariMari, T::River, D::DownRight) == T::TravelMariMari);
+    assert(fh::map_route_target(fh::Region::MariMari, T::TravelMariMari, D::UpLeft) == T::River);
+    assert(fh::map_route_target(fh::Region::MariMari, T::TravelMariMari, D::DownLeft) == T::Beach);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Beach, D::UpRight) == T::TravelMariMari);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Beach, D::DownLeft) == T::Waterfall);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Waterfall, D::UpRight) == T::Beach);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Waterfall, D::Left) == T::Ocean);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Ocean, D::Right) == T::Waterfall);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Ocean, D::UpLeft) == T::Cave);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Cave, D::DownRight) == T::Ocean);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Cave, D::UpRight) == T::Lagoon);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Lagoon, D::DownLeft) == T::Cave);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Lagoon, D::Right) == T::Pier);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Pier, D::Left) == T::Lagoon);
+    assert(fh::map_route_target(fh::Region::MariMari, T::ShopMariMari, D::DownRight) == T::Pier);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Pier, D::UpLeft) == T::ShopMariMari);
+    assert(fh::map_route_target(fh::Region::MariMari, T::CrystalLake, D::Down) == T::Pier);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Pier, D::Up) == T::CrystalLake);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Pier, D::Right) == T::Beach);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Beach, D::Left) == T::Pier);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Pier, D::DownLeft) == T::Ocean);
+    assert(fh::map_route_target(fh::Region::MariMari, T::Ocean, D::UpRight) == T::Pier);
+
+    // Pier intentionally has five direct neighbors: diagonal input is required to expose all of them.
+    fh::ProgressState progress;
+    progress.prologue_complete = true;
+    progress.club_card = true;
+    progress.old_boat = true;
+    progress.ancient_map = true;
+    progress.captains_hat = true;
+    progress.beach_ball = true;
+    progress.car_keys = true;
+    fh::FlowModel flow(progress);
+    flow.complete_intro();
+    flow.handle_title_command(fh::TitleCommand::Play);
+    flow.handle_map_command(fh::MapCommand::Down); // Crystal -> Pier
+    assert(flow.selected_map_target() == T::Pier);
+    flow.handle_map_command(fh::MapCommand::UpLeft);
+    assert(flow.selected_map_target() == T::ShopMariMari);
+    flow.handle_map_command(fh::MapCommand::DownRight);
+    assert(flow.selected_map_target() == T::Pier);
+    flow.handle_map_command(fh::MapCommand::DownLeft);
+    assert(flow.selected_map_target() == T::Ocean);
 }
 
 
@@ -2340,6 +2401,7 @@ int main()
     test_fishing_model_contract();
     test_flow_model_contract();
     test_map2_region_contract();
+    test_map_route_graph_contract();
     test_intro_model_contract();
     test_ui_font_contract();
     test_options_model_contract();

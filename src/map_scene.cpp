@@ -26,6 +26,39 @@ namespace
 
 constexpr const char* CHARACTER_NAMES[] = {"Cid", "Fran", "Leon", "Sazh", "Rosa", "Shadow"};
 
+MapCommand map_direction_command() noexcept
+{
+    const bool left = bn::keypad::left_held();
+    const bool right = bn::keypad::right_held();
+    const bool up = bn::keypad::up_held();
+    const bool down = bn::keypad::down_held();
+
+    const bool left_edge = bn::keypad::left_pressed();
+    const bool right_edge = bn::keypad::right_pressed();
+    const bool up_edge = bn::keypad::up_pressed();
+    const bool down_edge = bn::keypad::down_pressed();
+
+    // A diagonal fires when both component directions are held and at least
+    // one of them became pressed this frame. This works on real GBA hardware
+    // and also lets keyboard players press the two arrows a fraction apart.
+    if(up && ! down)
+    {
+        if(left && ! right && (up_edge || left_edge)) return MapCommand::UpLeft;
+        if(right && ! left && (up_edge || right_edge)) return MapCommand::UpRight;
+    }
+    if(down && ! up)
+    {
+        if(left && ! right && (down_edge || left_edge)) return MapCommand::DownLeft;
+        if(right && ! left && (down_edge || right_edge)) return MapCommand::DownRight;
+    }
+
+    if(left_edge) return MapCommand::Left;
+    if(right_edge) return MapCommand::Right;
+    if(up_edge) return MapCommand::Up;
+    if(down_edge) return MapCommand::Down;
+    return MapCommand::None;
+}
+
 bn::regular_bg_ptr create_map_background(Region region)
 {
     if(region == Region::JarimPerla)
@@ -129,25 +162,10 @@ void MapScene::update(FlowModel& flow)
             flow.open_catalog_from_map();
         }
     }
-    else if(bn::keypad::left_pressed())
+    else if(const MapCommand direction = map_direction_command(); direction != MapCommand::None)
     {
         _audio_event = AudioCue::NextPage;
-        flow.handle_map_command(MapCommand::Left);
-    }
-    else if(bn::keypad::right_pressed())
-    {
-        _audio_event = AudioCue::NextPage;
-        flow.handle_map_command(MapCommand::Right);
-    }
-    else if(bn::keypad::up_pressed())
-    {
-        _audio_event = AudioCue::NextPage;
-        flow.handle_map_command(MapCommand::Up);
-    }
-    else if(bn::keypad::down_pressed())
-    {
-        _audio_event = AudioCue::NextPage;
-        flow.handle_map_command(MapCommand::Down);
+        flow.handle_map_command(direction);
     }
     else if(bn::keypad::l_pressed())
     {

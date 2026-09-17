@@ -1,6 +1,7 @@
 #include "map_content.h"
 
 #include <array>
+#include <cstddef>
 
 #include "progression_content.h"
 
@@ -11,53 +12,37 @@ namespace
 
 constexpr std::array<MapTargetSpec, 16> TARGETS = {{
     {MapTarget::CrystalLake, Region::MariMari, "Crystal Lake", MapMarkerKind::Fishing, 152, 28,
-     MapTarget::ShopMariMari, MapTarget::River, MapTarget::None, MapTarget::Pier,
      MapUnlock::Always, MapAction::Fishing, 1},
     {MapTarget::Pier, Region::MariMari, "Pier", MapMarkerKind::Fishing, 136, 84,
-     MapTarget::Cave, MapTarget::Beach, MapTarget::CrystalLake, MapTarget::Waterfall,
      MapUnlock::Always, MapAction::Fishing, 2},
     {MapTarget::ShopMariMari, Region::MariMari, "Shop", MapMarkerKind::Shop, 104, 20,
-     MapTarget::Cave, MapTarget::CrystalLake, MapTarget::TravelMariMari, MapTarget::Lagoon,
      MapUnlock::Always, MapAction::Shop, int(ShopId::MariMari)},
     {MapTarget::River, Region::MariMari, "River", MapMarkerKind::Fishing, 216, 20,
-     MapTarget::CrystalLake, MapTarget::None, MapTarget::None, MapTarget::Beach,
      MapUnlock::ClubCard, MapAction::Fishing, 3},
     {MapTarget::Ocean, Region::MariMari, "Ocean", MapMarkerKind::Fishing, 112, 132,
-     MapTarget::Cave, MapTarget::Waterfall, MapTarget::Pier, MapTarget::None,
      MapUnlock::OldBoat, MapAction::Fishing, 4},
     {MapTarget::Cave, Region::MariMari, "Cave", MapMarkerKind::Fishing, 24, 100,
-     MapTarget::None, MapTarget::Pier, MapTarget::Lagoon, MapTarget::Ocean,
      MapUnlock::AncientMap, MapAction::Fishing, 5},
     {MapTarget::Lagoon, Region::MariMari, "Lagoon", MapMarkerKind::Fishing, 88, 37,
-     MapTarget::Cave, MapTarget::CrystalLake, MapTarget::ShopMariMari, MapTarget::Pier,
      MapUnlock::CaptainsHat, MapAction::Fishing, 6},
     {MapTarget::Beach, Region::MariMari, "Beach", MapMarkerKind::Fishing, 162, 97,
-     MapTarget::Pier, MapTarget::None, MapTarget::River, MapTarget::Waterfall,
      MapUnlock::BeachBall, MapAction::None, 0},
     {MapTarget::Waterfall, Region::MariMari, "Waterfall", MapMarkerKind::Fishing, 140, 128,
-     MapTarget::Ocean, MapTarget::Beach, MapTarget::Pier, MapTarget::None,
      MapUnlock::OldBoat, MapAction::Fishing, 7},
     {MapTarget::Catalog, Region::MariMari, "Catalog", MapMarkerKind::Catalog, 12, 148,
-     MapTarget::None, MapTarget::None, MapTarget::None, MapTarget::CrystalLake,
      MapUnlock::Catalog, MapAction::Catalog, 0},
     {MapTarget::TravelMariMari, Region::MariMari, "Travel", MapMarkerKind::Travel, 233, 52,
-     MapTarget::None, MapTarget::None, MapTarget::None, MapTarget::ShopMariMari,
      MapUnlock::CarKeys, MapAction::Travel, int(Region::JarimPerla), 2},
 
     {MapTarget::CityBeach, Region::JarimPerla, "City Beach", MapMarkerKind::Fishing, 127, 93,
-     MapTarget::None, MapTarget::Bridge, MapTarget::None, MapTarget::TravelJarimPerla,
      MapUnlock::Always, MapAction::Fishing, 8},
     {MapTarget::Bridge, Region::JarimPerla, "Bridge", MapMarkerKind::Fishing, 108, 27,
-     MapTarget::CityBeach, MapTarget::ShopJarimPerla, MapTarget::None, MapTarget::Breakwater,
      MapUnlock::Always, MapAction::Fishing, 9},
     {MapTarget::Breakwater, Region::JarimPerla, "Breakwater", MapMarkerKind::Fishing, 162, 18,
-     MapTarget::TravelJarimPerla, MapTarget::ShopJarimPerla, MapTarget::Bridge, MapTarget::None,
      MapUnlock::JarimPerlaItem1, MapAction::Fishing, 10},
     {MapTarget::ShopJarimPerla, Region::JarimPerla, "Jarim Shop", MapMarkerKind::Shop, 141, 77,
-     MapTarget::Bridge, MapTarget::None, MapTarget::None, MapTarget::Breakwater,
      MapUnlock::Always, MapAction::Shop, int(ShopId::JarimPerla)},
     {MapTarget::TravelJarimPerla, Region::JarimPerla, "Travel", MapMarkerKind::Travel, 4, 49,
-     MapTarget::None, MapTarget::Breakwater, MapTarget::CityBeach, MapTarget::None,
      MapUnlock::CarKeys, MapAction::Travel, int(Region::MariMari), 0},
 }};
 
@@ -82,6 +67,54 @@ constexpr std::array<MapTarget, 5> JARIM_PERLA_TARGETS = {{
     MapTarget::ShopJarimPerla,
     MapTarget::TravelJarimPerla,
 }};
+
+// The Mari-Mari route graph mirrors the approved red-line map sketch.
+// A route is declared once, but each endpoint chooses the D-pad direction
+// that feels most natural there. This allows dense nodes such as Pier to
+// expose more than four direct neighbors without ambiguous cycling.
+constexpr std::array<MapRoute, 14> MARI_MARI_ROUTES = {{
+    {Region::MariMari, MapTarget::Lagoon, MapTarget::ShopMariMari, MapDirection::UpRight, MapDirection::DownLeft},
+    {Region::MariMari, MapTarget::ShopMariMari, MapTarget::CrystalLake, MapDirection::Right, MapDirection::Left},
+    {Region::MariMari, MapTarget::CrystalLake, MapTarget::River, MapDirection::Right, MapDirection::Left},
+    {Region::MariMari, MapTarget::River, MapTarget::TravelMariMari, MapDirection::DownRight, MapDirection::UpLeft},
+    {Region::MariMari, MapTarget::TravelMariMari, MapTarget::Beach, MapDirection::DownLeft, MapDirection::UpRight},
+    {Region::MariMari, MapTarget::Beach, MapTarget::Waterfall, MapDirection::DownLeft, MapDirection::UpRight},
+    {Region::MariMari, MapTarget::Waterfall, MapTarget::Ocean, MapDirection::Left, MapDirection::Right},
+    {Region::MariMari, MapTarget::Ocean, MapTarget::Cave, MapDirection::UpLeft, MapDirection::DownRight},
+    {Region::MariMari, MapTarget::Cave, MapTarget::Lagoon, MapDirection::UpRight, MapDirection::DownLeft},
+    {Region::MariMari, MapTarget::Lagoon, MapTarget::Pier, MapDirection::Right, MapDirection::Left},
+    {Region::MariMari, MapTarget::ShopMariMari, MapTarget::Pier, MapDirection::DownRight, MapDirection::UpLeft},
+    {Region::MariMari, MapTarget::CrystalLake, MapTarget::Pier, MapDirection::Down, MapDirection::Up},
+    {Region::MariMari, MapTarget::Pier, MapTarget::Beach, MapDirection::Right, MapDirection::Left},
+    {Region::MariMari, MapTarget::Pier, MapTarget::Ocean, MapDirection::DownLeft, MapDirection::UpRight},
+}};
+
+// Preserve the existing Jarim Perla navigation while using the same generic graph format.
+constexpr std::array<MapRoute, 6> JARIM_PERLA_ROUTES = {{
+    {Region::JarimPerla, MapTarget::CityBeach, MapTarget::Bridge, MapDirection::Right, MapDirection::Left},
+    {Region::JarimPerla, MapTarget::CityBeach, MapTarget::TravelJarimPerla, MapDirection::Down, MapDirection::Up},
+    {Region::JarimPerla, MapTarget::Bridge, MapTarget::ShopJarimPerla, MapDirection::Right, MapDirection::Left},
+    {Region::JarimPerla, MapTarget::Bridge, MapTarget::Breakwater, MapDirection::Down, MapDirection::Up},
+    {Region::JarimPerla, MapTarget::Breakwater, MapTarget::TravelJarimPerla, MapDirection::Left, MapDirection::Right},
+    {Region::JarimPerla, MapTarget::Breakwater, MapTarget::ShopJarimPerla, MapDirection::Right, MapDirection::Down},
+}};
+
+template<std::size_t Size>
+MapTarget route_target(const std::array<MapRoute, Size>& routes, MapTarget from, MapDirection direction) noexcept
+{
+    for(const MapRoute& route : routes)
+    {
+        if(route.first == from && route.first_direction == direction)
+        {
+            return route.second;
+        }
+        if(route.second == from && route.second_direction == direction)
+        {
+            return route.first;
+        }
+    }
+    return MapTarget::None;
+}
 
 }
 
@@ -135,6 +168,18 @@ MapTarget region_first_target(Region region) noexcept
         return MapTarget::CityBeach;
     }
     return MapTarget::CrystalLake;
+}
+
+MapTarget map_route_target(Region region, MapTarget from, MapDirection direction) noexcept
+{
+    switch(region)
+    {
+    case Region::MariMari:
+        return route_target(MARI_MARI_ROUTES, from, direction);
+    case Region::JarimPerla:
+        return route_target(JARIM_PERLA_ROUTES, from, direction);
+    }
+    return MapTarget::None;
 }
 
 int map_marker_frame(MapTarget target, int animation_phase) noexcept

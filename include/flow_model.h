@@ -27,6 +27,10 @@ enum class MapCommand
     Right,
     Up,
     Down,
+    UpLeft,
+    UpRight,
+    DownLeft,
+    DownRight,
     Confirm,
     Back,
 };

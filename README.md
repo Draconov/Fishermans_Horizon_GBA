@@ -61,6 +61,8 @@ Current unlock items:
 
 Beach is still map-only until its own fishing background/content is added.
 
+Mari-Mari map navigation uses an explicit bidirectional route graph matching the in-game road/path layout rather than nearest-neighbor selection. Dense nodes can expose more than four direct connections through diagonal D-pad input.
+
 ### Region 2 — Jarim Perla
 
 After buying **Car Keys**, use the Travel marker on either map to move between regions.
@@ -125,7 +127,7 @@ In the Catalog, **L/R switches region sections**. D-pad navigation can also cros
 
 ### Map
 
-- **D-pad** — move between available locations
+- **D-pad** — move between connected locations; diagonal presses (Up+Left, Up+Right, Down+Left, Down+Right) are used on dense route nodes
 - **A** — enter/activate the selected location
 - **B** — return to title
 - **L / R** — cycle owned characters
