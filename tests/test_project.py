@@ -167,6 +167,13 @@ def test_repo_is_standalone_and_tests_are_minimal():
     assert test_files == ["tests/runtime_tests.cpp", "tests/test_project.py"]
 
 
+
+def test_options_scene_has_no_obsolete_exclamation_cursor():
+    scene = (ROOT / "src" / "options_scene.cpp").read_text(encoding="utf-8")
+    header = (ROOT / "include" / "options_scene.h").read_text(encoding="utf-8")
+    assert "ui_font_glyph('!')" not in scene
+    assert "_cursor" not in header
+
 def test_package_rom_contract(tmp_path: Path):
     rom = tmp_path / "input.gba"
     payload = _rom_bytes()

@@ -37,8 +37,7 @@ void append_text(bn::vector<bn::sprite_ptr, 32>& sprites, const char* text, int 
 }
 
 OptionsScene::OptionsScene() :
-    _background(bn::regular_bg_items::options_bg.create_bg(0, 0, 0)),
-    _cursor(bn::sprite_items::ui_font.create_sprite(-60, -68, ui_font_glyph('!')))
+    _background(bn::regular_bg_items::options_bg.create_bg(0, 0, 0))
 {
 }
 
@@ -56,7 +55,6 @@ void OptionsScene::update(FlowModel& flow)
         _model.toggle_sound(flow);
     }
 
-    _cursor.set_y(-68);
     _advance_background();
     _render(flow);
 }

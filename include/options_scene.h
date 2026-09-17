@@ -27,7 +27,6 @@ private:
 
     OptionsModel _model;
     bn::regular_bg_ptr _background;
-    bn::sprite_ptr _cursor;
     bn::vector<bn::sprite_ptr, 32> _text_sprites;
     int _sea_ticks = 0;
     int _map_index = 0;

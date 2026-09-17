@@ -1484,9 +1484,9 @@ void test_map2_region_contract()
     const fh::MapTargetSpec* breakwater = fh::map_target_spec(fh::MapTarget::Breakwater);
     const fh::MapTargetSpec* shop2 = fh::map_target_spec(fh::MapTarget::ShopJarimPerla);
     const fh::MapTargetSpec* travel2 = fh::map_target_spec(fh::MapTarget::TravelJarimPerla);
-    assert(city_beach && city_beach->screen_x == 127 && city_beach->screen_y == 93);
-    assert(bridge && bridge->screen_x == 108 && bridge->screen_y == 27);
-    assert(breakwater && breakwater->screen_x == 162 && breakwater->screen_y == 18);
+    assert(city_beach && city_beach->screen_x == 129 && city_beach->screen_y == 91);
+    assert(bridge && bridge->screen_x == 108 && bridge->screen_y == 22);
+    assert(breakwater && breakwater->screen_x == 162 && breakwater->screen_y == 11);
     assert(shop2 && shop2->screen_x == 141 && shop2->screen_y == 77);
     assert(travel2 && travel2->screen_x == 4 && travel2->screen_y == 49);
     assert(travel2->marker_frame_base == 0);  // left arrow animates on frames 0/1
@@ -1542,10 +1542,10 @@ void test_map2_region_contract()
     assert(flow.fishing_pool() == 8);
     flow.handle_fishing_back();
 
-    // Bridge is reached through the bidirectional Jarim Perla red-line graph.
-    flow.handle_map_command(fh::MapCommand::UpRight);
+    // Jarim Perla cardinal movement: Beach Up -> Shop, Shop Up -> Bridge.
+    flow.handle_map_command(fh::MapCommand::Up);
     assert(flow.selected_map_target() == fh::MapTarget::ShopJarimPerla);
-    flow.handle_map_command(fh::MapCommand::UpLeft);
+    flow.handle_map_command(fh::MapCommand::Up);
     assert(flow.selected_map_target() == fh::MapTarget::Bridge);
     flow.handle_map_command(fh::MapCommand::Confirm);
     assert(flow.state() == fh::GameState::Fishing);
@@ -1553,7 +1553,7 @@ void test_map2_region_contract()
     flow.handle_fishing_back();
 
     // Shop 2 is distinct, with Item 1 unlocking Breakwater.
-    flow.handle_map_command(fh::MapCommand::DownRight);
+    flow.handle_map_command(fh::MapCommand::Down);
     assert(flow.selected_map_target() == fh::MapTarget::ShopJarimPerla);
     flow.handle_map_command(fh::MapCommand::Confirm);
     assert(flow.state() == fh::GameState::Shop);
@@ -1566,7 +1566,7 @@ void test_map2_region_contract()
     assert(flow.map_target_enabled(fh::MapTarget::Breakwater));
     flow.handle_shop_back();
 
-    flow.handle_map_command(fh::MapCommand::UpLeft);
+    flow.handle_map_command(fh::MapCommand::Up);
     assert(flow.selected_map_target() == fh::MapTarget::Bridge);
     flow.handle_map_command(fh::MapCommand::Right);
     assert(flow.selected_map_target() == fh::MapTarget::Breakwater);
@@ -1613,6 +1613,7 @@ void test_map_route_graph_contract()
     assert_candidates(fh::Region::MariMari, T::Lagoon, D::Up, {T::ShopMariMari});
     assert_candidates(fh::Region::MariMari, T::Lagoon, D::Down, {T::Cave});
     assert_candidates(fh::Region::MariMari, T::Lagoon, D::Right, {T::Pier});
+    assert_candidates(fh::Region::MariMari, T::Lagoon, D::Left, {T::Cave});
 
     assert_candidates(fh::Region::MariMari, T::Cave, D::Up, {T::Lagoon, T::ShopMariMari});
     assert_candidates(fh::Region::MariMari, T::Cave, D::Right, {T::Ocean, T::Pier});
@@ -1647,20 +1648,21 @@ void test_map_route_graph_contract()
 
     assert_candidates(fh::Region::MariMari, T::River, D::Down, {T::TravelMariMari, T::Beach, T::Pier});
     assert_candidates(fh::Region::MariMari, T::River, D::Left, {T::CrystalLake});
+    assert_candidates(fh::Region::MariMari, T::River, D::Right, {T::TravelMariMari});
 
     assert_candidates(fh::Region::MariMari, T::TravelMariMari, D::Up, {T::River});
     assert_candidates(fh::Region::MariMari, T::TravelMariMari, D::Down, {T::Beach, T::Pier});
     assert_candidates(fh::Region::MariMari, T::TravelMariMari, D::Left, {T::CrystalLake});
 
-    // Jarim Perla red-line graph is bidirectional. Direction is based on marker geometry.
+    // Jarim Perla uses the approved cardinal movement and remains traversable both ways.
     assert_candidates(fh::Region::JarimPerla, T::TravelJarimPerla, D::Right, {T::Bridge});
     assert_candidates(fh::Region::JarimPerla, T::Bridge, D::Left, {T::TravelJarimPerla});
     assert_candidates(fh::Region::JarimPerla, T::Bridge, D::Right, {T::Breakwater});
     assert_candidates(fh::Region::JarimPerla, T::Breakwater, D::Left, {T::Bridge});
-    assert_candidates(fh::Region::JarimPerla, T::Bridge, D::DownRight, {T::ShopJarimPerla});
-    assert_candidates(fh::Region::JarimPerla, T::ShopJarimPerla, D::UpLeft, {T::Bridge});
-    assert_candidates(fh::Region::JarimPerla, T::ShopJarimPerla, D::DownLeft, {T::CityBeach});
-    assert_candidates(fh::Region::JarimPerla, T::CityBeach, D::UpRight, {T::ShopJarimPerla});
+    assert_candidates(fh::Region::JarimPerla, T::Bridge, D::Down, {T::ShopJarimPerla});
+    assert_candidates(fh::Region::JarimPerla, T::ShopJarimPerla, D::Up, {T::Bridge});
+    assert_candidates(fh::Region::JarimPerla, T::ShopJarimPerla, D::Down, {T::CityBeach});
+    assert_candidates(fh::Region::JarimPerla, T::CityBeach, D::Up, {T::ShopJarimPerla});
 
     // Ordered fallback behavior: first unlocked/visible candidate wins.
     {

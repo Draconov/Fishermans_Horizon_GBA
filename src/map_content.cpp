@@ -34,11 +34,11 @@ constexpr std::array<MapTargetSpec, 16> TARGETS = {{
     {MapTarget::TravelMariMari, Region::MariMari, "Travel", MapMarkerKind::Travel, 233, 52,
      MapUnlock::CarKeys, MapAction::Travel, int(Region::JarimPerla), 2},
 
-    {MapTarget::CityBeach, Region::JarimPerla, "City Beach", MapMarkerKind::Fishing, 127, 93,
+    {MapTarget::CityBeach, Region::JarimPerla, "City Beach", MapMarkerKind::Fishing, 129, 91,
      MapUnlock::Always, MapAction::Fishing, 8},
-    {MapTarget::Bridge, Region::JarimPerla, "Bridge", MapMarkerKind::Fishing, 108, 27,
+    {MapTarget::Bridge, Region::JarimPerla, "Bridge", MapMarkerKind::Fishing, 108, 22,
      MapUnlock::Always, MapAction::Fishing, 9},
-    {MapTarget::Breakwater, Region::JarimPerla, "Breakwater", MapMarkerKind::Fishing, 162, 18,
+    {MapTarget::Breakwater, Region::JarimPerla, "Breakwater", MapMarkerKind::Fishing, 162, 11,
      MapUnlock::JarimPerlaItem1, MapAction::Fishing, 10},
     {MapTarget::ShopJarimPerla, Region::JarimPerla, "Jarim Shop", MapMarkerKind::Shop, 141, 77,
      MapUnlock::Always, MapAction::Shop, int(ShopId::JarimPerla)},
@@ -81,10 +81,11 @@ struct MapRouteChoice
     int count;
 };
 
-constexpr std::array<MapRouteChoice, 32> MARI_MARI_ROUTE_CHOICES = {{
+constexpr std::array<MapRouteChoice, 34> MARI_MARI_ROUTE_CHOICES = {{
     {Region::MariMari, MapTarget::Lagoon, MapDirection::Up, {MapTarget::ShopMariMari, MapTarget::None, MapTarget::None}, 1},
     {Region::MariMari, MapTarget::Lagoon, MapDirection::Down, {MapTarget::Cave, MapTarget::None, MapTarget::None}, 1},
     {Region::MariMari, MapTarget::Lagoon, MapDirection::Right, {MapTarget::Pier, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::Lagoon, MapDirection::Left, {MapTarget::Cave, MapTarget::None, MapTarget::None}, 1},
 
     {Region::MariMari, MapTarget::Cave, MapDirection::Up, {MapTarget::Lagoon, MapTarget::ShopMariMari, MapTarget::None}, 2},
     {Region::MariMari, MapTarget::Cave, MapDirection::Right, {MapTarget::Ocean, MapTarget::Pier, MapTarget::None}, 2},
@@ -119,6 +120,7 @@ constexpr std::array<MapRouteChoice, 32> MARI_MARI_ROUTE_CHOICES = {{
 
     {Region::MariMari, MapTarget::River, MapDirection::Down, {MapTarget::TravelMariMari, MapTarget::Beach, MapTarget::Pier}, 3},
     {Region::MariMari, MapTarget::River, MapDirection::Left, {MapTarget::CrystalLake, MapTarget::None, MapTarget::None}, 1},
+    {Region::MariMari, MapTarget::River, MapDirection::Right, {MapTarget::TravelMariMari, MapTarget::None, MapTarget::None}, 1},
 
     {Region::MariMari, MapTarget::TravelMariMari, MapDirection::Up, {MapTarget::River, MapTarget::None, MapTarget::None}, 1},
     {Region::MariMari, MapTarget::TravelMariMari, MapDirection::Down, {MapTarget::Beach, MapTarget::Pier, MapTarget::None}, 2},
@@ -132,10 +134,10 @@ constexpr std::array<MapRouteChoice, 8> JARIM_PERLA_ROUTE_CHOICES = {{
     {Region::JarimPerla, MapTarget::Bridge, MapDirection::Left, {MapTarget::TravelJarimPerla, MapTarget::None, MapTarget::None}, 1},
     {Region::JarimPerla, MapTarget::Bridge, MapDirection::Right, {MapTarget::Breakwater, MapTarget::None, MapTarget::None}, 1},
     {Region::JarimPerla, MapTarget::Breakwater, MapDirection::Left, {MapTarget::Bridge, MapTarget::None, MapTarget::None}, 1},
-    {Region::JarimPerla, MapTarget::Bridge, MapDirection::DownRight, {MapTarget::ShopJarimPerla, MapTarget::None, MapTarget::None}, 1},
-    {Region::JarimPerla, MapTarget::ShopJarimPerla, MapDirection::UpLeft, {MapTarget::Bridge, MapTarget::None, MapTarget::None}, 1},
-    {Region::JarimPerla, MapTarget::ShopJarimPerla, MapDirection::DownLeft, {MapTarget::CityBeach, MapTarget::None, MapTarget::None}, 1},
-    {Region::JarimPerla, MapTarget::CityBeach, MapDirection::UpRight, {MapTarget::ShopJarimPerla, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::Bridge, MapDirection::Down, {MapTarget::ShopJarimPerla, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::ShopJarimPerla, MapDirection::Up, {MapTarget::Bridge, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::ShopJarimPerla, MapDirection::Down, {MapTarget::CityBeach, MapTarget::None, MapTarget::None}, 1},
+    {Region::JarimPerla, MapTarget::CityBeach, MapDirection::Up, {MapTarget::ShopJarimPerla, MapTarget::None, MapTarget::None}, 1},
 }};
 
 template<std::size_t Size>
