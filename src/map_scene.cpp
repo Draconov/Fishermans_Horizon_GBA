@@ -151,10 +151,10 @@ void MapScene::update(FlowModel& flow)
         case MapTarget::Cave:
         case MapTarget::Shop:
         case MapTarget::Lagoon:
+        case MapTarget::Waterfall:
             flow.handle_map_command(MapCommand::Confirm);
             break;
         case MapTarget::Beach:
-        case MapTarget::Waterfall:
         case MapTarget::Catalog:
             break;
         }

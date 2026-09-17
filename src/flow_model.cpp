@@ -639,7 +639,10 @@ void FlowModel::_activate_selected_map_target() noexcept
         _state = GameState::Fishing;
         break;
     case MapTarget::Beach:
+        break;
     case MapTarget::Waterfall:
+        _fishing_pool = 7;
+        _state = GameState::Fishing;
         break;
     case MapTarget::Catalog:
         _state = GameState::Catalog;

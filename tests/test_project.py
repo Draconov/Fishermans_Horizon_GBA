@@ -95,6 +95,23 @@ def test_graphics_are_well_formed():
         assert config["type"] in {"sprite", "regular_bg"}, stem
 
 
+
+def test_waterfall_background_asset_contract():
+    bmp = ROOT / "graphics" / "fishing_bg_waterfall.bmp"
+    config_path = ROOT / "graphics" / "fishing_bg_waterfall.json"
+    assert bmp.exists()
+    assert config_path.exists()
+    assert _bmp_info(bmp) == (256, 768, 8)
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    assert config == {
+        "type": "regular_bg",
+        "bpp_mode": "bpp_8",
+        "tiles_compression": "auto_no_huffman",
+        "palette_compression": "auto_no_huffman",
+        "map_compression": "none",
+        "height": 256,
+    }
+
 def test_generated_asset_references_have_matching_graphics():
     include_pattern = re.compile(r'#include "bn_(?:regular_bg|sprite)_items_([a-z0-9_]+)\.h"')
     item_pattern = re.compile(r'bn::(?:regular_bg|sprite)_items::([a-z0-9_]+)')

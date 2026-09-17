@@ -94,7 +94,7 @@ Shop progression:
 | Captain's Hat | 60 | Lagoon |
 | Beach Ball | 30 | Beach |
 
-**Lagoon** is playable as fishing pool 6. **Beach** and **Waterfall** currently appear on the map after they are unlocked but do not enter a fishing scene yet.
+**Lagoon** is playable as fishing pool 6 and **Waterfall** is playable as fishing pool 7. **Beach** currently appears on the map after it is unlocked but does not enter a fishing scene yet.
 
 ## Saves
 

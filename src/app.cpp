@@ -163,7 +163,7 @@ void App::_sync_scene()
         _map_scene.emplace();
         break;
     case GameState::Fishing:
-        if(_flow.fishing_pool() >= 1 && _flow.fishing_pool() <= 6)
+        if(_flow.fishing_pool() >= 1 && _flow.fishing_pool() <= 7)
         {
             _fishing_scene.emplace(
                 _flow.fishing_pool(), _flow.current_rod(), _flow.equipped_bait(), _flow.current_character());

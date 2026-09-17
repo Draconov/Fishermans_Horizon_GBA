@@ -423,7 +423,7 @@ void hash_string(std::uint64_t& hash, const char* text)
 
 void test_fishing_content_contract()
 {
-    assert(fh::fishing_area_count() == 6);
+    assert(fh::fishing_area_count() == 7);
     assert(fh::fishing_area_spec(0).pool == 1);
     assert(fh::fishing_area_spec(99).pool == 1);
 
@@ -433,8 +433,11 @@ void test_fishing_content_contract()
     assert(std::strcmp(fh::fish_for_roll(4, 9)->name, "HAMMERHEAD") == 0);
     assert(std::strcmp(fh::fish_for_roll(5, 9)->name, "???") == 0);
     assert(std::strcmp(fh::fish_for_roll(6, 9)->name, "TROLLSHARK") == 0);
+    assert(std::strcmp(fh::fish_for_roll(7, 1)->name, "BOOT") == 0);
+    assert(std::strcmp(fh::fish_for_roll(7, 9)->name, "UNICUDA") == 0);
+    assert(std::strcmp(fh::fishing_area_spec(7).background_member, "graphics/fishing_bg_waterfall.bmp") == 0);
     assert(fh::fish_for_roll(1, 0) == nullptr);
-    assert(fh::fish_for_roll(6, 10) == nullptr);
+    assert(fh::fish_for_roll(7, 10) == nullptr);
 
     std::uint64_t hash = 1469598103934665603ULL;
     for(int pool = 1; pool <= fh::fishing_area_count(); ++pool)
@@ -455,7 +458,7 @@ void test_fishing_content_contract()
             hash_int(hash, fish->reward);
         }
     }
-    assert(hash == 0x407DAD1EBA58EF02ULL);
+    assert(hash == 0x288C653C85D97483ULL);
 }
 
 
@@ -1434,7 +1437,7 @@ void test_flow_model_contract()
         assert(model.state() == fh::GameState::Fishing);
         assert(model.fishing_pool() == 6);
 
-        // Beach and Waterfall remain map-only until their own art/content land.
+        // Beach remains map-only until its own art/content land. Waterfall is playable as pool 7.
         fh::FlowModel beach_model(progress);
         beach_model.complete_intro();
         beach_model.handle_title_command(fh::TitleCommand::Play);
@@ -1457,8 +1460,8 @@ void test_flow_model_contract()
         waterfall_model.handle_map_command(fh::MapCommand::Down);
         assert(waterfall_model.selected_map_target() == fh::MapTarget::Waterfall);
         waterfall_model.handle_map_command(fh::MapCommand::Confirm);
-        assert(waterfall_model.state() == fh::GameState::Map);
-        assert(waterfall_model.fishing_pool() == 0);
+        assert(waterfall_model.state() == fh::GameState::Fishing);
+        assert(waterfall_model.fishing_pool() == 7);
     }
 }
 
