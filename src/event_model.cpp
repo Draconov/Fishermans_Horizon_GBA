@@ -13,7 +13,7 @@ constexpr const char* PROLOGUE_TEXT =
     "at the shop!#See ya!";
 
 constexpr const char* ENDING_TEXT =
-    "Hya! How are you doing?!## WOW! You caught all the known sea creatures of Mari-Mari!# That<s amazing!##"
+    "Hya! How are you doing?!## WOW! You caught all the known sea creatures!# That<s amazing!##"
     "I hope you enjoyed your time here.#Thanks for playing!##See ya!";
 
 }

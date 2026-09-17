@@ -55,7 +55,7 @@ namespace fh
 
 void test_catalog_model_contract()
 {
-    assert(fh::catalog_entry_count() == 44);
+    assert(fh::catalog_entry_count() == 54);
 
     // Catalog fish/cursor anchors must match the 11 hooks on each background rack.
     assert(fh::catalog_slot_screen_x(0) == 39);
@@ -74,13 +74,13 @@ void test_catalog_model_contract()
 
     constexpr std::array<int, 5> FIRST_NUMBERS = {3, 4, 5, 1, 2};
     constexpr std::array<const char*, 5> FIRST_NAMES = {"BOOT", "CAN", "PLASTIC BAG", "SIRIRIDINE", "DRAGFISH"};
-    std::array<bool, 45> seen = {};
-    for(int cursor = 0; cursor < 44; ++cursor)
+    std::array<bool, 55> seen = {};
+    for(int cursor = 0; cursor < 54; ++cursor)
     {
         const fh::CatalogEntrySpec* entry = fh::catalog_entry_spec(cursor);
         assert(entry);
         assert(entry->cursor == cursor);
-        assert(entry->fish_number >= 1 && entry->fish_number <= 44);
+        assert(entry->fish_number >= 1 && entry->fish_number <= 54);
         assert(! seen[entry->fish_number]);
         seen[entry->fish_number] = true;
         assert(entry->name && entry->name[0] != '\0');
@@ -92,10 +92,13 @@ void test_catalog_model_contract()
         }
     }
     assert(fh::catalog_entry_spec(-1) == nullptr);
-    assert(fh::catalog_entry_spec(44) == nullptr);
-    const fh::CatalogEntrySpec* last = fh::catalog_entry_spec(43);
-    assert(last && last->fish_number == 44);
-    assert(std::strcmp(last->name, "???") == 0);
+    assert(fh::catalog_entry_spec(54) == nullptr);
+    const fh::CatalogEntrySpec* mari_last = fh::catalog_entry_spec(43);
+    assert(mari_last && mari_last->fish_number == 44);
+    assert(std::strcmp(mari_last->name, "???") == 0);
+    const fh::CatalogEntrySpec* coastal_last = fh::catalog_entry_spec(53);
+    assert(coastal_last && coastal_last->fish_number == 54);
+    assert(std::strcmp(coastal_last->name, "NEON TUNA") == 0);
 
     fh::ProgressState progress;
     fh::FlowModel flow(progress);
@@ -119,15 +122,25 @@ void test_catalog_model_contract()
     assert(catalog.selected_cursor() == 43);
     catalog.select(-1);
     assert(catalog.selected_cursor() == 43);
-    catalog.select(44);
+    catalog.select(54);
     assert(catalog.selected_cursor() == 43);
 
     assert(! catalog.complete(flow));
-    for(int fish = 1; fish <= 44; ++fish)
+    for(int fish = 1; fish <= 53; ++fish)
     {
         flow.apply_fishing_reward(fish, 0);
     }
+    assert(! catalog.complete(flow));
+    flow.apply_fishing_reward(54, 0);
     assert(catalog.complete(flow));
+
+    catalog.select(3);
+    catalog.next_section();
+    assert(catalog.section() == fh::CatalogSection::CoastalCity);
+    assert(catalog.selected_cursor() == 47);
+    catalog.previous_section();
+    assert(catalog.section() == fh::CatalogSection::MariMari);
+    assert(catalog.selected_cursor() == 3);
 
     {
         fh::CatalogModel spatial;
@@ -143,7 +156,11 @@ void test_catalog_model_contract()
         spatial.move_down();
         assert(spatial.selected_cursor() == 34);
         spatial.move_down();
+        assert(spatial.selected_cursor() == 45);
+        assert(spatial.section() == fh::CatalogSection::CoastalCity);
+        spatial.move_up();
         assert(spatial.selected_cursor() == 34);
+        assert(spatial.section() == fh::CatalogSection::MariMari);
         spatial.move_left();
         assert(spatial.selected_cursor() == 33);
         spatial.move_up();
@@ -151,7 +168,10 @@ void test_catalog_model_contract()
         spatial.select(43);
         spatial.move_right();
         spatial.move_down();
-        assert(spatial.selected_cursor() == 43);
+        assert(spatial.selected_cursor() == 53);
+        assert(spatial.section() == fh::CatalogSection::CoastalCity);
+        spatial.move_up();
+        assert(spatial.selected_cursor() == 42);
     }
 }
 
@@ -395,35 +415,10 @@ void test_event_model_contract()
 namespace
 {
 
-void hash_byte(std::uint64_t& hash, unsigned char value)
-{
-    hash ^= value;
-    hash *= 1099511628211ULL;
-}
-
-void hash_int(std::uint64_t& hash, int value)
-{
-    std::uint32_t encoded = static_cast<std::uint32_t>(value);
-    for(int shift = 0; shift < 32; shift += 8)
-    {
-        hash_byte(hash, static_cast<unsigned char>((encoded >> shift) & 0xFF));
-    }
-}
-
-void hash_string(std::uint64_t& hash, const char* text)
-{
-    while(*text)
-    {
-        hash_byte(hash, static_cast<unsigned char>(*text++));
-    }
-    hash_byte(hash, 0);
-}
-
-}
 
 void test_fishing_content_contract()
 {
-    assert(fh::fishing_area_count() == 7);
+    assert(fh::fishing_area_count() == 10);
     assert(fh::fishing_area_spec(0).pool == 1);
     assert(fh::fishing_area_spec(99).pool == 1);
 
@@ -439,28 +434,36 @@ void test_fishing_content_contract()
     assert(fh::fish_for_roll(1, 0) == nullptr);
     assert(fh::fish_for_roll(7, 10) == nullptr);
 
-    std::uint64_t hash = 1469598103934665603ULL;
-    for(int pool = 1; pool <= fh::fishing_area_count(); ++pool)
+    assert(std::strcmp(fh::fish_for_roll(8, 1)->name, "CITY MINNOW") == 0);
+    assert(fh::fish_for_roll(8, 1)->number == 45);
+    assert(std::strcmp(fh::fish_for_roll(9, 5)->name, "PIPE EEL") == 0);
+    assert(fh::fish_for_roll(9, 6)->number == 52);
+    assert(std::strcmp(fh::fish_for_roll(10, 5)->name, "JETTY SHARK") == 0);
+    assert(fh::fish_for_roll(10, 6)->number == 54);
+
+    std::array<bool, 55> new_fish_seen = {};
+    for(int pool = 8; pool <= 10; ++pool)
     {
         const fh::FishingAreaSpec& area = fh::fishing_area_spec(pool);
-        hash_int(hash, area.pool);
+        assert(area.pool == pool);
         for(int roll = 1; roll <= 9; ++roll)
         {
             const fh::FishSpec* fish = fh::fish_for_roll(pool, roll);
             assert(fish);
-            hash_string(hash, fish->name);
-            hash_int(hash, fish->number);
-            hash_int(hash, fish->difficulty);
-            hash_int(hash, fish->bait);
-            hash_int(hash, fish->movement);
-            hash_int(hash, fish->distance);
-            hash_int(hash, fish->sprite);
-            hash_int(hash, fish->reward);
+            if(fish->number >= 45 && fish->number <= 54)
+            {
+                new_fish_seen[fish->number] = true;
+            }
         }
     }
-    assert(hash == 0x288C653C85D97483ULL);
+    for(int fish = 45; fish <= 54; ++fish)
+    {
+        assert(new_fish_seen[fish]);
+    }
+
 }
 
+}
 
 // ---- test_fishing_model.cpp ----
 #include <cassert>
@@ -965,7 +968,6 @@ void test_fishing_model_contract()
     }
 }
 
-
 // ---- test_flow_model.cpp ----
 #include <cassert>
 
@@ -1466,6 +1468,93 @@ void test_flow_model_contract()
 }
 
 
+void test_map2_region_contract()
+{
+    const fh::ShopItemSpec* keys = fh::shop_item_spec(fh::ShopId::MariMari, 18);
+    assert(keys);
+    assert(std::strcmp(keys->name, "Car Keys") == 0);
+    assert(keys->price == 100);
+
+    fh::ProgressState progress;
+    progress.prologue_complete = true;
+    progress.money = 200;
+    fh::FlowModel flow(progress);
+    flow.complete_intro();
+
+    assert(flow.active_region() == fh::Region::MariMari);
+    assert(! flow.map_target_enabled(fh::MapTarget::TravelMariMari));
+    assert(! flow.map_target_enabled(fh::MapTarget::TravelCoastalCity));
+    assert(flow.purchase_shop_item(fh::ShopId::MariMari, 18) == fh::ShopPurchaseResult::Purchased);
+    assert(flow.money() == 100);
+    assert(flow.shop_item_owned(fh::ShopId::MariMari, 18));
+    assert(flow.map_target_enabled(fh::MapTarget::TravelMariMari));
+    assert(flow.map_target_enabled(fh::MapTarget::TravelCoastalCity));
+
+    flow.handle_title_command(fh::TitleCommand::Play);
+    assert(flow.state() == fh::GameState::Map);
+    assert(flow.selected_map_target() == fh::MapTarget::CrystalLake);
+    flow.handle_map_command(fh::MapCommand::Left);
+    assert(flow.selected_map_target() == fh::MapTarget::ShopMariMari);
+    flow.handle_map_command(fh::MapCommand::Up);
+    assert(flow.selected_map_target() == fh::MapTarget::TravelMariMari);
+    const auto travel_revision = flow.progress_revision();
+    flow.handle_map_command(fh::MapCommand::Confirm);
+    assert(flow.state() == fh::GameState::Map);
+    assert(flow.active_region() == fh::Region::CoastalCity);
+    assert(flow.selected_map_target() == fh::MapTarget::CityBeach);
+    assert(flow.progress_revision() == travel_revision + 1);
+
+    assert(flow.map_target_enabled(fh::MapTarget::CityBeach));
+    assert(flow.map_target_enabled(fh::MapTarget::Bridge));
+    assert(flow.map_target_enabled(fh::MapTarget::ShopCoastalCity));
+    assert(flow.map_target_enabled(fh::MapTarget::TravelCoastalCity));
+    assert(! flow.map_target_enabled(fh::MapTarget::Breakwater));
+
+    // City Beach enters pool 8.
+    flow.handle_map_command(fh::MapCommand::Confirm);
+    assert(flow.state() == fh::GameState::Fishing);
+    assert(flow.fishing_pool() == 8);
+    flow.handle_fishing_back();
+
+    // Bridge is the second immediate location and enters pool 9.
+    flow.handle_map_command(fh::MapCommand::Right);
+    assert(flow.selected_map_target() == fh::MapTarget::Bridge);
+    flow.handle_map_command(fh::MapCommand::Confirm);
+    assert(flow.state() == fh::GameState::Fishing);
+    assert(flow.fishing_pool() == 9);
+    flow.handle_fishing_back();
+
+    // Shop 2 is distinct, with Item 1 unlocking Breakwater.
+    flow.handle_map_command(fh::MapCommand::Right);
+    assert(flow.selected_map_target() == fh::MapTarget::ShopCoastalCity);
+    flow.handle_map_command(fh::MapCommand::Confirm);
+    assert(flow.state() == fh::GameState::Shop);
+    assert(flow.active_shop() == fh::ShopId::CoastalCity);
+    assert(fh::shop_item_count(fh::ShopId::CoastalCity) == 1);
+    const fh::ShopItemSpec* item1 = fh::shop_item_spec(fh::ShopId::CoastalCity, 0);
+    assert(item1 && item1->price == 20);
+    assert(flow.purchase_shop_item(fh::ShopId::CoastalCity, 0) == fh::ShopPurchaseResult::Purchased);
+    assert(flow.shop_item_owned(fh::ShopId::CoastalCity, 0));
+    assert(flow.map_target_enabled(fh::MapTarget::Breakwater));
+    flow.handle_shop_back();
+
+    flow.handle_map_command(fh::MapCommand::Down);
+    assert(flow.selected_map_target() == fh::MapTarget::Breakwater);
+    flow.handle_map_command(fh::MapCommand::Confirm);
+    assert(flow.state() == fh::GameState::Fishing);
+    assert(flow.fishing_pool() == 10);
+    flow.handle_fishing_back();
+
+    // Travel back returns to Crystal Lake and leaves Shop 2 ownership intact.
+    flow.handle_map_command(fh::MapCommand::Left);
+    assert(flow.selected_map_target() == fh::MapTarget::TravelCoastalCity);
+    flow.handle_map_command(fh::MapCommand::Confirm);
+    assert(flow.active_region() == fh::Region::MariMari);
+    assert(flow.selected_map_target() == fh::MapTarget::CrystalLake);
+    assert(flow.shop_item_owned(fh::ShopId::CoastalCity, 0));
+}
+
+
 // ---- test_intro_model.cpp ----
 #include <cassert>
 
@@ -1662,6 +1751,58 @@ void test_presentation_effects_contract()
 namespace
 {
 
+std::uint32_t save_test_crc32(const std::uint8_t* data, std::size_t size)
+{
+    std::uint32_t crc = 0xFFFFFFFFu;
+    for(std::size_t index = 0; index < size; ++index)
+    {
+        crc ^= data[index];
+        for(int bit = 0; bit < 8; ++bit)
+        {
+            const std::uint32_t mask = 0u - (crc & 1u);
+            crc = (crc >> 1) ^ (0xEDB88320u & mask);
+        }
+    }
+    return crc ^ 0xFFFFFFFFu;
+}
+
+void save_test_write_u16(fh::SaveImage& image, int offset, std::uint16_t value)
+{
+    image.bytes[offset] = std::uint8_t(value & 0xFFu);
+    image.bytes[offset + 1] = std::uint8_t((value >> 8) & 0xFFu);
+}
+
+void save_test_write_u32(fh::SaveImage& image, int offset, std::uint32_t value)
+{
+    image.bytes[offset] = std::uint8_t(value & 0xFFu);
+    image.bytes[offset + 1] = std::uint8_t((value >> 8) & 0xFFu);
+    image.bytes[offset + 2] = std::uint8_t((value >> 16) & 0xFFu);
+    image.bytes[offset + 3] = std::uint8_t((value >> 24) & 0xFFu);
+}
+
+fh::SaveImage make_v2_migration_image()
+{
+    fh::SaveImage image;
+    image.bytes[0] = 'F'; image.bytes[1] = 'H'; image.bytes[2] = 'G'; image.bytes[3] = 'S';
+    save_test_write_u16(image, 4, 2);
+    save_test_write_u16(image, 6, 19);
+    constexpr int p = 12;
+    image.bytes[p + 0] = 0;
+    image.bytes[p + 1] = 1;
+    save_test_write_u16(image, p + 2, 321);
+    image.bytes[p + 4] = 1;
+    image.bytes[p + 5] = 0;
+    image.bytes[p + 6] = 0;
+    image.bytes[p + 7] = 0x01;
+    image.bytes[p + 8] = 0x01;
+    image.bytes[p + 9] = 0x03;
+    image.bytes[p + 10] = 0x31; // Club Card + Captain's Hat + Beach Ball.
+    image.bytes[p + 11] = 0x01; // fish 1
+    image.bytes[p + 16] = 0x08; // fish 44
+    save_test_write_u32(image, 8, save_test_crc32(image.bytes.data() + p, 19));
+    return image;
+}
+
 void assert_progress_equal(const fh::ProgressState& a, const fh::ProgressState& b)
 {
     assert(a.prologue_complete == b.prologue_complete);
@@ -1672,6 +1813,8 @@ void assert_progress_equal(const fh::ProgressState& a, const fh::ProgressState& 
     assert(a.catalog == b.catalog);
     assert(a.captains_hat == b.captains_hat);
     assert(a.beach_ball == b.beach_ball);
+    assert(a.car_keys == b.car_keys);
+    assert(a.active_region == b.active_region);
     assert(a.money == b.money);
     assert(a.current_character == b.current_character);
     assert(a.current_rod == b.current_rod);
@@ -1679,6 +1822,7 @@ void assert_progress_equal(const fh::ProgressState& a, const fh::ProgressState& 
     assert(a.bait_owned == b.bait_owned);
     assert(a.rod_owned == b.rod_owned);
     assert(a.character_owned == b.character_owned);
+    assert(a.shop2_owned == b.shop2_owned);
     assert(a.fish_catalog == b.fish_catalog);
 }
 
@@ -1696,15 +1840,15 @@ void test_save_codec_contract()
     assert(defaults.character_owned[1]);
 
     const fh::SaveImage fresh = fh::encode_save(defaults);
-    static_assert(fh::SAVE_IMAGE_SIZE == 32);
+    static_assert(fh::SAVE_IMAGE_SIZE == 64);
     assert(fresh.bytes[0] == 'F');
     assert(fresh.bytes[1] == 'H');
     assert(fresh.bytes[2] == 'G');
     assert(fresh.bytes[3] == 'S');
-    static_assert(fh::SAVE_FORMAT_VERSION == 2);
-    static_assert(fh::SAVE_PAYLOAD_SIZE == 19);
-    assert(fresh.bytes[4] == 2 && fresh.bytes[5] == 0);  // version 2 LE
-    assert(fresh.bytes[6] == 19 && fresh.bytes[7] == 0); // payload bytes LE
+    static_assert(fh::SAVE_FORMAT_VERSION == 3);
+    static_assert(fh::SAVE_PAYLOAD_SIZE == 32);
+    assert(fresh.bytes[4] == 3 && fresh.bytes[5] == 0);  // version 3 LE
+    assert(fresh.bytes[6] == 32 && fresh.bytes[7] == 0); // payload bytes LE
 
     fh::SaveImage old_v1 = fresh;
     old_v1.bytes[4] = 1;
@@ -1717,6 +1861,22 @@ void test_save_codec_contract()
     assert(! fresh_decoded.progress.captains_hat);
     assert(! fresh_decoded.progress.beach_ball);
 
+
+    const fh::SaveDecodeResult migrated = fh::decode_save(make_v2_migration_image());
+    assert(migrated.valid);
+    assert(migrated.progress.prologue_complete);
+    assert(migrated.progress.sound == 0);
+    assert(migrated.progress.money == 321);
+    assert(migrated.progress.club_card);
+    assert(migrated.progress.captains_hat);
+    assert(migrated.progress.beach_ball);
+    assert(migrated.progress.fish_catalog[0]);
+    assert(migrated.progress.fish_catalog[43]);
+    assert(! migrated.progress.fish_catalog[44]);
+    assert(! migrated.progress.car_keys);
+    assert(migrated.progress.active_region == fh::Region::MariMari);
+    for(bool owned : migrated.progress.shop2_owned) assert(! owned);
+
     fh::ProgressState full = defaults;
     full.prologue_complete = true;
     full.sound = 0;
@@ -1726,6 +1886,10 @@ void test_save_codec_contract()
     full.catalog = true;
     full.captains_hat = true;
     full.beach_ball = true;
+    full.car_keys = true;
+    full.active_region = fh::Region::CoastalCity;
+    full.shop2_owned[0] = true;
+    full.shop2_owned[17] = true;
     full.money = 987;
     full.current_character = 5;
     full.current_rod = 2;
@@ -1733,7 +1897,7 @@ void test_save_codec_contract()
     full.bait_owned.fill(true);
     full.rod_owned.fill(true);
     full.character_owned.fill(true);
-    for(int index = 0; index < 44; ++index)
+    for(int index = 0; index < 54; ++index)
     {
         full.fish_catalog[index] = index % 3 != 1;
     }
@@ -1741,7 +1905,7 @@ void test_save_codec_contract()
     const fh::SaveImage full_image_a = fh::encode_save(full);
     const fh::SaveImage full_image_b = fh::encode_save(full);
     assert(full_image_a.bytes == full_image_b.bytes);
-    assert((full_image_a.bytes[22] & 0x30u) == 0x30u);
+    assert((full_image_a.bytes[22] & 0x70u) == 0x70u);
     const fh::SaveDecodeResult full_decoded = fh::decode_save(full_image_a);
     assert(full_decoded.valid);
     assert_progress_equal(full, full_decoded.progress);
@@ -1753,7 +1917,7 @@ void test_save_codec_contract()
     assert_progress_equal(defaults, corrupt_decoded.progress);
 
     fh::SaveImage wrong_version = full_image_a;
-    wrong_version.bytes[4] = 3;
+    wrong_version.bytes[4] = 99;
     const fh::SaveDecodeResult version_decoded = fh::decode_save(wrong_version);
     assert(! version_decoded.valid);
     assert_progress_equal(defaults, version_decoded.progress);
@@ -1770,6 +1934,8 @@ void test_save_codec_contract()
     invalid_source.bait_owned.fill(false);
     invalid_source.rod_owned.fill(false);
     invalid_source.character_owned.fill(false);
+    invalid_source.active_region = fh::Region::CoastalCity;
+    invalid_source.car_keys = false;
     const fh::SaveDecodeResult sanitized = fh::decode_save(fh::encode_save(invalid_source));
     assert(sanitized.valid);
     assert(sanitized.progress.sound == 1);
@@ -1781,6 +1947,7 @@ void test_save_codec_contract()
     assert(sanitized.progress.current_character == 0);
     assert(sanitized.progress.current_rod == 0);
     assert(sanitized.progress.equipped_bait == 0);
+    assert(sanitized.progress.active_region == fh::Region::MariMari);
 }
 
 
@@ -1795,8 +1962,8 @@ void test_save_codec_contract()
 namespace
 {
 
-constexpr std::array<int, 18> EXPECTED_PRICES = {
-    15, 15, 30, 45, 100, 100, 45, 120, 30, 60, 120, 20, 30, 30, 50, 100, 60, 30,
+constexpr std::array<int, 19> EXPECTED_PRICES = {
+    15, 15, 30, 45, 100, 100, 45, 120, 30, 60, 120, 20, 30, 30, 50, 100, 60, 30, 100,
 };
 
 void verify_effect(int slot, const fh::FlowModel& flow)
@@ -1848,6 +2015,10 @@ void verify_effect(int slot, const fh::FlowModel& flow)
     case 17:
         assert(flow.map_target_enabled(fh::MapTarget::Beach));
         break;
+    case 18:
+        assert(flow.map_target_enabled(fh::MapTarget::TravelMariMari));
+        assert(flow.map_target_enabled(fh::MapTarget::TravelCoastalCity));
+        break;
     default:
         assert(false);
     }
@@ -1857,8 +2028,8 @@ void verify_effect(int slot, const fh::FlowModel& flow)
 
 void test_shop_model_contract()
 {
-    assert(fh::shop_item_count() == 18);
-    for(int slot = 0; slot < 18; ++slot)
+    assert(fh::shop_item_count() == 19);
+    for(int slot = 0; slot < 19; ++slot)
     {
         const fh::ShopItemSpec* item = fh::shop_item_spec(slot);
         assert(item);
@@ -1868,7 +2039,7 @@ void test_shop_model_contract()
         assert(item->description && item->description[0] != '\0');
     }
     assert(fh::shop_item_spec(-1) == nullptr);
-    assert(fh::shop_item_spec(18) == nullptr);
+    assert(fh::shop_item_spec(19) == nullptr);
 
     {
         fh::ProgressState progress;
@@ -1879,7 +2050,7 @@ void test_shop_model_contract()
         assert((progress.character_owned == std::array<bool, 6>{true, true, false, false, false, false}));
     }
 
-    for(int slot = 0; slot < 18; ++slot)
+    for(int slot = 0; slot < 19; ++slot)
     {
         fh::ProgressState progress;
         progress.prologue_complete = true;
@@ -1922,35 +2093,39 @@ void test_shop_model_contract()
         assert(shop.selected_item() == 0);
         assert(shop.page() == 0);
         shop.previous();
-        assert(shop.selected_item() == 17);
+        assert(shop.selected_item() == 18);
         assert(shop.page() == 1);
         shop.next();
         assert(shop.selected_item() == 0);
-        shop.select(17);
+        shop.select(18);
         shop.next();
         assert(shop.selected_item() == 0);
         shop.select(-1);
         assert(shop.selected_item() == 0);
-        shop.select(18);
+        shop.select(19);
         assert(shop.selected_item() == 0);
 
         // Shoulder-page navigation keeps the original 4x4 page intact and
-        // exposes only the two active cells on custom page 2.
+        // exposes Captain's Hat, Beach Ball, and Car Keys on page 2.
         shop.next_page();
         assert(shop.page() == 1);
         assert(shop.selected_item() == 16);
         shop.move_right();
         assert(shop.selected_item() == 17);
         shop.move_right();
-        assert(shop.selected_item() == 17);
+        assert(shop.selected_item() == 18);
+        shop.move_right();
+        assert(shop.selected_item() == 18);
         shop.move_down();
-        assert(shop.selected_item() == 17);
+        assert(shop.selected_item() == 18);
         shop.move_up();
-        assert(shop.selected_item() == 13);
+        assert(shop.selected_item() == 14);
         assert(shop.page() == 0);
         shop.move_down();
-        assert(shop.selected_item() == 17);
+        assert(shop.selected_item() == 18);
         assert(shop.page() == 1);
+        shop.move_left();
+        assert(shop.selected_item() == 17);
         shop.move_left();
         assert(shop.selected_item() == 16);
         shop.move_up();
@@ -1990,8 +2165,8 @@ void test_shop_model_contract()
         assert(shop.selected_item() == 13);
         assert(shop.page() == 0);
 
-        const int expected_page_two[4] = {16, 17, 17, 17};
-        const int expected_page_one[2] = {12, 13};
+        const int expected_page_two[4] = {16, 17, 18, 18};
+        const int expected_page_one[3] = {12, 13, 14};
         for(int column = 0; column < 4; ++column)
         {
             shop.select(12 + column);
@@ -1999,7 +2174,7 @@ void test_shop_model_contract()
             assert(shop.selected_item() == expected_page_two[column]);
             assert(shop.page() == 1);
         }
-        for(int column = 0; column < 2; ++column)
+        for(int column = 0; column < 3; ++column)
         {
             shop.select(16 + column);
             shop.move_up();
@@ -2013,6 +2188,28 @@ void test_shop_model_contract()
         shop.select(15);
         shop.move_right();
         assert(shop.selected_item() == 15);
+    }
+
+    {
+        assert(fh::shop_item_count(fh::ShopId::CoastalCity) == 1);
+        const fh::ShopItemSpec* item = fh::shop_item_spec(fh::ShopId::CoastalCity, 0);
+        assert(item && item->price == 20);
+        assert(std::strcmp(item->name, "Item 1") == 0);
+
+        fh::ProgressState progress;
+        progress.money = 50;
+        progress.car_keys = true;
+        progress.active_region = fh::Region::CoastalCity;
+        fh::FlowModel flow(progress);
+        fh::ShopModel city_shop(fh::ShopId::CoastalCity);
+        assert(city_shop.selected_item() == 0);
+        city_shop.move_right();
+        city_shop.move_down();
+        assert(city_shop.selected_item() == 0);
+        assert(city_shop.purchase(flow) == fh::ShopPurchaseResult::Purchased);
+        assert(flow.money() == 30);
+        assert(city_shop.sold_out(flow));
+        assert(flow.map_target_enabled(fh::MapTarget::Breakwater));
     }
 
     {
@@ -2119,6 +2316,7 @@ int main()
     test_fishing_content_contract();
     test_fishing_model_contract();
     test_flow_model_contract();
+    test_map2_region_contract();
     test_intro_model_contract();
     test_ui_font_contract();
     test_options_model_contract();

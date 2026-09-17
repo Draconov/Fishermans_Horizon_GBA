@@ -24,7 +24,7 @@ public:
 
 private:
     void _advance_background();
-    void _build_fish_grid(const FlowModel& flow);
+    void _rebuild_fish_grid(const FlowModel& flow);
     void _render_text(const FlowModel& flow);
     void _update_cursor();
 

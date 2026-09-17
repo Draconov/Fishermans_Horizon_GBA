@@ -28,6 +28,9 @@ enum class ShopCheatResult
 class ShopModel
 {
 public:
+    explicit ShopModel(ShopId shop = ShopId::MariMari) noexcept;
+
+    [[nodiscard]] ShopId shop_id() const noexcept;
     [[nodiscard]] int selected_item() const noexcept;
     [[nodiscard]] int page() const noexcept;
     [[nodiscard]] int price() const noexcept;
@@ -47,6 +50,10 @@ public:
     void reset_cheat() noexcept;
 
 private:
+    [[nodiscard]] int _item_count() const noexcept;
+    [[nodiscard]] int _page_count() const noexcept;
+
+    ShopId _shop_id = ShopId::MariMari;
     int _selected_item = 0;
     int _cheat_index = 0;
     int _cheat_start_frame = 0;

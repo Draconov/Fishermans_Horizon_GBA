@@ -7,7 +7,7 @@ A native Game Boy Advance fishing game built with C++17 and [Butano](https://git
 - devkitPro / devkitARM
 - Butano **21.7.1**
 - GNU Make
-- Python 3 for tests and release packaging
+- Python 3
 - `pytest` and a host C++17 compiler (`g++` or `c++`) for the lightweight project tests
 
 ## Build locally
@@ -19,17 +19,102 @@ git clone --depth 1 --branch 21.7.1 https://github.com/GValiente/butano.git ../b
 make -j2 LIBBUTANO=../butano/butano
 ```
 
-The ROM is written as:
+The ROM is written as `Fishermans_Horizon_GBA.gba`.
 
-```text
-Fishermans_Horizon_GBA.gba
-```
-
-To create the release ROM and checksum files:
+To create release ROM/checksum files:
 
 ```bash
 python3 scripts/package_rom.py --rom Fishermans_Horizon_GBA.gba --out dist
 ```
+
+## Regions
+
+The game now supports multiple world regions through a shared region/map framework.
+
+### Region 1 — Mari-Mari
+
+Existing locations and progression remain intact:
+
+- Crystal Lake
+- Pier
+- River
+- Ocean
+- Cave
+- Lagoon
+- Beach
+- Waterfall
+- Mari-Mari Shop
+- Catalog
+- Travel point
+
+Current unlock items:
+
+| Item | Price | Unlock |
+| --- | ---: | --- |
+| Club card | 60 | River |
+| Old Boat | 30 | Ocean + Waterfall |
+| Ancient Map | 120 | Cave |
+| Catalog | 20 | Global Catalog |
+| Captain's Hat | 60 | Lagoon |
+| Beach Ball | 30 | Beach |
+| **Car Keys** | **100** | **Travel between regions** |
+
+Beach is still map-only until its own fishing background/content is added.
+
+### Region 2 — Coastal City
+
+After buying **Car Keys**, use the Travel marker on either map to move between regions.
+
+Map 2 currently contains:
+
+- **City Beach** — available immediately, fishing pool 8
+- **Bridge** — available immediately, fishing pool 9
+- **Breakwater** — fishing pool 10, unlocked by Shop 2 Item 1
+- **City Shop** — completely separate inventory from Mari-Mari Shop
+- **Travel** — returns to Mari-Mari
+
+Shop 2 starts with:
+
+| Item | Price | Effect |
+| --- | ---: | --- |
+| Item 1 | 20 | Unlock Breakwater |
+
+Map 2 currently uses final-named placeholder graphics. Replace those files later with final artwork without changing gameplay code.
+
+## Global progression
+
+These are shared between regions:
+
+- money
+- rods and equipped rod
+- bait ownership/equipped bait
+- characters/current character
+- sound option
+- one global fish catalog
+
+Shop 2 purchase ownership is separate from Mari-Mari Shop ownership.
+
+## Catalog
+
+The global catalog now contains **54 fish**:
+
+- Mari-Mari section: fish 1–44
+- Coastal City section: fish 45–54
+
+Coastal City adds 10 species whose current visuals intentionally reuse existing fish frames until final sprites are supplied:
+
+1. CITY MINNOW
+2. GLASSFISH
+3. PAVEMENT CARP
+4. BRIDGE BASS
+5. RUSTFIN
+6. PIPE EEL
+7. BREAKWATER BREAM
+8. FOAMRAY
+9. JETTY SHARK
+10. NEON TUNA
+
+In the Catalog, **L/R switches region sections**. D-pad navigation can also cross between the bottom row of the Mari-Mari section and the Coastal City section. Catalog completion requires all 54 species.
 
 ## Controls
 
@@ -41,79 +126,69 @@ python3 scripts/package_rom.py --rom Fishermans_Horizon_GBA.gba --out dist
 ### Map
 
 - **D-pad** — move between available locations
-- **A** — enter the selected location
-- **B** — return to the title screen
+- **A** — enter/activate the selected location
+- **B** — return to title
 - **L / R** — cycle owned characters
-- **Start** — open the Catalog when it has been purchased
+- **Start** — open the global Catalog when purchased
 
 ### Shop
 
-- **D-pad** — move between items
-- **A** — buy the selected item
-- **Select** — read the item description
-- **B** — leave the shop; while a description is open, close it
-- **L / R** — switch shop pages
-
-The shop contains the original 16-item page plus a second page containing Captain's Hat and Beach Ball.
+- **D-pad** — move between items; page boundaries can be discovered naturally with Up/Down
+- **A** — buy
+- **Select** — item description
+- **B** — leave / close description
+- **L / R** — switch shop pages when a shop has more than one page
 
 ### Fishing
 
-- **Hold/release A** — charge and cast / operate the rod according to the current fishing state
-- **L / R while standing** — cycle through owned bait
-- **Select while bait is in the water** — cancel the cast
-- **B** — return to the map when no dialog is active
+- **Hold/release A** — charge/cast and operate the rod for the current state
+- **L / R while standing** — cycle owned bait
+- **Select while bait is in the water** — cancel cast
+- **B** — return to map when no dialog is active
 - **A** — advance result/dialog text
 
 ### Catalog
 
-- **D-pad** — move between entries
-- **A** — open details for a caught fish
-- **B** — return to the map
+- **D-pad** — move between fish
+- **L / R** — switch Mari-Mari / Coastal City sections
+- **A** — details for a caught fish
+- **B** — return to map
 
 ### Options
 
 - **A / Left / Right** — toggle sound
-- **B** — return to the title screen
-
-## Locations and unlocks
-
-Always available:
-
-- Crystal Lake
-- Pier
-- Mari-Mari Shop
-
-Shop progression:
-
-| Item | Price | Unlock |
-| --- | ---: | --- |
-| Club card | 60 | River |
-| Old Boat | 30 | Ocean **and Waterfall** |
-| Ancient Map | 120 | Cave |
-| Catalog | 20 | Catalog |
-| Captain's Hat | 60 | Lagoon |
-| Beach Ball | 30 | Beach |
-
-**Lagoon** is playable as fishing pool 6 and **Waterfall** is playable as fishing pool 7. **Beach** currently appears on the map after it is unlocked but does not enter a fishing scene yet.
+- **B** — return to title
 
 ## Saves
 
-Progress is stored in GBA SRAM. The current save image is **32 bytes**, format **version 2**, with a **19-byte payload**. Existing version-2 saves remain compatible with the current shop and location unlock flags.
+Progress is stored in GBA SRAM.
 
-The game saves when progress changes and restores the saved state on startup.
+Current format:
 
-## Graphics and assets
+- save image: **64 bytes**
+- format: **version 3**
+- payload: **32 bytes**
 
-Graphics live in `graphics/`. Every active bitmap has a matching Butano JSON configuration with the same stem, for example:
+Version 3 stores the active region, Car Keys, 32 reserved Shop 2 ownership bits, and all 54 catalog flags. Valid **version 2 saves are migrated automatically**: existing Mari-Mari progress is preserved, Coastal City begins locked/unvisited, Shop 2 begins unpurchased, and fish 45–54 begin uncaught.
+
+Loading resumes on the **last active region**. A malformed save that claims Coastal City without Car Keys is safely returned to Mari-Mari.
+
+## Placeholder graphics for Map 2
+
+These are final logical filenames even though the first implementation reuses existing art:
 
 ```text
-graphics/shop_bg.bmp
-graphics/shop_bg.json
+graphics/map_bg_region2.bmp
+graphics/map_travel_spots.bmp
+graphics/shop_bg_region2.bmp
+graphics/fishing_bg_city_beach.bmp
+graphics/fishing_bg_bridge.bmp
+graphics/fishing_bg_breakwater.bmp
 ```
 
-Current artwork is 8-bit indexed BMP data prepared for Butano. Asset filenames describe their runtime purpose (`shop_bg`, `fishing_bg_lagoon`, `dialog_panel`, `ui_font`, and so on) rather than development milestones.
+Every bitmap has a matching Butano JSON file. Final artwork can replace these assets directly.
 
-Artwork can change freely as long as the asset remains valid for the build. The test suite checks asset structure and generated-item integration; it does **not** enforce exact artwork pixels.
+Fishing backgrounds use the established **256×768, 8-bit indexed BMP** format: three stacked 256×256 frames.
 
 ## Tests
 
@@ -124,29 +199,16 @@ tests/runtime_tests.cpp
 tests/test_project.py
 ```
 
-Run all project tests with:
+Run everything with:
 
 ```bash
 python3 -m pytest -q tests/test_project.py
 ```
 
-`test_project.py` compiles and executes the single host-side C++ runtime contract, validates graphics/JSON pairing and generated asset references, checks the standalone repository layout, and verifies ROM packaging.
+The suite compiles/runs the host C++ runtime contract, validates graphics/JSON pairing and generated-item references, checks the standalone repo layout, and verifies ROM packaging. It does not enforce artwork pixels.
 
-The real Butano ROM build remains the final integration check.
+The real Butano/devkitARM ROM build remains the final integration gate.
 
 ## GitHub Actions and releases
 
-`.github/workflows/gba.yml` uses the pinned `devkitpro/devkitarm:20260221` container and Butano **21.7.1**. A build run performs:
-
-1. the two-file project test suite;
-2. a real Butano/devkitARM ROM build;
-3. ROM packaging and SHA-256 verification;
-4. artifact upload;
-5. optional GitHub Release publication for tags or an explicitly supplied release tag.
-
-The release artifact contains only:
-
-```text
-Fishermans_Horizon_GBA.gba
-Fishermans_Horizon_GBA.gba.sha256
-```
+`.github/workflows/gba.yml` uses the pinned `devkitpro/devkitarm:20260221` container and Butano **21.7.1**. A normal build performs the project tests, real Butano ROM build, package/checksum verification, and artifact upload.

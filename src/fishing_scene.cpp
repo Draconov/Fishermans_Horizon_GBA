@@ -8,6 +8,9 @@
 #include "bn_regular_bg_items_fishing_bg_pier.h"
 #include "bn_regular_bg_items_fishing_bg_river.h"
 #include "bn_regular_bg_items_fishing_bg_waterfall.h"
+#include "bn_regular_bg_items_fishing_bg_city_beach.h"
+#include "bn_regular_bg_items_fishing_bg_bridge.h"
+#include "bn_regular_bg_items_fishing_bg_breakwater.h"
 #include "bn_sprite_items_fishing_bait.h"
 #include "bn_sprite_items_fishing_character_0.h"
 #include "bn_sprite_items_fishing_character_1.h"
@@ -46,6 +49,9 @@ bn::regular_bg_ptr create_fishing_background(int pool)
     case 5: return bn::regular_bg_items::fishing_bg_cave.create_bg(0, 0, 0);
     case 6: return bn::regular_bg_items::fishing_bg_lagoon.create_bg(0, 0, 0);
     case 7: return bn::regular_bg_items::fishing_bg_waterfall.create_bg(0, 0, 0);
+    case 8: return bn::regular_bg_items::fishing_bg_city_beach.create_bg(0, 0, 0);
+    case 9: return bn::regular_bg_items::fishing_bg_bridge.create_bg(0, 0, 0);
+    case 10: return bn::regular_bg_items::fishing_bg_breakwater.create_bg(0, 0, 0);
     default: return bn::regular_bg_items::fishing_bg_crystal_lake.create_bg(0, 0, 0);
     }
 }
@@ -71,6 +77,15 @@ void set_fishing_background_map(bn::regular_bg_ptr& background, int pool, int ma
         break;
     case 7:
         background.set_map(bn::regular_bg_items::fishing_bg_waterfall.map_item(), map_index);
+        break;
+    case 8:
+        background.set_map(bn::regular_bg_items::fishing_bg_city_beach.map_item(), map_index);
+        break;
+    case 9:
+        background.set_map(bn::regular_bg_items::fishing_bg_bridge.map_item(), map_index);
+        break;
+    case 10:
+        background.set_map(bn::regular_bg_items::fishing_bg_breakwater.map_item(), map_index);
         break;
     default:
         background.set_map(bn::regular_bg_items::fishing_bg_crystal_lake.map_item(), map_index);

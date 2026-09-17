@@ -3,7 +3,7 @@ namespace fh
 {
 namespace
 {
-constexpr std::array<FishingAreaSpec, 7> AREAS = {{
+constexpr std::array<FishingAreaSpec, 10> AREAS = {{
     {
         1,
         "graphic/background/crystalLake.png",
@@ -107,6 +107,51 @@ constexpr std::array<FishingAreaSpec, 7> AREAS = {{
             {"BLUEKISSER", 13, 3, 2, 1, 80, 152, 25},
             {"NUMKITE", 34, 2, 3, 1, 80, 144, 10},
             {"UNICUDA", 41, 3, 5, 1, 80, 160, 25},
+        }},
+    },
+    {
+        8,
+        "graphics/fishing_bg_city_beach.bmp",
+        {{
+            {"CITY MINNOW", 45, 1, 0, 1, 80, 110, 5},
+            {"GLASSFISH", 46, 1, 1, 1, 80, 129, 5},
+            {"PAVEMENT CARP", 47, 2, 2, 1, 80, 138, 10},
+            {"BRIDGE BASS", 48, 2, 1, 1, 80, 137, 10},
+            {"NEON TUNA", 54, 3, 5, 1, 80, 160, 25},
+            {"SIRIRIDINE", 1, 1, 0, 1, 80, 110, 5},
+            {"SHRAMP", 22, 1, 2, 1, 80, 151, 5},
+            {"LAMBARI", 23, 2, 0, 1, 80, 154, 10},
+            {"SHELLIPOP", 25, 2, 2, 1, 80, 143, 10},
+        }},
+    },
+    {
+        9,
+        "graphics/fishing_bg_bridge.bmp",
+        {{
+            {"CITY MINNOW", 45, 1, 0, 1, 80, 110, 5},
+            {"GLASSFISH", 46, 1, 1, 1, 80, 129, 5},
+            {"BRIDGE BASS", 48, 2, 1, 1, 80, 137, 10},
+            {"RUSTFIN", 49, 2, 3, 1, 80, 130, 10},
+            {"PIPE EEL", 50, 2, 0, 1, 80, 139, 10},
+            {"FOAMRAY", 52, 3, 3, 1, 80, 144, 25},
+            {"BOOT", 3, 0, 7, 2, 40, 119, 1},
+            {"GRABCRAB", 18, 2, 1, 1, 80, 136, 10},
+            {"ILL-EEL", 21, 2, 0, 1, 80, 139, 5},
+        }},
+    },
+    {
+        10,
+        "graphics/fishing_bg_breakwater.bmp",
+        {{
+            {"PAVEMENT CARP", 47, 2, 2, 1, 80, 138, 10},
+            {"PIPE EEL", 50, 2, 0, 1, 80, 139, 10},
+            {"BREAKWATER BREAM", 51, 2, 2, 1, 80, 154, 10},
+            {"FOAMRAY", 52, 3, 3, 1, 80, 144, 25},
+            {"JETTY SHARK", 53, 4, 4, 1, 80, 157, 50},
+            {"NEON TUNA", 54, 4, 5, 1, 80, 160, 50},
+            {"SIXTOPUS", 32, 3, 2, 1, 80, 162, 25},
+            {"SHARK", 37, 4, 4, 1, 80, 157, 50},
+            {"HAMMERHEAD", 39, 4, 4, 1, 80, 159, 50},
         }},
     },
 }};

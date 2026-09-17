@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "game_state.h"
+#include "map_content.h"
 #include "progression_content.h"
 
 namespace fh
@@ -30,20 +31,6 @@ enum class MapCommand
     Back,
 };
 
-enum class MapTarget
-{
-    CrystalLake,
-    Pier,
-    Shop,
-    River,
-    Ocean,
-    Cave,
-    Lagoon,
-    Beach,
-    Waterfall,
-    Catalog,
-};
-
 struct ProgressState
 {
     bool prologue_complete = false;
@@ -54,6 +41,8 @@ struct ProgressState
     bool catalog = false;
     bool captains_hat = false;
     bool beach_ball = false;
+    bool car_keys = false;
+    Region active_region = Region::MariMari;
     int money = 10;
     int current_character = 0;
     int current_rod = 0;
@@ -61,7 +50,8 @@ struct ProgressState
     std::array<bool, 7> bait_owned = {true, false, false, false, false, false, false};
     std::array<bool, 3> rod_owned = {true, false, false};
     std::array<bool, 6> character_owned = {true, true, false, false, false, false};
-    std::array<bool, 44> fish_catalog = {};
+    std::array<bool, 32> shop2_owned = {};
+    std::array<bool, 54> fish_catalog = {};
 };
 
 class FlowModel
@@ -76,6 +66,8 @@ public:
     [[nodiscard]] int event_id() const noexcept;
     [[nodiscard]] ProgressState progress_state() const noexcept;
     [[nodiscard]] std::uint32_t progress_revision() const noexcept;
+    [[nodiscard]] Region active_region() const noexcept;
+    [[nodiscard]] ShopId active_shop() const noexcept;
 
     void complete_intro() noexcept;
     void handle_title_command(TitleCommand command) noexcept;
@@ -106,10 +98,18 @@ public:
     [[nodiscard]] bool rod_owned(int rod) const noexcept;
     [[nodiscard]] bool character_owned(int character) const noexcept;
     [[nodiscard]] int cycle_owned_character(int direction = 1) noexcept;
+
+    [[nodiscard]] bool shop_item_owned(ShopId shop, int slot) const noexcept;
+    [[nodiscard]] bool shop_item_locked(ShopId shop, int slot) const noexcept;
+    [[nodiscard]] bool shop_item_purchasable(ShopId shop, int slot) const noexcept;
+    [[nodiscard]] ShopPurchaseResult purchase_shop_item(ShopId shop, int slot) noexcept;
+
+    // Compatibility helpers for the Mari-Mari shop.
     [[nodiscard]] bool shop_item_owned(int slot) const noexcept;
     [[nodiscard]] bool shop_item_locked(int slot) const noexcept;
     [[nodiscard]] bool shop_item_purchasable(int slot) const noexcept;
     [[nodiscard]] ShopPurchaseResult purchase_shop_item(int slot) noexcept;
+
     [[nodiscard]] int cycle_owned_bait(int direction = 1) noexcept;
     [[nodiscard]] bool catalog_has_fish(int fish_number) const noexcept;
     void apply_fishing_reward(int fish_number, int reward) noexcept;
@@ -130,6 +130,7 @@ private:
     int _map_spot_a_tile = 100;
     int _map_spot_b_tile = 102;
     MapTarget _selected_map_target = MapTarget::CrystalLake;
+    ShopId _active_shop = ShopId::MariMari;
     std::uint32_t _progress_revision = 0;
 };
 

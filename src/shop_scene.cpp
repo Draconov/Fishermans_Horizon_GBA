@@ -2,6 +2,7 @@
 
 #include "bn_keypad.h"
 #include "bn_regular_bg_items_shop_bg.h"
+#include "bn_regular_bg_items_shop_bg_region2.h"
 #include "bn_sprite_items_ui_font.h"
 #include "bn_sprite_items_shop_buy_enabled.h"
 #include "bn_sprite_items_shop_cursor.h"
@@ -20,6 +21,17 @@ namespace
 {
 
 constexpr const char* SHOP_WELCOME_TEXT = "Welcome to Mari-Mari Shop";
+constexpr const char* SHOP2_WELCOME_TEXT = "Welcome to the City Shop";
+
+bn::regular_bg_ptr create_shop_background(ShopId shop)
+{
+    if(shop == ShopId::CoastalCity)
+    {
+        return bn::regular_bg_items::shop_bg_region2.create_bg(0, 0);
+    }
+    return bn::regular_bg_items::shop_bg.create_bg(0, 0);
+}
+
 
 template<int MaxSprites>
 void append_text(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, const char* text, int screen_x, int screen_y,
@@ -82,8 +94,10 @@ void append_money(bn::vector<bn::sprite_ptr, MaxSprites>& sprites, int value, in
 
 }
 
-ShopScene::ShopScene() :
-    _background(bn::regular_bg_items::shop_bg.create_bg(0, 0)),
+ShopScene::ShopScene(ShopId shop) :
+    _shop_id(shop),
+    _model(shop),
+    _background(create_shop_background(shop)),
     _keeper(bn::sprite_items::shop_keeper.create_sprite(-64, 16, 0)),
     _cursor(bn::sprite_items::shop_cursor.create_sprite(16, -40, 0)),
     _locked_overlay(bn::sprite_items::shop_locked.create_sprite(88, -16, 0)),
@@ -96,7 +110,7 @@ ShopScene::ShopScene() :
     _locked_overlay.set_visible(false);
     _buy_enabled.set_visible(false);
     _cursor.set_visible(false);
-    _dialog.start(SHOP_WELCOME_TEXT);
+    _dialog.start(_shop_id == ShopId::CoastalCity ? SHOP2_WELCOME_TEXT : SHOP_WELCOME_TEXT);
 
     for(int slot = 0; slot < 16; ++slot)
     {
@@ -181,7 +195,7 @@ void ShopScene::update(FlowModel& flow)
         {
             if(_model.page() != previous_page)
             {
-                _background.set_map(bn::regular_bg_items::shop_bg.map_item(), _model.page());
+                _set_background_page(_model.page());
             }
             _audio_event = AudioCue::NextPage;
             _last_result = ShopPurchaseResult::InvalidItem;
@@ -226,7 +240,7 @@ void ShopScene::update(FlowModel& flow)
         {
             _model.reset_cheat();
             _model.previous_page();
-            _background.set_map(bn::regular_bg_items::shop_bg.map_item(), _model.page());
+            _set_background_page(_model.page());
             _last_result = ShopPurchaseResult::InvalidItem;
             _audio_event = AudioCue::NextPage;
             _dirty = true;
@@ -235,7 +249,7 @@ void ShopScene::update(FlowModel& flow)
         {
             _model.reset_cheat();
             _model.next_page();
-            _background.set_map(bn::regular_bg_items::shop_bg.map_item(), _model.page());
+            _set_background_page(_model.page());
             _last_result = ShopPurchaseResult::InvalidItem;
             _audio_event = AudioCue::NextPage;
             _dirty = true;
@@ -261,13 +275,13 @@ void ShopScene::update(FlowModel& flow)
 
 void ShopScene::_start_description(const FlowModel& flow)
 {
-    if(flow.shop_item_locked(_model.selected_item()))
+    if(flow.shop_item_locked(_shop_id, _model.selected_item()))
     {
         _dialog.clear();
         return;
     }
 
-    if(const ShopItemSpec* item = shop_item_spec(_model.selected_item()))
+    if(const ShopItemSpec* item = shop_item_spec(_shop_id, _model.selected_item()))
     {
         _dialog.start(item->description);
     }
@@ -315,11 +329,11 @@ void ShopScene::_render(FlowModel& flow)
     {
         const int item_slot = page_start + local_slot;
         _sold_out_sprites[local_slot].set_visible(
-            item_slot < shop_item_count() && flow.shop_item_owned(item_slot));
+            item_slot < shop_item_count(_shop_id) && flow.shop_item_owned(_shop_id, item_slot));
     }
 
-    _locked_overlay.set_visible(_model.page() == 0 && flow.shop_item_locked(7));
-    _buy_enabled.set_visible(! _dialog.active() && flow.shop_item_purchasable(_model.selected_item()));
+    _locked_overlay.set_visible(_shop_id == ShopId::MariMari && _model.page() == 0 && flow.shop_item_locked(_shop_id, 7));
+    _buy_enabled.set_visible(! _dialog.active() && flow.shop_item_purchasable(_shop_id, _model.selected_item()));
 
     if(_dialog.active())
     {
@@ -336,10 +350,10 @@ void ShopScene::_render(FlowModel& flow)
     _text_sprites.clear();
 
     const int slot = _model.selected_item();
-    const ShopItemSpec* item = shop_item_spec(slot);
+    const ShopItemSpec* item = shop_item_spec(_shop_id, slot);
     if(item)
     {
-        if(flow.shop_item_locked(slot))
+        if(flow.shop_item_locked(_shop_id, slot))
         {
             append_text(_text_sprites, "???", 126, 8, 11);
             append_text(_text_sprites, "-", 24, 144, 3);
@@ -354,7 +368,7 @@ void ShopScene::_render(FlowModel& flow)
             {
                 append_text(_text_sprites, item->name, 126, 8, 11);
             }
-            if(flow.shop_item_owned(slot))
+            if(flow.shop_item_owned(_shop_id, slot))
             {
                 append_text(_text_sprites, "-", 24, 144, 3);
             }
@@ -365,6 +379,18 @@ void ShopScene::_render(FlowModel& flow)
         }
     }
     append_money(_text_sprites, flow.money(), 193, 144);
+}
+
+void ShopScene::_set_background_page(int page)
+{
+    if(_shop_id == ShopId::CoastalCity)
+    {
+        _background.set_map(bn::regular_bg_items::shop_bg_region2.map_item(), page);
+    }
+    else
+    {
+        _background.set_map(bn::regular_bg_items::shop_bg.map_item(), page);
+    }
 }
 
 AudioCue ShopScene::take_audio_event() noexcept

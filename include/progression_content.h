@@ -4,6 +4,12 @@
 namespace fh
 {
 
+enum class ShopId
+{
+    MariMari = 0,
+    CoastalCity = 1,
+};
+
 enum class ShopEffect
 {
     Bait,
@@ -15,6 +21,8 @@ enum class ShopEffect
     Character,
     CaptainsHat,
     BeachBall,
+    CarKeys,
+    CoastalItem1,
 };
 
 enum class ShopPurchaseResult
@@ -36,6 +44,10 @@ struct ShopItemSpec
     int effect_value;
 };
 
+[[nodiscard]] int shop_item_count(ShopId shop) noexcept;
+[[nodiscard]] const ShopItemSpec* shop_item_spec(ShopId shop, int slot) noexcept;
+
+// Compatibility helpers for the original Mari-Mari shop.
 [[nodiscard]] int shop_item_count() noexcept;
 [[nodiscard]] const ShopItemSpec* shop_item_spec(int slot) noexcept;
 

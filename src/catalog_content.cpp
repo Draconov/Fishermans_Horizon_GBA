@@ -7,7 +7,7 @@ namespace fh
 namespace
 {
 
-constexpr std::array<CatalogEntrySpec, 44> CATALOG_ENTRIES = {{
+constexpr std::array<CatalogEntrySpec, 54> CATALOG_ENTRIES = {{
     {0, 3, "BOOT", "An old boot. Please, discard it properly."},
     {1, 4, "CAN", "An empty can. Please, discard it properly."},
     {2, 5, "PLASTIC BAG", "A plastic bag. Please, discard it properly."},
@@ -52,6 +52,16 @@ constexpr std::array<CatalogEntrySpec, 44> CATALOG_ENTRIES = {{
     {41, 42, "SYNAMELL", "A caramel stoned fish. You cool?"},
     {42, 43, "CRYSTALINE", "An enchanted fish that habits the deeps of a cavern."},
     {43, 44, "???", "It seems to be a glitch in the game..."},
+    {44, 45, "CITY MINNOW", "A tiny fish that thrives beside the busy city."},
+    {45, 46, "GLASSFISH", "Its pale body almost disappears in clear water."},
+    {46, 47, "PAVEMENT CARP", "A stubborn carp that lives close to the concrete shore."},
+    {47, 48, "BRIDGE BASS", "It waits in the shadows cast by bridges."},
+    {48, 49, "RUSTFIN", "Its fins shine like weathered metal."},
+    {49, 50, "PIPE EEL", "A long eel that hides around pipes and pilings."},
+    {50, 51, "BREAKWATER BREAM", "It gathers where waves strike the breakwater."},
+    {51, 52, "FOAMRAY", "A flat fish that glides beneath the sea foam."},
+    {52, 53, "JETTY SHARK", "A dangerous shark that patrols the outer jetty."},
+    {53, 54, "NEON TUNA", "A fast tuna with a bright city-like glow."},
 }};
 
 }

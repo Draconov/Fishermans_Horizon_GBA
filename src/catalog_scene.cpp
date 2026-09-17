@@ -118,7 +118,7 @@ void CatalogScene::update(FlowModel& flow)
 {
     if(! _grid_built)
     {
-        _build_fish_grid(flow);
+        _rebuild_fish_grid(flow);
         _grid_built = true;
     }
 
@@ -144,6 +144,18 @@ void CatalogScene::update(FlowModel& flow)
             _audio_event = AudioCue::NextPage;
         }
     }
+    else if(bn::keypad::l_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        _model.previous_section();
+        _rebuild_fish_grid(flow);
+    }
+    else if(bn::keypad::r_pressed())
+    {
+        _audio_event = AudioCue::NextPage;
+        _model.next_section();
+        _rebuild_fish_grid(flow);
+    }
     else if(bn::keypad::left_pressed())
     {
         _audio_event = AudioCue::NextPage;
@@ -157,12 +169,16 @@ void CatalogScene::update(FlowModel& flow)
     else if(bn::keypad::up_pressed())
     {
         _audio_event = AudioCue::NextPage;
+        const CatalogSection previous = _model.section();
         _model.move_up();
+        if(_model.section() != previous) _rebuild_fish_grid(flow);
     }
     else if(bn::keypad::down_pressed())
     {
         _audio_event = AudioCue::NextPage;
+        const CatalogSection previous = _model.section();
         _model.move_down();
+        if(_model.section() != previous) _rebuild_fish_grid(flow);
     }
     else if(bn::keypad::a_pressed() && _model.selected_caught(flow))
     {
@@ -202,18 +218,19 @@ void CatalogScene::_advance_background()
     }
 }
 
-void CatalogScene::_build_fish_grid(const FlowModel& flow)
+void CatalogScene::_rebuild_fish_grid(const FlowModel& flow)
 {
-    for(int cursor = 0; cursor < catalog_entry_count(); ++cursor)
+    _fish_sprites.clear();
+    const int start = _model.section() == CatalogSection::MariMari ? 0 : 44;
+    const int end = _model.section() == CatalogSection::MariMari ? 44 : 54;
+    for(int cursor = start; cursor < end; ++cursor)
     {
         const CatalogEntrySpec* entry = catalog_entry_spec(cursor);
-        if(! entry)
-        {
-            continue;
-        }
+        if(! entry) continue;
+        const int local_slot = _model.section() == CatalogSection::MariMari ? cursor : cursor - 44;
         const int source_sprite = fish_source_sprite(entry->fish_number);
         bn::sprite_ptr fish = create_fish_sprite(
-            source_sprite, catalog_fish_screen_x(cursor) - 120, catalog_fish_screen_y(cursor) - 80);
+            source_sprite, catalog_fish_screen_x(local_slot) - 120, catalog_fish_screen_y(local_slot) - 80);
         fish.set_visible(flow.catalog_has_fish(entry->fish_number));
         _fish_sprites.push_back(bn::move(fish));
     }
@@ -240,8 +257,8 @@ void CatalogScene::_render_text(const FlowModel& flow)
 
 void CatalogScene::_update_cursor()
 {
-    const int cursor = _model.selected_cursor();
-    _cursor.set_position(catalog_slot_screen_x(cursor) - 120, catalog_slot_screen_y(cursor) - 80);
+    const int slot = _model.local_slot();
+    _cursor.set_position(catalog_slot_screen_x(slot) - 120, catalog_slot_screen_y(slot) - 80);
 }
 
 

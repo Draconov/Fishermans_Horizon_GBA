@@ -7,7 +7,7 @@ namespace fh
 namespace
 {
 
-constexpr std::array<ShopItemSpec, 18> SHOP_ITEMS = {{
+constexpr std::array<ShopItemSpec, 19> MARI_MARI_ITEMS = {{
     {0, "Bread", "A waterproof bread.", 15, ShopEffect::Bait, 1},
     {1, "Candy", "A candy suited to the taste of the sea creatures.", 15, ShopEffect::Bait, 2},
     {2, "Bitter Gum", "Did you know that some sea creatures like to chew a gum?", 30, ShopEffect::Bait, 3},
@@ -29,23 +29,53 @@ constexpr std::array<ShopItemSpec, 18> SHOP_ITEMS = {{
     {14, "Rosa", "This is Rosa, my granddaughter. She<ll be glad to fish with you!", 50, ShopEffect::Character, 4},
     {15, "Shadow", "This is Shadow, I don<t know him very well...", 100, ShopEffect::Character, 5},
     {16, "Captain<s Hat", "A captain<s hat can let you enter the lagoon.", 60, ShopEffect::CaptainsHat, 0},
-    {17, "Beach Ball", "There is nothing better than a colorful beach ball for a sunny day with friends.", 30, ShopEffect::BeachBall, 0},
+    {17, "Beach Ball", "There is nothing better than a colorful beach ball for a sunny day with friends.", 30,
+     ShopEffect::BeachBall, 0},
+    {18, "Car Keys", "Keys to a car that can take you to another region.", 100, ShopEffect::CarKeys, 0},
+}};
+
+constexpr std::array<ShopItemSpec, 1> COASTAL_CITY_ITEMS = {{
+    {0, "Item 1", "A strange item that reveals a new fishing spot.", 20, ShopEffect::CoastalItem1, 0},
 }};
 
 }
 
+int shop_item_count(ShopId shop) noexcept
+{
+    switch(shop)
+    {
+    case ShopId::MariMari:
+        return int(MARI_MARI_ITEMS.size());
+    case ShopId::CoastalCity:
+        return int(COASTAL_CITY_ITEMS.size());
+    }
+    return 0;
+}
+
+const ShopItemSpec* shop_item_spec(ShopId shop, int slot) noexcept
+{
+    if(slot < 0)
+    {
+        return nullptr;
+    }
+    switch(shop)
+    {
+    case ShopId::MariMari:
+        return slot < int(MARI_MARI_ITEMS.size()) ? &MARI_MARI_ITEMS[slot] : nullptr;
+    case ShopId::CoastalCity:
+        return slot < int(COASTAL_CITY_ITEMS.size()) ? &COASTAL_CITY_ITEMS[slot] : nullptr;
+    }
+    return nullptr;
+}
+
 int shop_item_count() noexcept
 {
-    return int(SHOP_ITEMS.size());
+    return shop_item_count(ShopId::MariMari);
 }
 
 const ShopItemSpec* shop_item_spec(int slot) noexcept
 {
-    if(slot < 0 || slot >= int(SHOP_ITEMS.size()))
-    {
-        return nullptr;
-    }
-    return &SHOP_ITEMS[slot];
+    return shop_item_spec(ShopId::MariMari, slot);
 }
 
 }

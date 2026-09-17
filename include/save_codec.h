@@ -10,9 +10,9 @@
 namespace fh
 {
 
-constexpr std::size_t SAVE_IMAGE_SIZE = 32;
-constexpr std::uint16_t SAVE_FORMAT_VERSION = 2;
-constexpr std::uint16_t SAVE_PAYLOAD_SIZE = 19;
+constexpr std::size_t SAVE_IMAGE_SIZE = 64;
+constexpr std::uint16_t SAVE_FORMAT_VERSION = 3;
+constexpr std::uint16_t SAVE_PAYLOAD_SIZE = 32;
 
 struct SaveImage
 {

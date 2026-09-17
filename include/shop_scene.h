@@ -18,7 +18,7 @@ class FlowModel;
 class ShopScene
 {
 public:
-    ShopScene();
+    explicit ShopScene(ShopId shop = ShopId::MariMari);
     void update(FlowModel& flow);
     [[nodiscard]] AudioCue take_audio_event() noexcept;
 
@@ -27,7 +27,9 @@ private:
     void _update_keeper_animation();
     void _set_keeper_frame(int frame);
     void _render(FlowModel& flow);
+    void _set_background_page(int page);
 
+    ShopId _shop_id;
     ShopModel _model;
     DialogModel _dialog;
     DialogRenderer _dialog_renderer;

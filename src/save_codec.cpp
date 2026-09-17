@@ -8,6 +8,8 @@ namespace
 {
 
 constexpr std::size_t HEADER_SIZE = 12;
+constexpr std::uint16_t V2_VERSION = 2;
+constexpr std::uint16_t V2_PAYLOAD_SIZE = 19;
 constexpr std::uint8_t MAGIC[4] = {'F', 'H', 'G', 'S'};
 
 void write_u16(std::array<std::uint8_t, SAVE_IMAGE_SIZE>& bytes, std::size_t offset, std::uint16_t value) noexcept
@@ -58,10 +60,7 @@ template<std::size_t Size>
     std::uint8_t result = 0;
     for(std::size_t index = 0; index < Size && index < 8; ++index)
     {
-        if(values[index])
-        {
-            result |= std::uint8_t(1u << index);
-        }
+        if(values[index]) result |= std::uint8_t(1u << index);
     }
     return result;
 }
@@ -71,16 +70,18 @@ void set_bool_mask(std::array<bool, Size>& values, std::uint8_t mask) noexcept
 {
     for(std::size_t index = 0; index < Size; ++index)
     {
-        values[index] = (mask & std::uint8_t(1u << index)) != 0;
+        values[index] = index < 8 && (mask & std::uint8_t(1u << index)) != 0;
     }
+}
+
+[[nodiscard]] bool valid_region(Region region) noexcept
+{
+    return region == Region::MariMari || region == Region::CoastalCity;
 }
 
 [[nodiscard]] ProgressState sanitize(ProgressState progress) noexcept
 {
-    if(progress.sound != 0 && progress.sound != 1)
-    {
-        progress.sound = 1;
-    }
+    if(progress.sound != 0 && progress.sound != 1) progress.sound = 1;
     progress.money = std::clamp(progress.money, 0, 999);
 
     progress.bait_owned[0] = true;
@@ -104,7 +105,32 @@ void set_bool_mask(std::array<bool, Size>& values, std::uint8_t mask) noexcept
         progress.equipped_bait = 0;
     }
 
+    if(! valid_region(progress.active_region) || (progress.active_region == Region::CoastalCity && ! progress.car_keys))
+    {
+        progress.active_region = Region::MariMari;
+    }
     return progress;
+}
+
+void decode_common(const std::array<std::uint8_t, SAVE_IMAGE_SIZE>& bytes, ProgressState& progress) noexcept
+{
+    const std::size_t p = HEADER_SIZE;
+    progress.sound = int(bytes[p + 0]);
+    progress.prologue_complete = bytes[p + 1] != 0;
+    progress.money = int(read_u16(bytes, p + 2));
+    progress.current_character = int(bytes[p + 4]);
+    progress.current_rod = int(bytes[p + 5]);
+    progress.equipped_bait = int(bytes[p + 6]);
+    set_bool_mask(progress.bait_owned, bytes[p + 7]);
+    set_bool_mask(progress.rod_owned, bytes[p + 8]);
+    set_bool_mask(progress.character_owned, bytes[p + 9]);
+    const std::uint8_t unlock_mask = bytes[p + 10];
+    progress.club_card = (unlock_mask & 1u) != 0;
+    progress.old_boat = (unlock_mask & 2u) != 0;
+    progress.ancient_map = (unlock_mask & 4u) != 0;
+    progress.catalog = (unlock_mask & 8u) != 0;
+    progress.captains_hat = (unlock_mask & 16u) != 0;
+    progress.beach_ball = (unlock_mask & 32u) != 0;
 }
 
 }
@@ -120,10 +146,7 @@ SaveImage encode_save(const ProgressState& source) noexcept
     SaveImage image;
     auto& bytes = image.bytes;
 
-    bytes[0] = MAGIC[0];
-    bytes[1] = MAGIC[1];
-    bytes[2] = MAGIC[2];
-    bytes[3] = MAGIC[3];
+    bytes[0] = MAGIC[0]; bytes[1] = MAGIC[1]; bytes[2] = MAGIC[2]; bytes[3] = MAGIC[3];
     write_u16(bytes, 4, SAVE_FORMAT_VERSION);
     write_u16(bytes, 6, SAVE_PAYLOAD_SIZE);
 
@@ -142,19 +165,20 @@ SaveImage encode_save(const ProgressState& source) noexcept
                                  (progress.ancient_map ? 4u : 0u) |
                                  (progress.catalog ? 8u : 0u) |
                                  (progress.captains_hat ? 16u : 0u) |
-                                 (progress.beach_ball ? 32u : 0u));
+                                 (progress.beach_ball ? 32u : 0u) |
+                                 (progress.car_keys ? 64u : 0u));
+    bytes[p + 11] = std::uint8_t(progress.active_region == Region::CoastalCity ? 1 : 0);
 
-    for(int fish = 0; fish < 44; ++fish)
+    for(int slot = 0; slot < 32; ++slot)
     {
-        if(progress.fish_catalog[fish])
-        {
-            bytes[p + 11 + (fish / 8)] |= std::uint8_t(1u << (fish % 8));
-        }
+        if(progress.shop2_owned[slot]) bytes[p + 12 + slot / 8] |= std::uint8_t(1u << (slot % 8));
     }
-    // p+17 and p+18 are reserved and remain zero.
+    for(int fish = 0; fish < 54; ++fish)
+    {
+        if(progress.fish_catalog[fish]) bytes[p + 16 + fish / 8] |= std::uint8_t(1u << (fish % 8));
+    }
 
-    const std::uint32_t checksum = crc32(bytes.data() + HEADER_SIZE, SAVE_PAYLOAD_SIZE);
-    write_u32(bytes, 8, checksum);
+    write_u32(bytes, 8, crc32(bytes.data() + HEADER_SIZE, SAVE_PAYLOAD_SIZE));
     return image;
 }
 
@@ -164,44 +188,46 @@ SaveDecodeResult decode_save(const SaveImage& image) noexcept
     result.progress = canonical_default_progress();
     const auto& bytes = image.bytes;
 
-    if(bytes[0] != MAGIC[0] || bytes[1] != MAGIC[1] || bytes[2] != MAGIC[2] || bytes[3] != MAGIC[3])
-    {
-        return result;
-    }
-    if(read_u16(bytes, 4) != SAVE_FORMAT_VERSION || read_u16(bytes, 6) != SAVE_PAYLOAD_SIZE)
+    if(bytes[0] != MAGIC[0] || bytes[1] != MAGIC[1] || bytes[2] != MAGIC[2] || bytes[3] != MAGIC[3]) return result;
+
+    const std::uint16_t version = read_u16(bytes, 4);
+    const std::uint16_t payload_size = read_u16(bytes, 6);
+    if(! ((version == V2_VERSION && payload_size == V2_PAYLOAD_SIZE) ||
+          (version == SAVE_FORMAT_VERSION && payload_size == SAVE_PAYLOAD_SIZE)))
     {
         return result;
     }
 
-    const std::uint32_t expected_crc = read_u32(bytes, 8);
-    const std::uint32_t actual_crc = crc32(bytes.data() + HEADER_SIZE, SAVE_PAYLOAD_SIZE);
-    if(expected_crc != actual_crc)
-    {
-        return result;
-    }
+    if(read_u32(bytes, 8) != crc32(bytes.data() + HEADER_SIZE, payload_size)) return result;
 
-    const std::size_t p = HEADER_SIZE;
     ProgressState progress;
-    progress.sound = int(bytes[p + 0]);
-    progress.prologue_complete = bytes[p + 1] != 0;
-    progress.money = int(read_u16(bytes, p + 2));
-    progress.current_character = int(bytes[p + 4]);
-    progress.current_rod = int(bytes[p + 5]);
-    progress.equipped_bait = int(bytes[p + 6]);
-    set_bool_mask(progress.bait_owned, bytes[p + 7]);
-    set_bool_mask(progress.rod_owned, bytes[p + 8]);
-    set_bool_mask(progress.character_owned, bytes[p + 9]);
-    const std::uint8_t unlock_mask = bytes[p + 10];
-    progress.club_card = (unlock_mask & 1u) != 0;
-    progress.old_boat = (unlock_mask & 2u) != 0;
-    progress.ancient_map = (unlock_mask & 4u) != 0;
-    progress.catalog = (unlock_mask & 8u) != 0;
-    progress.captains_hat = (unlock_mask & 16u) != 0;
-    progress.beach_ball = (unlock_mask & 32u) != 0;
+    decode_common(bytes, progress);
+    const std::size_t p = HEADER_SIZE;
     progress.fish_catalog.fill(false);
-    for(int fish = 0; fish < 44; ++fish)
+
+    if(version == V2_VERSION)
     {
-        progress.fish_catalog[fish] = (bytes[p + 11 + (fish / 8)] & std::uint8_t(1u << (fish % 8))) != 0;
+        for(int fish = 0; fish < 44; ++fish)
+        {
+            progress.fish_catalog[fish] = (bytes[p + 11 + fish / 8] & std::uint8_t(1u << (fish % 8))) != 0;
+        }
+        progress.car_keys = false;
+        progress.active_region = Region::MariMari;
+        progress.shop2_owned.fill(false);
+    }
+    else
+    {
+        const std::uint8_t unlock_mask = bytes[p + 10];
+        progress.car_keys = (unlock_mask & 64u) != 0;
+        progress.active_region = bytes[p + 11] == 1 ? Region::CoastalCity : Region::MariMari;
+        for(int slot = 0; slot < 32; ++slot)
+        {
+            progress.shop2_owned[slot] = (bytes[p + 12 + slot / 8] & std::uint8_t(1u << (slot % 8))) != 0;
+        }
+        for(int fish = 0; fish < 54; ++fish)
+        {
+            progress.fish_catalog[fish] = (bytes[p + 16 + fish / 8] & std::uint8_t(1u << (fish % 8))) != 0;
+        }
     }
 
     result.valid = true;

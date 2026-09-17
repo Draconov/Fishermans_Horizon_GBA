@@ -25,6 +25,7 @@ RUNTIME_SOURCES = [
     "src/flow_model.cpp",
     "src/game_state.cpp",
     "src/intro_model.cpp",
+    "src/map_content.cpp",
     "src/ui_font.cpp",
     "src/options_model.cpp",
     "src/presentation_effects.cpp",
@@ -111,6 +112,24 @@ def test_waterfall_background_asset_contract():
         "map_compression": "none",
         "height": 256,
     }
+
+
+def test_map2_placeholder_asset_contract():
+    expected = {
+        "map_bg_region2": (256, 256, 8),
+        "map_travel_spots": None,
+        "shop_bg_region2": None,
+        "fishing_bg_city_beach": (256, 768, 8),
+        "fishing_bg_bridge": (256, 768, 8),
+        "fishing_bg_breakwater": (256, 768, 8),
+    }
+    for stem, dims in expected.items():
+        bmp = ROOT / "graphics" / f"{stem}.bmp"
+        config = ROOT / "graphics" / f"{stem}.json"
+        assert bmp.exists(), stem
+        assert config.exists(), stem
+        if dims is not None:
+            assert _bmp_info(bmp) == dims
 
 def test_generated_asset_references_have_matching_graphics():
     include_pattern = re.compile(r'#include "bn_(?:regular_bg|sprite)_items_([a-z0-9_]+)\.h"')

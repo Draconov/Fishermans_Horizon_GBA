@@ -97,7 +97,9 @@ void App::update()
             _presentation.start_flash();
         }
 
-        if(_flow.state() != _scene_state)
+        const bool map_region_changed = _scene_state == GameState::Map && _map_scene &&
+                                        _map_scene->region() != _flow.active_region();
+        if(_flow.state() != _scene_state || map_region_changed)
         {
             if(_presentation.black_screen())
             {
@@ -146,7 +148,9 @@ void App::_apply_presentation()
 void App::_sync_scene()
 {
     const GameState state = _flow.state();
-    if(state == _scene_state)
+    const bool map_region_changed = state == GameState::Map && _map_scene &&
+                                    _map_scene->region() != _flow.active_region();
+    if(state == _scene_state && ! map_region_changed)
     {
         return;
     }
@@ -160,17 +164,17 @@ void App::_sync_scene()
         _title_scene.emplace();
         break;
     case GameState::Map:
-        _map_scene.emplace();
+        _map_scene.emplace(_flow.active_region());
         break;
     case GameState::Fishing:
-        if(_flow.fishing_pool() >= 1 && _flow.fishing_pool() <= 7)
+        if(_flow.fishing_pool() >= 1 && _flow.fishing_pool() <= 10)
         {
             _fishing_scene.emplace(
                 _flow.fishing_pool(), _flow.current_rod(), _flow.equipped_bait(), _flow.current_character());
         }
         break;
     case GameState::Shop:
-        _shop_scene.emplace();
+        _shop_scene.emplace(_flow.active_shop());
         break;
     case GameState::Catalog:
         _catalog_scene.emplace();
