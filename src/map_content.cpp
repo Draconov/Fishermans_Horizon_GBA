@@ -40,25 +40,25 @@ constexpr std::array<MapTargetSpec, 16> TARGETS = {{
     {MapTarget::Catalog, Region::MariMari, "Catalog", MapMarkerKind::Catalog, 12, 148,
      MapTarget::None, MapTarget::None, MapTarget::None, MapTarget::CrystalLake,
      MapUnlock::Catalog, MapAction::Catalog, 0},
-    {MapTarget::TravelMariMari, Region::MariMari, "Travel", MapMarkerKind::Travel, 64, 8,
+    {MapTarget::TravelMariMari, Region::MariMari, "Travel", MapMarkerKind::Travel, 233, 52,
      MapTarget::None, MapTarget::None, MapTarget::None, MapTarget::ShopMariMari,
-     MapUnlock::CarKeys, MapAction::Travel, int(Region::CoastalCity)},
+     MapUnlock::CarKeys, MapAction::Travel, int(Region::JarimPerla), 2},
 
-    {MapTarget::CityBeach, Region::CoastalCity, "City Beach", MapMarkerKind::Fishing, 56, 48,
-     MapTarget::None, MapTarget::Bridge, MapTarget::None, MapTarget::TravelCoastalCity,
+    {MapTarget::CityBeach, Region::JarimPerla, "City Beach", MapMarkerKind::Fishing, 127, 93,
+     MapTarget::None, MapTarget::Bridge, MapTarget::None, MapTarget::TravelJarimPerla,
      MapUnlock::Always, MapAction::Fishing, 8},
-    {MapTarget::Bridge, Region::CoastalCity, "Bridge", MapMarkerKind::Fishing, 128, 72,
-     MapTarget::CityBeach, MapTarget::ShopCoastalCity, MapTarget::None, MapTarget::Breakwater,
+    {MapTarget::Bridge, Region::JarimPerla, "Bridge", MapMarkerKind::Fishing, 108, 27,
+     MapTarget::CityBeach, MapTarget::ShopJarimPerla, MapTarget::None, MapTarget::Breakwater,
      MapUnlock::Always, MapAction::Fishing, 9},
-    {MapTarget::Breakwater, Region::CoastalCity, "Breakwater", MapMarkerKind::Fishing, 184, 120,
-     MapTarget::TravelCoastalCity, MapTarget::ShopCoastalCity, MapTarget::Bridge, MapTarget::None,
-     MapUnlock::CoastalItem1, MapAction::Fishing, 10},
-    {MapTarget::ShopCoastalCity, Region::CoastalCity, "City Shop", MapMarkerKind::Shop, 208, 32,
+    {MapTarget::Breakwater, Region::JarimPerla, "Breakwater", MapMarkerKind::Fishing, 162, 18,
+     MapTarget::TravelJarimPerla, MapTarget::ShopJarimPerla, MapTarget::Bridge, MapTarget::None,
+     MapUnlock::JarimPerlaItem1, MapAction::Fishing, 10},
+    {MapTarget::ShopJarimPerla, Region::JarimPerla, "Jarim Shop", MapMarkerKind::Shop, 141, 77,
      MapTarget::Bridge, MapTarget::None, MapTarget::None, MapTarget::Breakwater,
-     MapUnlock::Always, MapAction::Shop, int(ShopId::CoastalCity)},
-    {MapTarget::TravelCoastalCity, Region::CoastalCity, "Travel", MapMarkerKind::Travel, 32, 128,
+     MapUnlock::Always, MapAction::Shop, int(ShopId::JarimPerla)},
+    {MapTarget::TravelJarimPerla, Region::JarimPerla, "Travel", MapMarkerKind::Travel, 4, 49,
      MapTarget::None, MapTarget::Breakwater, MapTarget::CityBeach, MapTarget::None,
-     MapUnlock::CarKeys, MapAction::Travel, int(Region::MariMari)},
+     MapUnlock::CarKeys, MapAction::Travel, int(Region::MariMari), 0},
 }};
 
 constexpr std::array<MapTarget, 11> MARI_MARI_TARGETS = {{
@@ -75,12 +75,12 @@ constexpr std::array<MapTarget, 11> MARI_MARI_TARGETS = {{
     MapTarget::TravelMariMari,
 }};
 
-constexpr std::array<MapTarget, 5> COASTAL_CITY_TARGETS = {{
+constexpr std::array<MapTarget, 5> JARIM_PERLA_TARGETS = {{
     MapTarget::CityBeach,
     MapTarget::Bridge,
     MapTarget::Breakwater,
-    MapTarget::ShopCoastalCity,
-    MapTarget::TravelCoastalCity,
+    MapTarget::ShopJarimPerla,
+    MapTarget::TravelJarimPerla,
 }};
 
 }
@@ -103,8 +103,8 @@ int region_target_count(Region region) noexcept
     {
     case Region::MariMari:
         return int(MARI_MARI_TARGETS.size());
-    case Region::CoastalCity:
-        return int(COASTAL_CITY_TARGETS.size());
+    case Region::JarimPerla:
+        return int(JARIM_PERLA_TARGETS.size());
     }
     return 0;
 }
@@ -119,8 +119,8 @@ MapTarget region_target_at(Region region, int index) noexcept
     {
     case Region::MariMari:
         return index < int(MARI_MARI_TARGETS.size()) ? MARI_MARI_TARGETS[index] : MapTarget::None;
-    case Region::CoastalCity:
-        return index < int(COASTAL_CITY_TARGETS.size()) ? COASTAL_CITY_TARGETS[index] : MapTarget::None;
+    case Region::JarimPerla:
+        return index < int(JARIM_PERLA_TARGETS.size()) ? JARIM_PERLA_TARGETS[index] : MapTarget::None;
     }
     return MapTarget::None;
 }
@@ -131,10 +131,26 @@ MapTarget region_first_target(Region region) noexcept
     {
     case Region::MariMari:
         return MapTarget::CrystalLake;
-    case Region::CoastalCity:
+    case Region::JarimPerla:
         return MapTarget::CityBeach;
     }
     return MapTarget::CrystalLake;
+}
+
+int map_marker_frame(MapTarget target, int animation_phase) noexcept
+{
+    const MapTargetSpec* spec = map_target_spec(target);
+    if(! spec)
+    {
+        return 0;
+    }
+
+    const int phase = animation_phase == 0 ? 0 : 1;
+    if(spec->marker_kind == MapMarkerKind::Travel)
+    {
+        return spec->marker_frame_base + phase;
+    }
+    return phase;
 }
 
 }

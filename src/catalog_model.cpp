@@ -9,14 +9,14 @@ namespace
 
 constexpr int COLUMNS = 11;
 constexpr int MARI_MARI_COUNT = 44;
-constexpr int COASTAL_START = 44;
-constexpr int COASTAL_COUNT = 10;
+constexpr int JARIM_PERLA_START = 44;
+constexpr int JARIM_PERLA_COUNT = 10;
 
 }
 
 int CatalogModel::selected_cursor() const noexcept { return _selected_cursor; }
 CatalogSection CatalogModel::section() const noexcept { return _section; }
-int CatalogModel::local_slot() const noexcept { return _section == CatalogSection::CoastalCity ? _selected_cursor - COASTAL_START : _selected_cursor; }
+int CatalogModel::local_slot() const noexcept { return _section == CatalogSection::JarimPerla ? _selected_cursor - JARIM_PERLA_START : _selected_cursor; }
 const CatalogEntrySpec* CatalogModel::selected_entry() const noexcept { return catalog_entry_spec(_selected_cursor); }
 
 bool CatalogModel::selected_caught(const FlowModel& flow) const noexcept
@@ -42,7 +42,7 @@ void CatalogModel::next() noexcept
     }
     else
     {
-        _selected_cursor = COASTAL_START + ((_selected_cursor - COASTAL_START + 1) % COASTAL_COUNT);
+        _selected_cursor = JARIM_PERLA_START + ((_selected_cursor - JARIM_PERLA_START + 1) % JARIM_PERLA_COUNT);
     }
 }
 
@@ -54,7 +54,7 @@ void CatalogModel::previous() noexcept
     }
     else
     {
-        _selected_cursor = COASTAL_START + ((_selected_cursor - COASTAL_START + COASTAL_COUNT - 1) % COASTAL_COUNT);
+        _selected_cursor = JARIM_PERLA_START + ((_selected_cursor - JARIM_PERLA_START + JARIM_PERLA_COUNT - 1) % JARIM_PERLA_COUNT);
     }
 }
 
@@ -67,13 +67,13 @@ void CatalogModel::move_left() noexcept
 void CatalogModel::move_right() noexcept
 {
     const int local = local_slot();
-    const int section_count = _section == CatalogSection::MariMari ? MARI_MARI_COUNT : COASTAL_COUNT;
+    const int section_count = _section == CatalogSection::MariMari ? MARI_MARI_COUNT : JARIM_PERLA_COUNT;
     if(local % COLUMNS < COLUMNS - 1 && local + 1 < section_count) ++_selected_cursor;
 }
 
 void CatalogModel::move_up() noexcept
 {
-    if(_section == CatalogSection::CoastalCity)
+    if(_section == CatalogSection::JarimPerla)
     {
         const int column = local_slot() % COLUMNS;
         _section = CatalogSection::MariMari;
@@ -95,8 +95,8 @@ void CatalogModel::move_down() noexcept
             return;
         }
         const int column = _selected_cursor % COLUMNS;
-        _section = CatalogSection::CoastalCity;
-        _selected_cursor = COASTAL_START + (column < COASTAL_COUNT ? column : COASTAL_COUNT - 1);
+        _section = CatalogSection::JarimPerla;
+        _selected_cursor = JARIM_PERLA_START + (column < JARIM_PERLA_COUNT ? column : JARIM_PERLA_COUNT - 1);
         return;
     }
 }
@@ -112,15 +112,15 @@ void CatalogModel::_select_section_column(CatalogSection section, int column) no
     }
     else
     {
-        if(column >= COASTAL_COUNT) column = COASTAL_COUNT - 1;
-        _selected_cursor = COASTAL_START + column;
+        if(column >= JARIM_PERLA_COUNT) column = JARIM_PERLA_COUNT - 1;
+        _selected_cursor = JARIM_PERLA_START + column;
     }
 }
 
 void CatalogModel::next_section() noexcept
 {
     const int column = local_slot() % COLUMNS;
-    _select_section_column(_section == CatalogSection::MariMari ? CatalogSection::CoastalCity : CatalogSection::MariMari, column);
+    _select_section_column(_section == CatalogSection::MariMari ? CatalogSection::JarimPerla : CatalogSection::MariMari, column);
 }
 
 void CatalogModel::previous_section() noexcept
@@ -133,7 +133,7 @@ void CatalogModel::select(int cursor) noexcept
     if(cursor >= 0 && cursor < catalog_entry_count())
     {
         _selected_cursor = cursor;
-        _section = cursor >= COASTAL_START ? CatalogSection::CoastalCity : CatalogSection::MariMari;
+        _section = cursor >= JARIM_PERLA_START ? CatalogSection::JarimPerla : CatalogSection::MariMari;
     }
 }
 

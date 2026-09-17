@@ -11,7 +11,7 @@ class FlowModel;
 enum class CatalogSection
 {
     MariMari = 0,
-    CoastalCity = 1,
+    JarimPerla = 1,
 };
 
 class CatalogModel

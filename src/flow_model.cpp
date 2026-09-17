@@ -7,7 +7,7 @@ namespace
 
 bool valid_region(Region region) noexcept
 {
-    return region == Region::MariMari || region == Region::CoastalCity;
+    return region == Region::MariMari || region == Region::JarimPerla;
 }
 
 }
@@ -15,7 +15,7 @@ bool valid_region(Region region) noexcept
 FlowModel::FlowModel(ProgressState progress) noexcept :
     _progress(progress)
 {
-    if(! valid_region(_progress.active_region) || (_progress.active_region == Region::CoastalCity && ! _progress.car_keys))
+    if(! valid_region(_progress.active_region) || (_progress.active_region == Region::JarimPerla && ! _progress.car_keys))
     {
         _progress.active_region = Region::MariMari;
     }
@@ -224,7 +224,7 @@ bool FlowModel::map_target_enabled(MapTarget target) const noexcept
     case MapUnlock::CaptainsHat: return _progress.captains_hat;
     case MapUnlock::BeachBall: return _progress.beach_ball;
     case MapUnlock::CarKeys: return _progress.car_keys;
-    case MapUnlock::CoastalItem1: return _progress.shop2_owned[0];
+    case MapUnlock::JarimPerlaItem1: return _progress.shop2_owned[0];
     }
     return false;
 }
@@ -280,7 +280,7 @@ bool FlowModel::shop_item_owned(ShopId shop, int slot) const noexcept
         return false;
     }
 
-    if(shop == ShopId::CoastalCity)
+    if(shop == ShopId::JarimPerla)
     {
         return slot >= 0 && slot < int(_progress.shop2_owned.size()) && _progress.shop2_owned[slot];
     }
@@ -297,7 +297,7 @@ bool FlowModel::shop_item_owned(ShopId shop, int slot) const noexcept
     case ShopEffect::CaptainsHat: return _progress.captains_hat;
     case ShopEffect::BeachBall: return _progress.beach_ball;
     case ShopEffect::CarKeys: return _progress.car_keys;
-    case ShopEffect::CoastalItem1: return false;
+    case ShopEffect::JarimPerlaItem1: return false;
     }
     return false;
 }
@@ -322,7 +322,7 @@ ShopPurchaseResult FlowModel::purchase_shop_item(ShopId shop, int slot) noexcept
     if(_progress.money < item->price) return ShopPurchaseResult::InsufficientFunds;
 
     _progress.money -= item->price;
-    if(shop == ShopId::CoastalCity)
+    if(shop == ShopId::JarimPerla)
     {
         if(slot >= 0 && slot < int(_progress.shop2_owned.size()))
         {
@@ -348,7 +348,7 @@ ShopPurchaseResult FlowModel::purchase_shop_item(ShopId shop, int slot) noexcept
         case ShopEffect::CaptainsHat: _progress.captains_hat = true; break;
         case ShopEffect::BeachBall: _progress.beach_ball = true; break;
         case ShopEffect::CarKeys: _progress.car_keys = true; break;
-        case ShopEffect::CoastalItem1: break;
+        case ShopEffect::JarimPerlaItem1: break;
         }
     }
     ++_progress_revision;
@@ -475,7 +475,7 @@ void FlowModel::_activate_selected_map_target() noexcept
     case MapAction::Travel:
     {
         const Region destination = static_cast<Region>(spec->action_value);
-        if(destination != Region::MariMari && destination != Region::CoastalCity) return;
+        if(destination != Region::MariMari && destination != Region::JarimPerla) return;
         _progress.active_region = destination;
         _selected_map_target = region_first_target(destination);
         ++_progress_revision;

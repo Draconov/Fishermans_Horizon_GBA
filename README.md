@@ -61,7 +61,7 @@ Current unlock items:
 
 Beach is still map-only until its own fishing background/content is added.
 
-### Region 2 — Coastal City
+### Region 2 — Jarim Perla
 
 After buying **Car Keys**, use the Travel marker on either map to move between regions.
 
@@ -99,9 +99,9 @@ Shop 2 purchase ownership is separate from Mari-Mari Shop ownership.
 The global catalog now contains **54 fish**:
 
 - Mari-Mari section: fish 1–44
-- Coastal City section: fish 45–54
+- Jarim Perla section: fish 45–54
 
-Coastal City adds 10 species whose current visuals intentionally reuse existing fish frames until final sprites are supplied:
+Jarim Perla adds 10 species whose current visuals intentionally reuse existing fish frames until final sprites are supplied:
 
 1. CITY MINNOW
 2. GLASSFISH
@@ -114,7 +114,7 @@ Coastal City adds 10 species whose current visuals intentionally reuse existing 
 9. JETTY SHARK
 10. NEON TUNA
 
-In the Catalog, **L/R switches region sections**. D-pad navigation can also cross between the bottom row of the Mari-Mari section and the Coastal City section. Catalog completion requires all 54 species.
+In the Catalog, **L/R switches region sections**. D-pad navigation can also cross between the bottom row of the Mari-Mari section and the Jarim Perla section. Catalog completion requires all 54 species.
 
 ## Controls
 
@@ -150,7 +150,7 @@ In the Catalog, **L/R switches region sections**. D-pad navigation can also cros
 ### Catalog
 
 - **D-pad** — move between fish
-- **L / R** — switch Mari-Mari / Coastal City sections
+- **L / R** — switch Mari-Mari / Jarim Perla sections
 - **A** — details for a caught fish
 - **B** — return to map
 
@@ -169,9 +169,9 @@ Current format:
 - format: **version 3**
 - payload: **32 bytes**
 
-Version 3 stores the active region, Car Keys, 32 reserved Shop 2 ownership bits, and all 54 catalog flags. Valid **version 2 saves are migrated automatically**: existing Mari-Mari progress is preserved, Coastal City begins locked/unvisited, Shop 2 begins unpurchased, and fish 45–54 begin uncaught.
+Version 3 stores the active region, Car Keys, 32 reserved Shop 2 ownership bits, and all 54 catalog flags. Valid **version 2 saves are migrated automatically**: existing Mari-Mari progress is preserved, Jarim Perla begins locked/unvisited, Shop 2 begins unpurchased, and fish 45–54 begin uncaught.
 
-Loading resumes on the **last active region**. A malformed save that claims Coastal City without Car Keys is safely returned to Mari-Mari.
+Loading resumes on the **last active region**. A malformed save that claims Jarim Perla without Car Keys is safely returned to Mari-Mari.
 
 ## Placeholder graphics for Map 2
 

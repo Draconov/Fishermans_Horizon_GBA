@@ -76,7 +76,7 @@ void set_bool_mask(std::array<bool, Size>& values, std::uint8_t mask) noexcept
 
 [[nodiscard]] bool valid_region(Region region) noexcept
 {
-    return region == Region::MariMari || region == Region::CoastalCity;
+    return region == Region::MariMari || region == Region::JarimPerla;
 }
 
 [[nodiscard]] ProgressState sanitize(ProgressState progress) noexcept
@@ -105,7 +105,7 @@ void set_bool_mask(std::array<bool, Size>& values, std::uint8_t mask) noexcept
         progress.equipped_bait = 0;
     }
 
-    if(! valid_region(progress.active_region) || (progress.active_region == Region::CoastalCity && ! progress.car_keys))
+    if(! valid_region(progress.active_region) || (progress.active_region == Region::JarimPerla && ! progress.car_keys))
     {
         progress.active_region = Region::MariMari;
     }
@@ -167,7 +167,7 @@ SaveImage encode_save(const ProgressState& source) noexcept
                                  (progress.captains_hat ? 16u : 0u) |
                                  (progress.beach_ball ? 32u : 0u) |
                                  (progress.car_keys ? 64u : 0u));
-    bytes[p + 11] = std::uint8_t(progress.active_region == Region::CoastalCity ? 1 : 0);
+    bytes[p + 11] = std::uint8_t(progress.active_region == Region::JarimPerla ? 1 : 0);
 
     for(int slot = 0; slot < 32; ++slot)
     {
@@ -219,7 +219,7 @@ SaveDecodeResult decode_save(const SaveImage& image) noexcept
     {
         const std::uint8_t unlock_mask = bytes[p + 10];
         progress.car_keys = (unlock_mask & 64u) != 0;
-        progress.active_region = bytes[p + 11] == 1 ? Region::CoastalCity : Region::MariMari;
+        progress.active_region = bytes[p + 11] == 1 ? Region::JarimPerla : Region::MariMari;
         for(int slot = 0; slot < 32; ++slot)
         {
             progress.shop2_owned[slot] = (bytes[p + 12 + slot / 8] & std::uint8_t(1u << (slot % 8))) != 0;

@@ -21,11 +21,11 @@ namespace
 {
 
 constexpr const char* SHOP_WELCOME_TEXT = "Welcome to Mari-Mari Shop";
-constexpr const char* SHOP2_WELCOME_TEXT = "Welcome to the City Shop";
+constexpr const char* SHOP2_WELCOME_TEXT = "Welcome to Jarim Perla Shop";
 
 bn::regular_bg_ptr create_shop_background(ShopId shop)
 {
-    if(shop == ShopId::CoastalCity)
+    if(shop == ShopId::JarimPerla)
     {
         return bn::regular_bg_items::shop_bg_region2.create_bg(0, 0);
     }
@@ -110,7 +110,7 @@ ShopScene::ShopScene(ShopId shop) :
     _locked_overlay.set_visible(false);
     _buy_enabled.set_visible(false);
     _cursor.set_visible(false);
-    _dialog.start(_shop_id == ShopId::CoastalCity ? SHOP2_WELCOME_TEXT : SHOP_WELCOME_TEXT);
+    _dialog.start(_shop_id == ShopId::JarimPerla ? SHOP2_WELCOME_TEXT : SHOP_WELCOME_TEXT);
 
     for(int slot = 0; slot < 16; ++slot)
     {
@@ -383,7 +383,7 @@ void ShopScene::_render(FlowModel& flow)
 
 void ShopScene::_set_background_page(int page)
 {
-    if(_shop_id == ShopId::CoastalCity)
+    if(_shop_id == ShopId::JarimPerla)
     {
         _background.set_map(bn::regular_bg_items::shop_bg_region2.map_item(), page);
     }

@@ -7,7 +7,7 @@ namespace fh
 enum class ShopId
 {
     MariMari = 0,
-    CoastalCity = 1,
+    JarimPerla = 1,
 };
 
 enum class ShopEffect
@@ -22,7 +22,7 @@ enum class ShopEffect
     CaptainsHat,
     BeachBall,
     CarKeys,
-    CoastalItem1,
+    JarimPerlaItem1,
 };
 
 enum class ShopPurchaseResult

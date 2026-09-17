@@ -34,8 +34,8 @@ constexpr std::array<ShopItemSpec, 19> MARI_MARI_ITEMS = {{
     {18, "Car Keys", "Keys to a car that can take you to another region.", 100, ShopEffect::CarKeys, 0},
 }};
 
-constexpr std::array<ShopItemSpec, 1> COASTAL_CITY_ITEMS = {{
-    {0, "Item 1", "A strange item that reveals a new fishing spot.", 20, ShopEffect::CoastalItem1, 0},
+constexpr std::array<ShopItemSpec, 1> JARIM_PERLA_ITEMS = {{
+    {0, "Item 1", "A strange item that reveals a new fishing spot.", 20, ShopEffect::JarimPerlaItem1, 0},
 }};
 
 }
@@ -46,8 +46,8 @@ int shop_item_count(ShopId shop) noexcept
     {
     case ShopId::MariMari:
         return int(MARI_MARI_ITEMS.size());
-    case ShopId::CoastalCity:
-        return int(COASTAL_CITY_ITEMS.size());
+    case ShopId::JarimPerla:
+        return int(JARIM_PERLA_ITEMS.size());
     }
     return 0;
 }
@@ -62,8 +62,8 @@ const ShopItemSpec* shop_item_spec(ShopId shop, int slot) noexcept
     {
     case ShopId::MariMari:
         return slot < int(MARI_MARI_ITEMS.size()) ? &MARI_MARI_ITEMS[slot] : nullptr;
-    case ShopId::CoastalCity:
-        return slot < int(COASTAL_CITY_ITEMS.size()) ? &COASTAL_CITY_ITEMS[slot] : nullptr;
+    case ShopId::JarimPerla:
+        return slot < int(JARIM_PERLA_ITEMS.size()) ? &JARIM_PERLA_ITEMS[slot] : nullptr;
     }
     return nullptr;
 }

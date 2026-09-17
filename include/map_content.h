@@ -7,7 +7,7 @@ namespace fh
 enum class Region
 {
     MariMari = 0,
-    CoastalCity = 1,
+    JarimPerla = 1,
 };
 
 enum class MapTarget
@@ -30,8 +30,8 @@ enum class MapTarget
     CityBeach,
     Bridge,
     Breakwater,
-    ShopCoastalCity,
-    TravelCoastalCity,
+    ShopJarimPerla,
+    TravelJarimPerla,
 };
 
 enum class MapMarkerKind
@@ -52,7 +52,7 @@ enum class MapUnlock
     CaptainsHat,
     BeachBall,
     CarKeys,
-    CoastalItem1,
+    JarimPerlaItem1,
 };
 
 enum class MapAction
@@ -79,12 +79,14 @@ struct MapTargetSpec
     MapUnlock unlock;
     MapAction action;
     int action_value;
+    int marker_frame_base = 0;
 };
 
 [[nodiscard]] const MapTargetSpec* map_target_spec(MapTarget target) noexcept;
 [[nodiscard]] int region_target_count(Region region) noexcept;
 [[nodiscard]] MapTarget region_target_at(Region region, int index) noexcept;
 [[nodiscard]] MapTarget region_first_target(Region region) noexcept;
+[[nodiscard]] int map_marker_frame(MapTarget target, int animation_phase) noexcept;
 
 }
 

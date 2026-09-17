@@ -96,9 +96,9 @@ void test_catalog_model_contract()
     const fh::CatalogEntrySpec* mari_last = fh::catalog_entry_spec(43);
     assert(mari_last && mari_last->fish_number == 44);
     assert(std::strcmp(mari_last->name, "???") == 0);
-    const fh::CatalogEntrySpec* coastal_last = fh::catalog_entry_spec(53);
-    assert(coastal_last && coastal_last->fish_number == 54);
-    assert(std::strcmp(coastal_last->name, "NEON TUNA") == 0);
+    const fh::CatalogEntrySpec* jarim_perla_last = fh::catalog_entry_spec(53);
+    assert(jarim_perla_last && jarim_perla_last->fish_number == 54);
+    assert(std::strcmp(jarim_perla_last->name, "NEON TUNA") == 0);
 
     fh::ProgressState progress;
     fh::FlowModel flow(progress);
@@ -136,7 +136,7 @@ void test_catalog_model_contract()
 
     catalog.select(3);
     catalog.next_section();
-    assert(catalog.section() == fh::CatalogSection::CoastalCity);
+    assert(catalog.section() == fh::CatalogSection::JarimPerla);
     assert(catalog.selected_cursor() == 47);
     catalog.previous_section();
     assert(catalog.section() == fh::CatalogSection::MariMari);
@@ -157,7 +157,7 @@ void test_catalog_model_contract()
         assert(spatial.selected_cursor() == 34);
         spatial.move_down();
         assert(spatial.selected_cursor() == 45);
-        assert(spatial.section() == fh::CatalogSection::CoastalCity);
+        assert(spatial.section() == fh::CatalogSection::JarimPerla);
         spatial.move_up();
         assert(spatial.selected_cursor() == 34);
         assert(spatial.section() == fh::CatalogSection::MariMari);
@@ -169,7 +169,7 @@ void test_catalog_model_contract()
         spatial.move_right();
         spatial.move_down();
         assert(spatial.selected_cursor() == 53);
-        assert(spatial.section() == fh::CatalogSection::CoastalCity);
+        assert(spatial.section() == fh::CatalogSection::JarimPerla);
         spatial.move_up();
         assert(spatial.selected_cursor() == 42);
     }
@@ -1470,6 +1470,29 @@ void test_flow_model_contract()
 
 void test_map2_region_contract()
 {
+    // Marker layout follows the arrow-tip positions from the approved map screenshots.
+    const fh::MapTargetSpec* travel_mari = fh::map_target_spec(fh::MapTarget::TravelMariMari);
+    assert(travel_mari);
+    assert(travel_mari->screen_x == 233);
+    assert(travel_mari->screen_y == 52);
+    assert(travel_mari->marker_frame_base == 2);  // right arrow animates on frames 2/3
+
+    const fh::MapTargetSpec* city_beach = fh::map_target_spec(fh::MapTarget::CityBeach);
+    const fh::MapTargetSpec* bridge = fh::map_target_spec(fh::MapTarget::Bridge);
+    const fh::MapTargetSpec* breakwater = fh::map_target_spec(fh::MapTarget::Breakwater);
+    const fh::MapTargetSpec* shop2 = fh::map_target_spec(fh::MapTarget::ShopJarimPerla);
+    const fh::MapTargetSpec* travel2 = fh::map_target_spec(fh::MapTarget::TravelJarimPerla);
+    assert(city_beach && city_beach->screen_x == 127 && city_beach->screen_y == 93);
+    assert(bridge && bridge->screen_x == 108 && bridge->screen_y == 27);
+    assert(breakwater && breakwater->screen_x == 162 && breakwater->screen_y == 18);
+    assert(shop2 && shop2->screen_x == 141 && shop2->screen_y == 77);
+    assert(travel2 && travel2->screen_x == 4 && travel2->screen_y == 49);
+    assert(travel2->marker_frame_base == 0);  // left arrow animates on frames 0/1
+    assert(fh::map_marker_frame(fh::MapTarget::TravelMariMari, 0) == 2);
+    assert(fh::map_marker_frame(fh::MapTarget::TravelMariMari, 1) == 3);
+    assert(fh::map_marker_frame(fh::MapTarget::TravelJarimPerla, 0) == 0);
+    assert(fh::map_marker_frame(fh::MapTarget::TravelJarimPerla, 1) == 1);
+
     const fh::ShopItemSpec* keys = fh::shop_item_spec(fh::ShopId::MariMari, 18);
     assert(keys);
     assert(std::strcmp(keys->name, "Car Keys") == 0);
@@ -1483,12 +1506,12 @@ void test_map2_region_contract()
 
     assert(flow.active_region() == fh::Region::MariMari);
     assert(! flow.map_target_enabled(fh::MapTarget::TravelMariMari));
-    assert(! flow.map_target_enabled(fh::MapTarget::TravelCoastalCity));
+    assert(! flow.map_target_enabled(fh::MapTarget::TravelJarimPerla));
     assert(flow.purchase_shop_item(fh::ShopId::MariMari, 18) == fh::ShopPurchaseResult::Purchased);
     assert(flow.money() == 100);
     assert(flow.shop_item_owned(fh::ShopId::MariMari, 18));
     assert(flow.map_target_enabled(fh::MapTarget::TravelMariMari));
-    assert(flow.map_target_enabled(fh::MapTarget::TravelCoastalCity));
+    assert(flow.map_target_enabled(fh::MapTarget::TravelJarimPerla));
 
     flow.handle_title_command(fh::TitleCommand::Play);
     assert(flow.state() == fh::GameState::Map);
@@ -1500,14 +1523,14 @@ void test_map2_region_contract()
     const auto travel_revision = flow.progress_revision();
     flow.handle_map_command(fh::MapCommand::Confirm);
     assert(flow.state() == fh::GameState::Map);
-    assert(flow.active_region() == fh::Region::CoastalCity);
+    assert(flow.active_region() == fh::Region::JarimPerla);
     assert(flow.selected_map_target() == fh::MapTarget::CityBeach);
     assert(flow.progress_revision() == travel_revision + 1);
 
     assert(flow.map_target_enabled(fh::MapTarget::CityBeach));
     assert(flow.map_target_enabled(fh::MapTarget::Bridge));
-    assert(flow.map_target_enabled(fh::MapTarget::ShopCoastalCity));
-    assert(flow.map_target_enabled(fh::MapTarget::TravelCoastalCity));
+    assert(flow.map_target_enabled(fh::MapTarget::ShopJarimPerla));
+    assert(flow.map_target_enabled(fh::MapTarget::TravelJarimPerla));
     assert(! flow.map_target_enabled(fh::MapTarget::Breakwater));
 
     // City Beach enters pool 8.
@@ -1526,15 +1549,15 @@ void test_map2_region_contract()
 
     // Shop 2 is distinct, with Item 1 unlocking Breakwater.
     flow.handle_map_command(fh::MapCommand::Right);
-    assert(flow.selected_map_target() == fh::MapTarget::ShopCoastalCity);
+    assert(flow.selected_map_target() == fh::MapTarget::ShopJarimPerla);
     flow.handle_map_command(fh::MapCommand::Confirm);
     assert(flow.state() == fh::GameState::Shop);
-    assert(flow.active_shop() == fh::ShopId::CoastalCity);
-    assert(fh::shop_item_count(fh::ShopId::CoastalCity) == 1);
-    const fh::ShopItemSpec* item1 = fh::shop_item_spec(fh::ShopId::CoastalCity, 0);
+    assert(flow.active_shop() == fh::ShopId::JarimPerla);
+    assert(fh::shop_item_count(fh::ShopId::JarimPerla) == 1);
+    const fh::ShopItemSpec* item1 = fh::shop_item_spec(fh::ShopId::JarimPerla, 0);
     assert(item1 && item1->price == 20);
-    assert(flow.purchase_shop_item(fh::ShopId::CoastalCity, 0) == fh::ShopPurchaseResult::Purchased);
-    assert(flow.shop_item_owned(fh::ShopId::CoastalCity, 0));
+    assert(flow.purchase_shop_item(fh::ShopId::JarimPerla, 0) == fh::ShopPurchaseResult::Purchased);
+    assert(flow.shop_item_owned(fh::ShopId::JarimPerla, 0));
     assert(flow.map_target_enabled(fh::MapTarget::Breakwater));
     flow.handle_shop_back();
 
@@ -1547,11 +1570,11 @@ void test_map2_region_contract()
 
     // Travel back returns to Crystal Lake and leaves Shop 2 ownership intact.
     flow.handle_map_command(fh::MapCommand::Left);
-    assert(flow.selected_map_target() == fh::MapTarget::TravelCoastalCity);
+    assert(flow.selected_map_target() == fh::MapTarget::TravelJarimPerla);
     flow.handle_map_command(fh::MapCommand::Confirm);
     assert(flow.active_region() == fh::Region::MariMari);
     assert(flow.selected_map_target() == fh::MapTarget::CrystalLake);
-    assert(flow.shop_item_owned(fh::ShopId::CoastalCity, 0));
+    assert(flow.shop_item_owned(fh::ShopId::JarimPerla, 0));
 }
 
 
@@ -1887,7 +1910,7 @@ void test_save_codec_contract()
     full.captains_hat = true;
     full.beach_ball = true;
     full.car_keys = true;
-    full.active_region = fh::Region::CoastalCity;
+    full.active_region = fh::Region::JarimPerla;
     full.shop2_owned[0] = true;
     full.shop2_owned[17] = true;
     full.money = 987;
@@ -1934,7 +1957,7 @@ void test_save_codec_contract()
     invalid_source.bait_owned.fill(false);
     invalid_source.rod_owned.fill(false);
     invalid_source.character_owned.fill(false);
-    invalid_source.active_region = fh::Region::CoastalCity;
+    invalid_source.active_region = fh::Region::JarimPerla;
     invalid_source.car_keys = false;
     const fh::SaveDecodeResult sanitized = fh::decode_save(fh::encode_save(invalid_source));
     assert(sanitized.valid);
@@ -2017,7 +2040,7 @@ void verify_effect(int slot, const fh::FlowModel& flow)
         break;
     case 18:
         assert(flow.map_target_enabled(fh::MapTarget::TravelMariMari));
-        assert(flow.map_target_enabled(fh::MapTarget::TravelCoastalCity));
+        assert(flow.map_target_enabled(fh::MapTarget::TravelJarimPerla));
         break;
     default:
         assert(false);
@@ -2191,24 +2214,24 @@ void test_shop_model_contract()
     }
 
     {
-        assert(fh::shop_item_count(fh::ShopId::CoastalCity) == 1);
-        const fh::ShopItemSpec* item = fh::shop_item_spec(fh::ShopId::CoastalCity, 0);
+        assert(fh::shop_item_count(fh::ShopId::JarimPerla) == 1);
+        const fh::ShopItemSpec* item = fh::shop_item_spec(fh::ShopId::JarimPerla, 0);
         assert(item && item->price == 20);
         assert(std::strcmp(item->name, "Item 1") == 0);
 
         fh::ProgressState progress;
         progress.money = 50;
         progress.car_keys = true;
-        progress.active_region = fh::Region::CoastalCity;
+        progress.active_region = fh::Region::JarimPerla;
         fh::FlowModel flow(progress);
-        fh::ShopModel city_shop(fh::ShopId::CoastalCity);
-        assert(city_shop.selected_item() == 0);
-        city_shop.move_right();
-        city_shop.move_down();
-        assert(city_shop.selected_item() == 0);
-        assert(city_shop.purchase(flow) == fh::ShopPurchaseResult::Purchased);
+        fh::ShopModel jarim_perla_shop(fh::ShopId::JarimPerla);
+        assert(jarim_perla_shop.selected_item() == 0);
+        jarim_perla_shop.move_right();
+        jarim_perla_shop.move_down();
+        assert(jarim_perla_shop.selected_item() == 0);
+        assert(jarim_perla_shop.purchase(flow) == fh::ShopPurchaseResult::Purchased);
         assert(flow.money() == 30);
-        assert(city_shop.sold_out(flow));
+        assert(jarim_perla_shop.sold_out(flow));
         assert(flow.map_target_enabled(fh::MapTarget::Breakwater));
     }
 

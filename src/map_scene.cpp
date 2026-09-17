@@ -28,7 +28,7 @@ constexpr const char* CHARACTER_NAMES[] = {"Cid", "Fran", "Leon", "Sazh", "Rosa"
 
 bn::regular_bg_ptr create_map_background(Region region)
 {
-    if(region == Region::CoastalCity)
+    if(region == Region::JarimPerla)
     {
         return bn::regular_bg_items::map_bg_region2.create_bg(0, 0);
     }
@@ -102,7 +102,8 @@ void MapScene::_build_markers()
         }
 
         bn::sprite_ptr sprite = spec->marker_kind == MapMarkerKind::Travel ?
-            bn::sprite_items::map_travel_spots.create_sprite(spec->screen_x - 120, spec->screen_y - 80, 0) :
+            bn::sprite_items::map_travel_spots.create_sprite(
+                spec->screen_x - 120, spec->screen_y - 80, spec->marker_frame_base) :
             bn::sprite_items::map_spots.create_sprite(
                 spec->screen_x - 120, spec->screen_y - 80,
                 spec->marker_kind == MapMarkerKind::Shop ? 2 : 0);
@@ -200,8 +201,12 @@ void MapScene::_update_marker_graphics(const FlowModel& flow)
             _marker_sprites[index].set_tiles(bn::sprite_items::map_spots.tiles_item(), next_b_index);
             break;
         case MapMarkerKind::Travel:
-            _marker_sprites[index].set_tiles(bn::sprite_items::map_travel_spots.tiles_item(), next_a_index);
+        {
+            _marker_sprites[index].set_tiles(
+                bn::sprite_items::map_travel_spots.tiles_item(),
+                map_marker_frame(_marker_targets[index], next_a_index));
             break;
+        }
         case MapMarkerKind::Catalog:
             break;
         }
